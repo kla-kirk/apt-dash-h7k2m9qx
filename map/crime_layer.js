@@ -27,9 +27,19 @@ BRMap.ready(async () => {
   const VT = [{ t: "Low", m: 3, c: "#1E7A34" }, { t: "Moderate", m: 11, c: "#9A6A00" }, { t: "Elevated", m: 26, c: "#C2691C" }, { t: "High", m: 1e9, c: "#B23B3B" }];
   const vt = (n) => { let i = VT.findIndex((s) => n < s.m); return VT[i < 0 ? 3 : i]; };
 
-  BRMap.addPopupRow((l) => { const s = SC[l.id]; if (!s) return ""; const t = vt(s.v[1]);
-    return '<div class="row">Violent risk: <b style="color:' + t.c + '">' + t.t + "</b> · ¼mi " + s.v[0] + " · ½mi " + s.v[1] + " · 1mi " + s.v[2] + "</div>" +
-           '<div class="row">Burglary ¼mi <b>' + s.b + "</b> · Car theft ¼mi <b>" + s.a + "</b></div>"; });
+  // popup rows for a clicked listing — boxed format ported from the original crime_map.html
+  const yl = YEARS.length ? YEARS[0] + "–" + String(YEARS[YEARS.length - 1]).slice(-2) : "";
+  BRMap.addPopupRow((l) => {
+    const s = SC[l.id]; if (!s) return ""; const t = vt(s.v[1]);
+    const box = (n, lab) => '<span style="flex:1;text-align:center;background:' + t.c + '14;border:1px solid ' + t.c + '33;border-radius:6px;padding:3px 2px"><b style="display:block;font-size:14px;line-height:1.15;color:' + t.c + '">' + n + '</b><span style="font-size:9.5px;color:#6B7480">' + lab + '</span></span>';
+    return '<div class="row" style="margin-top:3px">Violent crime risk: <span class="badge" style="background:' + t.c + '22;color:' + t.c + '">' + t.t + '</span></div>' +
+      '<div class="row" style="display:flex;gap:5px;margin-top:3px">' + box(s.v[0], "within &frac14; mi") + box(s.v[1], "within &frac12; mi") + box(s.v[2], "within 1 mi") + '</div>' +
+      '<div class="row" style="font-size:9.5px;color:#6B7480;margin-top:2px">violent incidents' + (yl ? ", " + yl : "") + '</div>' +
+      '<div class="row" style="display:flex;gap:5px;margin-top:5px">' +
+        '<span style="flex:1;text-align:center;background:#2B6CB014;border:1px solid #2B6CB033;border-radius:6px;padding:3px 2px"><b style="display:block;font-size:14px;line-height:1.15;color:#2B6CB0">' + s.b + '</b><span style="font-size:9.5px;color:#6B7480">burglary &frac14; mi</span></span>' +
+        '<span style="flex:1;text-align:center;background:#6B46C114;border:1px solid #6B46C133;border-radius:6px;padding:3px 2px"><b style="display:block;font-size:14px;line-height:1.15;color:#6B46C1">' + s.a + '</b><span style="font-size:9.5px;color:#6B7480">car theft &frac14; mi</span></span>' +
+      '</div>' +
+      '<div class="row" style="font-size:9.5px;color:#6B7480;margin-top:2px">property incidents' + (yl ? ", " + yl : "") + '</div>'; });
 
   // ---- DEFAULT color mode: crime risk ----
   BRMap.addColorMode({ id: "crime", label: "Crime risk", def: true,

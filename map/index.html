@@ -29,6 +29,7 @@ html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Seg
 .pin-ico svg{display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
 .pin-ico.dim{opacity:.4;transition:opacity .15s}
 .pop b{font-size:13px}.pop .row{color:#5A6472;font-size:12px;margin-top:2px}.pop a{color:#2B5797}
+.badge{display:inline-block;font-size:10.5px;font-weight:700;border-radius:5px;padding:1px 7px}
 .amlbl{background:rgba(255,255,255,.93);border:1px solid #999;border-radius:4px;padding:0 3px;font-size:10px;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.15)}
 .faclbl{background:rgba(255,235,235,.95);border:1px solid #C53030;color:#7B2020;border-radius:4px;padding:0 3px;font-size:10px;white-space:nowrap}
 @media(max-width:640px){#panel{width:210px;max-height:70vh}.hdr{display:none}}
@@ -69,7 +70,7 @@ mkPane("pane-connect",450);   // amenity dashed connectors
 mkPane("pane-labels",660);    // amenity / facility text labels — ABOVE pins (markerPane=600)
 
 // ---- persisted UI preferences ----
-const LS="brmap.v1";
+const LS="brmap.v2";
 let PREF={}; try{PREF=JSON.parse(localStorage.getItem(LS))||{};}catch(e){PREF={};}
 function savePref(){ try{localStorage.setItem(LS,JSON.stringify(PREF));}catch(e){} }
 
@@ -141,7 +142,7 @@ const BRMap={
    host.innerHTML='<span class="st">Color listings by</span>';
    const add=(val,label)=>{ host.insertAdjacentHTML("beforeend",
      '<label><input type="radio" name="brColor" value="'+val+'" id="col_'+val+'"> '+label+'</label>'); };
-   add("default","Price pin (default)");
+   add("default","None (plain pin)");
    this._colors.forEach(c=>add(c.id,c.label));
    host.insertAdjacentHTML("beforeend",'<div class="mut" id="colorLegend"></div>');
    const def=(this._colors.find(c=>c.def)||{}).id;
