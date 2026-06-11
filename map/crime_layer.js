@@ -2,8 +2,8 @@
    Data: crime_points.json = {cats:[[id,label,color,group]], years:[...], pts:[[lat,lon,catIdx,year]]}.
    Registers:
      • color mode "Crime risk" (DEFAULT) — tints listing pins by nearby violent-incident count
-     • map overlay "Crime density" — a heat surface (falls back to dots) with year + category
-       filters and an opt-in "individual incidents" toggle, drawn in the heat pane
+     • map overlay "Crime incidents" — clickable discrete incident dots (popup: type + year)
+       with year + category filters, plus an opt-in "Heat density overlay" checkbox
      • per-listing popup rows: violent risk (¼/½/1 mi) + burglary/car-theft (¼ mi)
 */
 BRMap.ready(async () => {
@@ -35,37 +35,42 @@ BRMap.ready(async () => {
     colorFor: (l) => { const s = SC[l.id]; return s ? vt(s.v[1]).c : undefined; },
     legend: VT.map((s) => '<span class="sw"><i style="background:' + s.c + '"></i>' + s.t + "</span>").join("") });
 
-  // ---- map overlay: crime density ----
-  const enabled = CATS.map((c) => c[3] === "violent"); let selYear = "all"; let showDots = false;
-  let heat = null, dots = null;
+  // ---- map overlay: crime incidents (clickable dots primary; heat density optional) ----
+  const enabled = CATS.map((c) => c[3] === "violent"); let selYear = "all"; let showHeat = false;
+  let ptsLayer = null, heat = null;
+  const cv = L.canvas({ padding: 0.5, pane: BRMap.panes.heat });
   const filtered = () => { const out = []; for (let ci = 0; ci < CATS.length; ci++) { if (!enabled[ci]) continue;
     for (const p of BYCAT[ci]) { if (selYear !== "all" && p[3] !== selYear) continue; out.push(p); } } return out; };
+  const removePts = () => { if (ptsLayer) { map.removeLayer(ptsLayer); ptsLayer = null; } };
   const removeHeat = () => { if (heat) { map.removeLayer(heat); heat = null; } };
-  const removeDots = () => { if (dots) { map.removeLayer(dots); dots = null; } };
   function draw() {
     const pts = filtered();
-    removeHeat(); removeDots();
-    if (typeof L.heatLayer === "function") {
+    removePts(); removeHeat();
+    // optional density surface, drawn beneath the dots
+    if (showHeat && typeof L.heatLayer === "function") {
       heat = L.heatLayer(pts.map((p) => [p[0], p[1], 0.7]), { radius: 20, blur: 18, maxZoom: 16, minOpacity: 0.25 }).addTo(map);
-    } else { showDots = true; } // no heat plugin -> always show dots
-    if (showDots) {
-      const cv = L.canvas({ padding: 0.5, pane: BRMap.panes.heat }); dots = L.layerGroup();
-      for (const p of pts) L.circleMarker([p[0], p[1]], { renderer: cv, radius: 3, stroke: false, fillColor: CATS[p[2]][2], fillOpacity: 0.55, pane: BRMap.panes.heat }).addTo(dots);
-      dots.addTo(map);
     }
+    // discrete clickable incidents — the primary view (popup: type + year)
+    ptsLayer = L.layerGroup();
+    for (const p of pts) {
+      L.circleMarker([p[0], p[1]], { renderer: cv, pane: BRMap.panes.heat, radius: 4, weight: 0.6, color: "#fff", fillColor: CATS[p[2]][2], fillOpacity: 0.85 })
+        .bindPopup('<b>' + CATS[p[2]][1] + "</b>" + (p[3] != null ? "<br>" + p[3] : ""))
+        .addTo(ptsLayer);
+    }
+    ptsLayer.addTo(map);
     const c = document.getElementById("crimeCount"); if (c) c.textContent = pts.length.toLocaleString() + " incidents";
   }
 
-  BRMap.addArea({ id: "crime", label: "Crime density",
+  BRMap.addArea({ id: "crime", label: "Crime incidents",
     activate(ctx) {
       ctx.controls.innerHTML =
         '<select id="crimeYr"></select><div class="mut" id="crimeCount" style="margin:3px 0"></div>' +
         '<div id="crimeVio"></div><div id="crimePro"></div>' +
-        '<label class="sub"><input type="checkbox" id="crimeDots"> Show individual incidents</label>';
+        '<label class="sub"><input type="checkbox" id="crimeHeat"> Heat density overlay</label>';
       const ys = document.getElementById("crimeYr");
       ys.innerHTML = '<option value="all">All years</option>' + YEARS.map((y) => '<option value="' + y + '">' + y + "</option>").join("");
       ys.onchange = (e) => { selYear = e.target.value === "all" ? "all" : +e.target.value; draw(); };
-      document.getElementById("crimeDots").onchange = (e) => { showDots = e.target.checked; draw(); };
+      document.getElementById("crimeHeat").onchange = (e) => { showHeat = e.target.checked; draw(); };
       function buildGroup(group, elId, title, defOn) {
         const idxs = CATS.map((c, i) => [c, i]).filter((x) => x[0][3] === group);
         let h = '<label><input type="checkbox" id="m_' + group + '" ' + (defOn ? "checked" : "") + "><b>" + title + "</b></label>";
@@ -79,9 +84,9 @@ BRMap.ready(async () => {
       ctx.controls.querySelectorAll(".ccat").forEach((cb) => (cb.onchange = function () { enabled[+this.dataset.i] = this.checked;
         ["violent", "property"].forEach((g) => { const ix = CATS.map((c, i) => [c, i]).filter((x) => x[0][3] === g);
           const mg = document.getElementById("m_" + g); if (mg) mg.checked = ix.every(([c, i]) => enabled[i]); }); draw(); }));
-      ctx.legend('<span class="sw">Fewer</span><span class="bar"></span><span class="sw">More incidents</span>');
+      ctx.legend('<span class="sw">Dots = incidents — click one for type &amp; year</span>');
       draw();
     },
-    deactivate() { removeHeat(); removeDots(); }
+    deactivate() { removePts(); removeHeat(); }
   });
 });
