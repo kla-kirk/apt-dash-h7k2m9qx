@@ -1,38 +1,483 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="robots" content="noindex, nofollow" />
-  <title>Apartment Hunting Dashboard</title>
-  <style>
-    :root { color-scheme: light dark; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0; min-height: 100vh; display: grid; place-items: center;
-      background: #0f1115; color: #e7e9ee;
+<html lang="en"><head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baton Rouge Listings Database</title>
+<style>
+:root{color-scheme:light;
+ --accent:#2B5797;--accent2:#1E7A34;--soft:#5A6472;--ink:#1A1A1A;--line:#E2E7EF;
+ --bg:#F7F9FC;--card:#FFFFFF;--auto:#9A6A00;--autobg:#FFF7E8;--rentbg:#EAF1FB;--salebg:#EDF7EE;
+ --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.04);}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:13.5px;line-height:1.45}
+.wrap{max-width:1480px;margin:0 auto;padding:16px 18px 70px}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+h1{font-size:19px;margin:0}
+.sub{color:var(--soft);font-size:12.5px;margin-top:2px}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.spacer{flex:1}
+.btn{background:var(--accent);color:#fff;padding:7px 13px;border-radius:8px;font-weight:600;font-size:12.5px;box-shadow:var(--shadow)}
+.btn:hover{filter:brightness(1.06)}
+.btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--line)}
+.btn.sm{padding:5px 9px;font-size:12px;border-radius:7px}
+/* mode toggle */
+.toggle{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:10px;padding:3px;box-shadow:var(--shadow)}
+.toggle button{padding:6px 16px;border-radius:8px;font-weight:600;font-size:13px;color:var(--soft)}
+.toggle button.on{background:var(--accent);color:#fff}
+.pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;color:var(--soft);cursor:pointer}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:#B0B6BF}
+.pill.on{color:var(--accent2);border-color:#BFE3C8;background:#F1FBF4}.pill.on .dot{background:var(--accent2)}
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;margin:4px 0 14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 13px;box-shadow:var(--shadow)}
+.stat .n{font-size:21px;font-weight:700}.stat .l{color:var(--soft);font-size:11.5px;margin-top:1px}
+/* filters */
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.filters input,.filters select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
+.filters input[type=search]{min-width:190px}
+.chk{display:inline-flex;align-items:center;gap:6px;color:var(--soft);font-size:12.5px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+/* table */
+.tablewrap{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px;white-space:nowrap}
+thead th{position:sticky;top:0;background:#F2F5FA;border-bottom:1px solid var(--line);text-align:left;padding:9px 10px;font-weight:700;color:var(--soft);cursor:pointer;user-select:none;z-index:2}
+thead th .ar{color:var(--accent);font-size:10px;margin-left:3px}
+tbody td{border-bottom:1px solid var(--line);padding:8px 10px;vertical-align:top}
+tbody tr:hover{background:#F7FAFE;cursor:pointer}
+td.addr{font-weight:600;white-space:normal;min-width:150px}
+td.wide{white-space:normal;max-width:200px;color:var(--soft)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.zip{color:var(--soft);font-weight:400;font-size:11px}
+.lk{color:var(--accent);text-decoration:none;font-size:11px;margin-left:6px}.lk:hover{text-decoration:underline}
+.auto{color:var(--auto);background:var(--autobg);border-bottom:1px dotted var(--auto);border-radius:3px;padding:0 2px;cursor:help}
+.rankin{width:46px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;font:inherit;text-align:center}
+.comb{font-weight:700;text-align:center}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px}
+.badge.r{background:var(--rentbg);color:var(--accent)}.badge.s{background:var(--salebg);color:var(--accent2)}
+.badge.off{background:#E7EAEE;color:#6B7480}.badge.unk{background:#FFF3D6;color:#9A6A00}
+tr.off{opacity:.5;background:#FAFBFC}tr.off:hover{opacity:.78}
+tr.off td.addr{text-decoration:line-through;text-decoration-color:#B8BEC6}
+.legend{color:var(--soft);font-size:11.5px;margin:8px 2px 0}
+.legend .auto{font-size:11.5px}
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(16,24,40,.45);display:none;align-items:flex-start;justify-content:center;padding:38px 16px;overflow:auto;z-index:50}
+.scrim.show{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:560px;box-shadow:0 12px 40px rgba(16,24,40,.25)}
+.modal h3{padding:15px 18px;border-bottom:1px solid var(--line);font-size:15px;display:flex;align-items:center;gap:8px}
+.modal .mb{padding:15px 18px;max-height:66vh;overflow:auto}
+.modal .mf{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+.field{margin-bottom:10px}.field label{display:block;font-size:11.5px;font-weight:600;color:var(--soft);margin-bottom:3px}
+.field input,.field select,.field textarea{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
+.field textarea{min-height:54px;resize:vertical}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.srcbox{font-size:11.5px;color:var(--auto);background:var(--autobg);border:1px solid #F0E2C0;border-radius:8px;padding:8px 10px;margin-top:4px}
+pre.mail{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:11px;white-space:pre-wrap;font:inherit;font-size:12.5px;margin:0}
+.note{font-size:12px;color:var(--soft);background:var(--rentbg);border:1px solid #D6E3F6;border-radius:8px;padding:8px 10px;margin-top:8px}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:9px;font-size:13px;opacity:0;transition:opacity .2s;z-index:100}
+.toast.show{opacity:1}
+small.muted{color:var(--soft)}
+</style></head>
+<body><div class="wrap">
+ <div class="top">
+  <div><h1>Baton Rouge Listings</h1><div class="sub">Rent &amp; buy database &mdash; Jamie + Keegan</div></div>
+  <div class="toggle"><button id="tgRent" class="on" onclick="setMode('rent')">For Rent</button><button id="tgSale" onclick="setMode('sale')">For Sale</button></div>
+  <div class="spacer"></div>
+  <div class="pill" id="pillEmail" onclick="showConnect()"><span class="dot"></span><span>Email: not connected</span></div>
+  <button class="btn ghost sm" id="refreshBtn" onclick="refreshFromSheet()">↻ Refresh from Sheet</button>
+  <button class="btn ghost sm" onclick="exportCSV()">Export CSV</button>
+  <button class="btn" onclick="openEdit(null)">+ Add</button>
+ </div>
+ <div class="stats" id="stats"></div>
+ <div class="filters" id="filters"></div>
+ <div class="tablewrap"><table id="tbl"><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+ <div class="legend">Sort by clicking a column. <span class="auto">Highlighted</span> = auto-filled from public web sources (verify). <span class="badge off">OFF-MARKET</span> rows are greyed &amp; struck through. Combined = average of Jamie &amp; Keegan rankings (lower is better). Rankings are editable inline.<br>
+ <b>Crime risk</b> = violent incidents (BRPD, last 12 mo) near the address; the number next to the tier is the count within your chosen <b>risk radius</b> (¼ / ½ / 1 mi — set it at top-left). Tiers
+ <span class="badge" style="background:#E7F6EC;color:#1E7A34">Low</span>
+ <span class="badge" style="background:#FFF4E0;color:#9A6A00">Moderate</span>
+ <span class="badge" style="background:#FBE6D6;color:#C2691C">Elevated</span>
+ <span class="badge" style="background:#FBE7E7;color:#B23B3B">High</span> scale by area (incidents per sq mi), so a smaller radius shows the block itself, not nearby areas. Click a listing for the murder/robbery/assault breakdown. Full map: <code>crime_map.html</code>.</div>
+ <p style="margin-top:12px"><small class="muted">Stored locally in this dashboard; mirrors <code>listings.xlsx</code> and the <b>Baton Rouge Places</b> Google Sheet. <b>Refresh from Sheet</b> pulls your latest sheet edits (e.g. new rankings) and keeps web-filled gaps. Email is manual today and plugs in via the seam in the code.<br>Crime data: 846 geocoded violent incidents (murder, aggravated assault, robbery, rape) from Baton Rouge Police "Crime Incidents" open data (data.brla.gov, pbin-pcm7), last 12 months, scored by distance to each address. A street-level map with every incident is in <code>crime_map.html</code>.</small></p>
+</div>
+
+<div class="scrim" id="editScrim"><div class="modal">
+ <h3 id="editTitle">Add listing</h3>
+ <div class="mb" id="editBody"></div>
+ <div class="mf">
+  <button class="btn ghost sm" id="delBtn" onclick="deleteListing()" style="margin-right:auto;color:#B23B3B">Delete</button>
+  <button class="btn ghost sm" id="inqBtn" onclick="draftInquiry()" style="display:none">Draft inquiry</button>
+  <button class="btn ghost sm" onclick="closeModal('editScrim')">Cancel</button>
+  <button class="btn sm" onclick="saveListing()">Save</button>
+ </div>
+</div></div>
+
+<div class="scrim" id="mailScrim"><div class="modal">
+ <h3 id="mailTitle">Inquiry</h3>
+ <div class="mb"><pre class="mail" id="mailBody"></pre><div class="note" id="mailNote"></div></div>
+ <div class="mf"><button class="btn ghost sm" onclick="closeModal('mailScrim')">Close</button><button class="btn sm" onclick="copyMail()">Copy text</button></div>
+</div></div>
+
+<div class="scrim" id="connScrim"><div class="modal">
+ <h3>Connect email</h3>
+ <div class="mb" id="connBody"></div>
+ <div class="mf"><button class="btn ghost sm" onclick="closeModal('connScrim')">Close</button><button class="btn sm" id="connTg" onclick="toggleEmail()">Simulate connected</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+<script>
+const FILE_ID="1ag9u7KuIXewIK7o9EZIAeMlPc2zDwq6eevBnTjI46no";
+const READ_TOOL="mcp__0b70e2fa-2922-4032-8daa-a8a40986e5a6__read_file_content";
+const CRIME={"70801": {"total": 338, "violent": 18, "pop": 1200, "c": [30.4486, -91.187]}, "70802": {"total": 5244, "violent": 504, "pop": 19200, "c": [30.452, -91.165]}, "70805": {"total": 7102, "violent": 776, "pop": 26025, "c": [30.4893, -91.1531]}, "70806": {"total": 4505, "violent": 352, "pop": 23700, "c": [30.443, -91.155]}, "70807": {"total": 2312, "violent": 299, "pop": 21300, "c": [30.515, -91.197]}, "70808": {"total": 2840, "violent": 131, "pop": 24600, "c": [30.413, -91.158]}, "70809": {"total": 882, "violent": 27, "pop": 14700, "c": [30.405, -91.085]}, "70810": {"total": 335, "violent": 35, "pop": 42472, "c": [30.3549, -91.0789]}, "70811": {"total": 714, "violent": 82, "pop": 20800, "c": [30.547, -91.14]}, "70812": {"total": 141, "violent": 14, "pop": 14500, "c": [30.53, -91.11]}, "70814": {"total": 751, "violent": 86, "pop": 16600, "c": [30.47, -91.06]}, "70815": {"total": 4335, "violent": 281, "pop": 39800, "c": [30.45, -91.075]}, "70816": {"total": 2923, "violent": 213, "pop": 45232, "c": [30.4282, -91.0193]}, "70817": {"total": 29, "violent": 3, "pop": 23900, "c": [30.398, -91.01]}, "70819": {"total": 126, "violent": 9, "pop": 8400, "c": [30.47, -91.03]}, "70820": {"total": 1432, "violent": 72, "pop": 17700, "c": [30.36, -91.18]}};
+const CBT={"2115 E Ramsey Dr": {"homicide": {"q": 0, "h": 0, "m": 1}, "agg_assault": {"q": 5, "h": 9, "m": 29}, "robbery": {"q": 0, "h": 1, "m": 7}, "rape": {"q": 0, "h": 0, "m": 0}}, "2437 Fiero St": {"homicide": {"q": 1, "h": 1, "m": 3}, "agg_assault": {"q": 4, "h": 4, "m": 30}, "robbery": {"q": 0, "h": 1, "m": 11}, "rape": {"q": 0, "h": 0, "m": 0}}, "9003 Magnolia View Dr": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 0, "h": 4, "m": 18}, "robbery": {"q": 1, "h": 3, "m": 5}, "rape": {"q": 0, "h": 0, "m": 0}}, "415 Bedford Dr": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 6, "h": 43, "m": 117}, "robbery": {"q": 0, "h": 8, "m": 24}, "rape": {"q": 0, "h": 0, "m": 0}}, "417 Bedford Dr": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 6, "h": 43, "m": 117}, "robbery": {"q": 0, "h": 8, "m": 24}, "rape": {"q": 0, "h": 0, "m": 0}}, "9446 High Point Rd": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 0, "h": 0, "m": 10}, "robbery": {"q": 0, "h": 1, "m": 5}, "rape": {"q": 0, "h": 0, "m": 0}}, "709 Staring Ln": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 2, "h": 5, "m": 23}, "robbery": {"q": 1, "h": 3, "m": 8}, "rape": {"q": 0, "h": 0, "m": 0}}, "The Terraces at Perkins Rowe": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 0, "h": 0, "m": 4}, "robbery": {"q": 0, "h": 0, "m": 3}, "rape": {"q": 0, "h": 0, "m": 0}}, "8808 Magnolia Leaf Ave": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 2, "h": 5, "m": 23}, "robbery": {"q": 2, "h": 3, "m": 8}, "rape": {"q": 0, "h": 0, "m": 0}}, "4738 Woodlyn Dr": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 4, "h": 5, "m": 11}, "robbery": {"q": 5, "h": 7, "m": 11}, "rape": {"q": 0, "h": 0, "m": 0}}, "5416 Heron Nest Dr": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 0, "h": 2, "m": 12}, "robbery": {"q": 0, "h": 2, "m": 6}, "rape": {"q": 0, "h": 0, "m": 0}}, "6024 Woodlawn Park Ct": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 0, "h": 0, "m": 0}, "robbery": {"q": 0, "h": 0, "m": 0}, "rape": {"q": 0, "h": 0, "m": 0}}, "9314 Fox Run Ave": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 2, "h": 3, "m": 4}, "robbery": {"q": 1, "h": 1, "m": 2}, "rape": {"q": 0, "h": 0, "m": 0}}, "10177 Bonnet Cove Ave": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 0, "h": 0, "m": 2}, "robbery": {"q": 0, "h": 0, "m": 1}, "rape": {"q": 0, "h": 0, "m": 0}}, "633 Fall Creek Dr": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 0, "h": 1, "m": 3}, "robbery": {"q": 0, "h": 0, "m": 2}, "rape": {"q": 0, "h": 0, "m": 0}}, "9412 Windward Rd": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 0, "h": 2, "m": 9}, "robbery": {"q": 0, "h": 2, "m": 4}, "rape": {"q": 0, "h": 0, "m": 0}}, "4573 Charleston Villa Dr": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 0, "h": 0, "m": 0}, "robbery": {"q": 0, "h": 0, "m": 0}, "rape": {"q": 0, "h": 0, "m": 0}}, "620 Nelson Dr": {"homicide": {"q": 0, "h": 0, "m": 2}, "agg_assault": {"q": 0, "h": 0, "m": 9}, "robbery": {"q": 0, "h": 0, "m": 2}, "rape": {"q": 0, "h": 0, "m": 0}}, "734 Caddo St": {"homicide": {"q": 1, "h": 1, "m": 1}, "agg_assault": {"q": 0, "h": 8, "m": 36}, "robbery": {"q": 1, "h": 5, "m": 12}, "rape": {"q": 0, "h": 0, "m": 0}}, "2103 Government St": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 3, "h": 40, "m": 149}, "robbery": {"q": 0, "h": 5, "m": 38}, "rape": {"q": 0, "h": 0, "m": 0}}, "1525 S Eugene St": {"homicide": {"q": 0, "h": 0, "m": 2}, "agg_assault": {"q": 0, "h": 1, "m": 38}, "robbery": {"q": 0, "h": 3, "m": 9}, "rape": {"q": 0, "h": 0, "m": 0}}, "750 Acadia St": {"homicide": {"q": 1, "h": 1, "m": 1}, "agg_assault": {"q": 0, "h": 3, "m": 32}, "robbery": {"q": 0, "h": 4, "m": 9}, "rape": {"q": 0, "h": 0, "m": 0}}, "541 Terry Dr": {"homicide": {"q": 0, "h": 0, "m": 1}, "agg_assault": {"q": 7, "h": 26, "m": 90}, "robbery": {"q": 2, "h": 4, "m": 19}, "rape": {"q": 0, "h": 0, "m": 0}}, "740 Acadia St": {"homicide": {"q": 1, "h": 1, "m": 1}, "agg_assault": {"q": 0, "h": 3, "m": 32}, "robbery": {"q": 1, "h": 4, "m": 9}, "rape": {"q": 0, "h": 0, "m": 0}}, "2102 Sassy Ln": {"homicide": {"q": 0, "h": 0, "m": 1}, "agg_assault": {"q": 2, "h": 6, "m": 23}, "robbery": {"q": 1, "h": 2, "m": 6}, "rape": {"q": 0, "h": 0, "m": 0}}, "2340 Government St": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 6, "h": 27, "m": 135}, "robbery": {"q": 0, "h": 3, "m": 32}, "rape": {"q": 0, "h": 0, "m": 0}}, "3650 Perkins Rd": {"homicide": {"q": 0, "h": 1, "m": 1}, "agg_assault": {"q": 2, "h": 10, "m": 23}, "robbery": {"q": 1, "h": 2, "m": 7}, "rape": {"q": 0, "h": 0, "m": 0}}, "4468 Cypress St": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 0, "h": 1, "m": 7}, "robbery": {"q": 0, "h": 0, "m": 4}, "rape": {"q": 0, "h": 0, "m": 0}}, "2326 Terrace Ave": {"homicide": {"q": 0, "h": 0, "m": 2}, "agg_assault": {"q": 0, "h": 5, "m": 72}, "robbery": {"q": 0, "h": 3, "m": 19}, "rape": {"q": 0, "h": 0, "m": 0}}, "540 Drehr Ave": {"homicide": {"q": 0, "h": 0, "m": 0}, "agg_assault": {"q": 6, "h": 28, "m": 133}, "robbery": {"q": 0, "h": 3, "m": 32}, "rape": {"q": 0, "h": 0, "m": 0}}, "2267 Cedardale Ave": {"homicide": {"q": 1, "h": 1, "m": 1}, "agg_assault": {"q": 3, "h": 6, "m": 21}, "robbery": {"q": 0, "h": 2, "m": 9}, "rape": {"q": 0, "h": 0, "m": 0}}, "4268 Arrowhead St": {"homicide": {"q": 0, "h": 0, "m": 1}, "agg_assault": {"q": 1, "h": 4, "m": 25}, "robbery": {"q": 0, "h": 4, "m": 6}, "rape": {"q": 0, "h": 0, "m": 0}}};
+const PROP={"2115 E Ramsey Dr": {"burglary": 3, "theft": 14, "mv_theft": 4, "weapons": 13, "drugs": 9, "vandalism": 5, "simple_assault": 3}, "2437 Fiero St": {"burglary": 9, "theft": 15, "mv_theft": 4, "weapons": 1, "drugs": 4, "vandalism": 4, "simple_assault": 9}, "9003 Magnolia View Dr": {"burglary": 1, "theft": 7, "mv_theft": 2, "weapons": 0, "drugs": 0, "vandalism": 1, "simple_assault": 0}, "415 Bedford Dr": {"burglary": 36, "theft": 94, "mv_theft": 15, "weapons": 8, "drugs": 32, "vandalism": 10, "simple_assault": 28}, "417 Bedford Dr": {"burglary": 36, "theft": 94, "mv_theft": 16, "weapons": 8, "drugs": 32, "vandalism": 10, "simple_assault": 28}, "9446 High Point Rd": {"burglary": 0, "theft": 5, "mv_theft": 0, "weapons": 0, "drugs": 0, "vandalism": 1, "simple_assault": 0}, "709 Staring Ln": {"burglary": 1, "theft": 6, "mv_theft": 2, "weapons": 1, "drugs": 0, "vandalism": 1, "simple_assault": 0}, "The Terraces at Perkins Rowe": {"burglary": 0, "theft": 0, "mv_theft": 0, "weapons": 0, "drugs": 0, "vandalism": 0, "simple_assault": 0}, "8808 Magnolia Leaf Ave": {"burglary": 1, "theft": 6, "mv_theft": 2, "weapons": 1, "drugs": 0, "vandalism": 1, "simple_assault": 0}, "4738 Woodlyn Dr": {"burglary": 4, "theft": 14, "mv_theft": 6, "weapons": 0, "drugs": 3, "vandalism": 4, "simple_assault": 4}, "5416 Heron Nest Dr": {"burglary": 2, "theft": 14, "mv_theft": 1, "weapons": 1, "drugs": 3, "vandalism": 1, "simple_assault": 0}, "6024 Woodlawn Park Ct": {"burglary": 0, "theft": 0, "mv_theft": 0, "weapons": 0, "drugs": 0, "vandalism": 0, "simple_assault": 0}, "9314 Fox Run Ave": {"burglary": 0, "theft": 7, "mv_theft": 0, "weapons": 0, "drugs": 0, "vandalism": 0, "simple_assault": 0}, "10177 Bonnet Cove Ave": {"burglary": 0, "theft": 0, "mv_theft": 0, "weapons": 0, "drugs": 0, "vandalism": 0, "simple_assault": 0}, "633 Fall Creek Dr": {"burglary": 0, "theft": 1, "mv_theft": 0, "weapons": 0, "drugs": 0, "vandalism": 0, "simple_assault": 0}, "9412 Windward Rd": {"burglary": 0, "theft": 6, "mv_theft": 0, "weapons": 0, "drugs": 0, "vandalism": 1, "simple_assault": 0}, "4573 Charleston Villa Dr": {"burglary": 0, "theft": 0, "mv_theft": 0, "weapons": 0, "drugs": 0, "vandalism": 0, "simple_assault": 0}, "620 Nelson Dr": {"burglary": 1, "theft": 1, "mv_theft": 1, "weapons": 0, "drugs": 0, "vandalism": 0, "simple_assault": 0}, "734 Caddo St": {"burglary": 10, "theft": 60, "mv_theft": 5, "weapons": 2, "drugs": 12, "vandalism": 11, "simple_assault": 4}, "2103 Government St": {"burglary": 29, "theft": 58, "mv_theft": 13, "weapons": 9, "drugs": 25, "vandalism": 10, "simple_assault": 15}, "1525 S Eugene St": {"burglary": 8, "theft": 24, "mv_theft": 6, "weapons": 1, "drugs": 6, "vandalism": 5, "simple_assault": 0}, "750 Acadia St": {"burglary": 6, "theft": 56, "mv_theft": 5, "weapons": 1, "drugs": 12, "vandalism": 9, "simple_assault": 1}, "541 Terry Dr": {"burglary": 29, "theft": 76, "mv_theft": 14, "weapons": 5, "drugs": 14, "vandalism": 10, "simple_assault": 19}, "740 Acadia St": {"burglary": 7, "theft": 57, "mv_theft": 5, "weapons": 1, "drugs": 15, "vandalism": 9, "simple_assault": 1}, "2102 Sassy Ln": {"burglary": 2, "theft": 43, "mv_theft": 2, "weapons": 6, "drugs": 12, "vandalism": 6, "simple_assault": 4}, "2340 Government St": {"burglary": 31, "theft": 66, "mv_theft": 12, "weapons": 6, "drugs": 23, "vandalism": 9, "simple_assault": 9}, "3650 Perkins Rd": {"burglary": 7, "theft": 47, "mv_theft": 3, "weapons": 5, "drugs": 11, "vandalism": 10, "simple_assault": 10}, "4468 Cypress St": {"burglary": 1, "theft": 4, "mv_theft": 0, "weapons": 1, "drugs": 0, "vandalism": 0, "simple_assault": 1}, "2326 Terrace Ave": {"burglary": 14, "theft": 41, "mv_theft": 10, "weapons": 3, "drugs": 6, "vandalism": 7, "simple_assault": 0}, "540 Drehr Ave": {"burglary": 33, "theft": 62, "mv_theft": 10, "weapons": 6, "drugs": 22, "vandalism": 10, "simple_assault": 12}, "2267 Cedardale Ave": {"burglary": 9, "theft": 49, "mv_theft": 3, "weapons": 3, "drugs": 10, "vandalism": 10, "simple_assault": 9}, "4268 Arrowhead St": {"burglary": 1, "theft": 24, "mv_theft": 2, "weapons": 3, "drugs": 10, "vandalism": 4, "simple_assault": 2}};
+const SEED = [{"address": "2115 E Ramsey Dr", "zip": "70808", "price": 2100, "petFees": "None listed", "beds": 2, "baths": 2, "size": 1850, "neighborhood": "Shea / Walnut Hills", "yearBuilt": "1950", "furnished": "no", "minLease": 12, "likes": "", "dislikes": "", "jamie": null, "keegan": 2, "link": "https://www.zillow.com/homedetails/2115-E-Ramsey-Dr-Baton-Rouge-LA-70808/66276675_zpid/", "enr": ["neighborhood"], "src": "", "type": "rent", "id": "r1", "lat": 30.429043, "lon": -91.146854, "r025": 5, "r05": 10, "r10": 37, "w": 13.58}, {"address": "2437 Fiero St", "zip": "70808", "price": 2350, "petFees": "No pets allowed", "beds": 3, "baths": 3, "size": 2440, "neighborhood": "Hillsdale", "yearBuilt": "", "furnished": "", "minLease": 12, "likes": "", "dislikes": "", "jamie": null, "keegan": 1, "link": "https://www.zillow.com/homedetails/2437-Fiero-St-Baton-Rouge-LA-70808/119328538_zpid/", "enr": [], "src": "", "type": "rent", "id": "r2", "lat": 30.425011, "lon": -91.1619, "r025": 5, "r05": 6, "r10": 44, "w": 11.96}, {"address": "9003 Magnolia View Dr", "zip": "70810", "price": 2950, "petFees": "$200 non-refundable per pet deposit", "beds": 3, "baths": 2, "size": 1800, "neighborhood": "Garden District", "yearBuilt": "", "furnished": "fully", "minLease": 12, "likes": "", "dislikes": "don't want fully furnished for a full year", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/9003-Magnolia-View-Dr-Baton-Rouge-LA-70810/2067541675_zpid/", "enr": [], "src": "", "type": "rent", "id": "r3", "lat": 30.377, "lon": -91.115, "r025": 1, "r05": 7, "r10": 23, "w": 9.39}, {"address": "415 Bedford Dr", "zip": "70806", "price": 2500, "petFees": "None listed", "beds": 3, "baths": 2, "size": 2000, "neighborhood": "Garden District (?)", "yearBuilt": "", "furnished": "fully", "minLease": null, "likes": "", "dislikes": "right above Government St; don't want fully furnished for a full year", "jamie": null, "keegan": null, "link": "https://www.redfin.com/LA/Baton-Rouge/415-Bedford-Dr-70806/home/85609683", "enr": [], "src": "", "type": "rent", "id": "r4", "lat": 30.444959, "lon": -91.157492, "r025": 6, "r05": 51, "r10": 141, "w": 50.03}, {"address": "417 Bedford Dr", "zip": "70806", "price": 2500, "petFees": "None listed", "beds": 3, "baths": 2, "size": 2000, "neighborhood": "Garden District (?)", "yearBuilt": "", "furnished": "fully", "minLease": null, "likes": "", "dislikes": "right above Government St; don't want fully furnished for a full year", "jamie": null, "keegan": null, "link": "https://www.redfin.com/LA/Baton-Rouge/417-Bedford-Dr-70806/home/185978878", "enr": [], "src": "", "type": "rent", "id": "r5", "lat": 30.444939, "lon": -91.157492, "r025": 6, "r05": 51, "r10": 141, "w": 49.94}, {"address": "9446 High Point Rd", "zip": "70810", "price": 2400, "petFees": "Pet-friendly", "beds": 3, "baths": null, "size": 2246, "neighborhood": "Wildwood", "yearBuilt": "", "furnished": "No", "minLease": null, "likes": "", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/9446-High-Point-Rd-Baton-Rouge-LA-70810/66290884_zpid/", "enr": ["price", "petFees", "beds", "size", "neighborhood", "furnished"], "src": "Homes.com + rental snippet (off-market). Bath count & year not published.", "type": "rent", "id": "r6", "lat": 30.371114, "lon": -91.113354, "r025": 0, "r05": 1, "r10": 15, "w": 4.16}, {"address": "709 Staring Ln", "zip": "70810", "price": 2400, "petFees": "Dogs & cats allowed", "beds": 4, "baths": 2, "size": 2200, "neighborhood": "Highlands/Perkins (Staring Ln corridor)", "yearBuilt": "", "furnished": "No", "minLease": null, "likes": "Recently renovated; 1.2-acre lot; fireplace", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/709-Staring-Ln-Baton-Rouge-LA-70810/66286645_zpid/", "enr": ["price", "petFees", "beds", "baths", "size", "neighborhood", "furnished", "likes"], "src": "Apartments.com (historical listing). High confidence.", "type": "rent", "id": "r7", "lat": 30.378812, "lon": -91.116969, "r025": 3, "r05": 8, "r10": 31, "w": 10.72}, {"address": "The Terraces at Perkins Rowe", "zip": "70810", "price": null, "petFees": "Pet-friendly", "beds": null, "baths": null, "size": null, "neighborhood": "Perkins Rowe / South BR", "yearBuilt": "2008", "furnished": "Some units", "minLease": 12, "likes": "", "dislikes": "Apartment community \u2014 Studio\u20134 bd, 606\u20132,171 sqft, ~$1,313\u2013$3,488/mo", "jamie": null, "keegan": null, "link": "https://www.zillow.com/apartments/baton-rouge-la/the-terraces-at-perkins-rowe/CgLY46/", "enr": ["petFees", "neighborhood", "yearBuilt", "furnished", "dislikes"], "src": "Apartment community (ranges). Apartments.com/Redfin.", "type": "rent", "id": "r8", "lat": 30.378031, "lon": -91.095543, "r025": 0, "r05": 0, "r10": 7, "w": 0.67}, {"address": "8808 Magnolia Leaf Ave", "status": "off", "zip": "70810", "price": null, "petFees": "", "beds": 3, "baths": 2, "size": 1752, "neighborhood": "Magnolia Trace (gated)", "yearBuilt": "2007", "furnished": "", "minLease": null, "likes": "nice bathtub", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/8808-Magnolia-Leaf-Ave-Baton-Rouge-LA-70810/103858851_zpid/", "enr": ["beds", "baths", "size", "neighborhood", "yearBuilt"], "src": "Redfin/Trulia (off-market; no live rent).", "type": "rent", "id": "r9", "lat": 30.378515, "lon": -91.116876, "r025": 4, "r05": 8, "r10": 31, "w": 10.43}, {"address": "4738 Woodlyn Dr", "zip": "70816", "price": 1900, "petFees": "", "beds": 3, "baths": 2, "size": 1750, "neighborhood": "Sherwood Oaks", "yearBuilt": "1985", "furnished": "", "minLease": null, "likes": "", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/4738-Woodlyn-Dr-Baton-Rouge-LA-70816/66359973_zpid/", "enr": ["neighborhood", "yearBuilt"], "src": "WebSearch (Ownerly/RE-MAX).", "type": "rent", "id": "r10", "lat": 30.408459, "lon": -91.038504, "r025": 9, "r05": 12, "r10": 22, "w": 10.44}, {"address": "5416 Heron Nest Dr", "zip": "70816", "price": 2100, "petFees": "", "beds": 4, "baths": 3, "size": 1940, "neighborhood": "Parkview Oaks (South)", "yearBuilt": "", "furnished": "", "minLease": null, "likes": "", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/5416-Heron-Nest-Dr-Baton-Rouge-LA-70816/2057143419_zpid/", "enr": ["neighborhood"], "src": "Apartments.com snippet. Year not found.", "type": "rent", "id": "r11", "lat": 30.4282, "lon": -91.0193, "r025": 0, "r05": 4, "r10": 18, "w": 5.1}, {"address": "6024 Woodlawn Park Ct", "status": "off", "zip": "70817", "price": 2100, "petFees": "", "beds": 4, "baths": 2, "size": 1975, "neighborhood": "Woodlawn Park", "yearBuilt": "1997", "furnished": "", "minLease": null, "likes": "All appliances incl. W/D", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/6024-Woodlawn-Park-Ct-Baton-Rouge-LA-70817/66335004_zpid/", "enr": ["price", "beds", "baths", "size", "neighborhood", "yearBuilt", "likes"], "src": "WebSearch (off-market). Price & year are estimates.", "type": "rent", "id": "r12", "lat": 30.397985, "lon": -91.018665, "r025": 0, "r05": 0, "r10": 0, "w": 0.0}, {"address": "9314 Fox Run Ave", "status": "off", "zip": "70808", "price": null, "petFees": "", "beds": null, "baths": null, "size": 1773, "neighborhood": "South Burbank", "yearBuilt": "1981", "furnished": "", "minLease": null, "likes": "", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/9314-Fox-Run-Ave-Baton-Rouge-LA-70808/66367221_zpid/", "enr": ["size", "neighborhood", "yearBuilt"], "src": "Public records (off-market; no rent, beds/baths not published).", "type": "rent", "id": "r13", "lat": 30.365465, "lon": -91.122714, "r025": 3, "r05": 4, "r10": 6, "w": 3.51}, {"address": "10177 Bonnet Cove Ave", "status": "off", "zip": "70810", "price": 1925, "petFees": "", "beds": 3, "baths": 3, "size": 2242, "neighborhood": "Bonnet Cove (townhomes)", "yearBuilt": "2008", "furnished": "", "minLease": null, "likes": "", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/10177-Bonnet-Cove-Ave-Baton-Rouge-LA-70810/108609324_zpid/", "enr": ["price", "beds", "baths", "size", "neighborhood", "yearBuilt"], "src": "Inferred from identical adjacent townhomes. Low confidence \u2014 verify.", "type": "rent", "id": "r14", "lat": 30.356855, "lon": -91.114277, "r025": 0, "r05": 0, "r10": 3, "w": 0.26}, {"address": "633 Fall Creek Dr", "zip": "70810", "price": 1500, "petFees": "", "beds": 3, "baths": 2, "size": 1752, "neighborhood": "Summerwood", "yearBuilt": "", "furnished": "No", "minLease": null, "likes": "nice bathtub", "dislikes": "listing shows 2 ba but description says 2.5", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/633-Fall-Creek-Dr-Baton-Rouge-LA-70810/70847864_zpid/", "enr": ["price", "beds", "baths", "size", "neighborhood", "furnished"], "src": "Apartments.com (historical listing). High confidence.", "type": "rent", "id": "r15", "lat": 30.36123, "lon": -91.118092, "r025": 0, "r05": 1, "r10": 5, "w": 1.75}, {"address": "9412 Windward Rd", "zip": "70810", "price": 2000, "petFees": "Dogs & cats (deposit)", "beds": 4, "baths": 2, "size": 2200, "neighborhood": "East Highland", "yearBuilt": "", "furnished": "No", "minLease": "6 (or 12+)", "likes": "Lawn maintenance & many utilities included", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/9412-Windward-Rd-Baton-Rouge-LA-70810/66297546_zpid/", "enr": ["price", "petFees", "beds", "baths", "size", "neighborhood", "furnished", "minLease", "likes"], "src": "Apartments.com (historical listing). High confidence.", "type": "rent", "id": "r16", "lat": 30.369601, "lon": -91.114693, "r025": 0, "r05": 4, "r10": 13, "w": 3.41}, {"address": "4573 Charleston Villa Dr", "zip": "70817", "price": 2025, "petFees": "", "beds": 3, "baths": 2, "size": 1800, "neighborhood": "Charleston Villas", "yearBuilt": "2006", "furnished": "", "minLease": null, "likes": "", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/4573-Charleston-Villa-Dr-Baton-Rouge-LA-70817/66808733_zpid/", "enr": ["price", "beds", "baths", "size", "neighborhood", "yearBuilt"], "src": "WebSearch (off-market). Price is an estimate.", "type": "rent", "id": "r17", "lat": 30.410339, "lon": -91.009528, "r025": 0, "r05": 0, "r10": 0, "w": 0.0}, {"address": "620 Nelson Dr", "zip": "70808", "price": 2565, "petFees": "Pet-friendly", "beds": 3, "baths": 2, "size": 2000, "neighborhood": "Goodwood / Westdale area", "yearBuilt": "1960", "furnished": "No", "minLease": null, "likes": "", "dislikes": "price is a Zillow Rent Zestimate, not an asking rent", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/620-Nelson-Dr-Baton-Rouge-LA-70808/66299495_zpid/", "enr": ["price", "petFees", "beds", "baths", "size", "neighborhood", "yearBuilt", "furnished"], "src": "Zillow Rent Zestimate (~$2,565). Verify actual rent.", "type": "rent", "id": "r18", "lat": 30.392817, "lon": -91.146962, "r025": 0, "r05": 0, "r10": 13, "w": 2.03}, {"address": "734 Caddo St", "zip": "70806", "price": 365, "beds": 4, "baths": 2, "size": 2404, "neighborhood": "Capital Heights", "yearBuilt": "1948", "likes": "", "dislikes": "no nice bathroom, asbestos", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/734-Caddo-St-Baton-Rouge-LA-70806/66297410_zpid/", "enr": ["yearBuilt"], "src": "Homes.com/Redfin \u2014 year built.", "type": "sale", "id": "s1", "lat": 30.44217, "lon": -91.137536, "r025": 2, "r05": 14, "r10": 49, "w": 15.34}, {"address": "2103 Government St", "zip": "70806", "price": 425, "beds": 4, "baths": 2, "size": 2499, "neighborhood": "Garden District", "yearBuilt": "<1925", "likes": "", "dislikes": "no nice bathtub, no nice surrounding nature, 100+ years old", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/2103-Government-St-Baton-Rouge-LA-70806/2057646869_zpid/", "enr": [], "src": "", "type": "sale", "id": "s2", "lat": 30.443929, "lon": -91.166762, "r025": 3, "r05": 45, "r10": 187, "w": 58.2}, {"address": "1525 S Eugene St", "status": "unknown", "zip": "70808", "price": 489, "beds": 3, "baths": 3, "size": 2236, "neighborhood": "Garden District", "yearBuilt": "1969", "likes": "", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/1525-S-Eugene-St-Baton-Rouge-LA-70808/66277892_zpid/", "enr": [], "src": "", "type": "sale", "id": "s3", "lat": 30.434557, "lon": -91.159485, "r025": 0, "r05": 4, "r10": 49, "w": 10.4}, {"address": "750 Acadia St", "zip": "70806", "price": 535, "beds": 3, "baths": 3, "size": 2001, "neighborhood": "Capital Heights", "yearBuilt": "2025", "likes": "", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/750-Acadia-St-Baton-Rouge-LA-70806/459629419_zpid/", "enr": [], "src": "", "type": "sale", "id": "s4", "lat": 30.442059, "lon": -91.135516, "r025": 1, "r05": 8, "r10": 42, "w": 13.72}, {"address": "541 Terry Dr", "zip": "70806", "price": 550, "beds": 4, "baths": 3, "size": 2886, "neighborhood": "Capital Heights", "yearBuilt": "1960", "likes": "beautiful bath", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/541-Terry-Dr-Baton-Rouge-LA-70806/66275085_zpid/", "enr": [], "src": "", "type": "sale", "id": "s5", "lat": 30.443775, "lon": -91.152256, "r025": 9, "r05": 30, "r10": 110, "w": 40.46}, {"address": "740 Acadia St", "zip": "70806", "price": 575, "beds": 3, "baths": 3, "size": 2207, "neighborhood": "Capital Heights", "yearBuilt": "2025", "likes": "", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/740-Acadia-St-Baton-Rouge-LA-70806/459629418_zpid/", "enr": [], "src": "", "type": "sale", "id": "s6", "lat": 30.442169, "lon": -91.135519, "r025": 2, "r05": 8, "r10": 42, "w": 13.88}, {"address": "2102 Sassy Ln", "zip": "70808", "price": 575, "beds": 3, "baths": 3, "size": 2529, "neighborhood": "Southdowns", "yearBuilt": "2002", "likes": "nice shower", "dislikes": "no nice tub shown", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/2102-Sassy-Ln-Baton-Rouge-LA-70808/66383387_zpid/", "enr": [], "src": "", "type": "sale", "id": "s7", "lat": 30.418598, "lon": -91.150976, "r025": 3, "r05": 8, "r10": 30, "w": 11.42}, {"address": "2340 Government St", "zip": "70806", "price": 595, "beds": 4, "baths": 3, "size": 2628, "neighborhood": "Garden District", "yearBuilt": "1921", "likes": "", "dislikes": "no nice tub, old wood floors", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/2340-Government-St-Baton-Rouge-LA-70806/66233850_zpid/", "enr": [], "src": "", "type": "sale", "id": "s8", "lat": 30.443913, "lon": -91.162975, "r025": 6, "r05": 30, "r10": 167, "w": 52.92}, {"address": "3650 Perkins Rd", "status": "off", "zip": "70808", "price": 605, "beds": 4, "baths": 3, "size": 2774, "neighborhood": "Southdowns", "yearBuilt": "1942", "likes": "", "dislikes": "no nice tub", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/3650-Perkins-Rd-Baton-Rouge-LA-70808/66269726_zpid/", "enr": [], "src": "", "type": "sale", "id": "s9", "lat": 30.420714, "lon": -91.152251, "r025": 3, "r05": 13, "r10": 31, "w": 12.25}, {"address": "4468 Cypress St", "zip": "70808", "price": 625, "beds": 4, "baths": 3, "size": 2527, "neighborhood": "Southdowns", "yearBuilt": "1950", "likes": "jacuzzi", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/4468-Cypress-St-Baton-Rouge-LA-70808/66269526_zpid/", "enr": [], "src": "", "type": "sale", "id": "s10", "lat": 30.40908, "lon": -91.148653, "r025": 0, "r05": 1, "r10": 11, "w": 2.93}, {"address": "2326 Terrace Ave", "zip": "70806", "price": 650, "beds": 4, "baths": 3, "size": 3259, "neighborhood": "Garden District", "yearBuilt": "1939", "likes": "", "dislikes": "bath nook not amazing, asbestos", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/2326-Terrace-Ave-Baton-Rouge-LA-70806/66239341_zpid/", "enr": [], "src": "", "type": "sale", "id": "s11", "lat": 30.436659, "lon": -91.163238, "r025": 0, "r05": 8, "r10": 93, "w": 18.55}, {"address": "540 Drehr Ave", "zip": "70806", "price": 699, "beds": 4, "baths": 3.5, "size": 4452, "neighborhood": "Garden District", "yearBuilt": "1910", "likes": "", "dislikes": "no nice tub", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/540-Drehr-Ave-Baton-Rouge-LA-70806/66237455_zpid/", "enr": [], "src": "", "type": "sale", "id": "s12", "lat": 30.443566, "lon": -91.163841, "r025": 6, "r05": 31, "r10": 165, "w": 52.18}, {"address": "2267 Cedardale Ave", "zip": "70808", "price": 732, "beds": 4, "baths": 4, "size": 3119, "neighborhood": "The Dales", "yearBuilt": "1986", "likes": "walking distance to Trader Joe's", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.zillow.com/homedetails/2267-Cedardale-Ave-Baton-Rouge-LA-70808/66266423_zpid/", "enr": [], "src": "Note: 'walking distance to Trader Joe's' was under Dislikes in source sheet \u2014 moved to Likes.", "type": "sale", "id": "s13", "lat": 30.422878, "lon": -91.156875, "r025": 4, "r05": 9, "r10": 31, "w": 9.96}, {"address": "4268 Arrowhead St", "status": "off", "zip": "70808", "price": 740, "beds": 4, "baths": 3.5, "size": 3067, "neighborhood": "Southdowns", "yearBuilt": "2009", "likes": "", "dislikes": "", "jamie": null, "keegan": null, "link": "https://www.redfin.com/LA/Baton-Rouge/4268-Arrowhead-St-70808/home/82920609", "enr": [], "src": "", "type": "sale", "id": "s14", "lat": 30.414369, "lon": -91.148206, "r025": 1, "r05": 8, "r10": 32, "w": 7.77}];
+
+/* ===========================================================================
+   BATON ROUGE LISTINGS DATABASE
+   Built on the user's own categories. Rent + Sale modes. localStorage-backed,
+   seeded from their Baton Rouge Places sheet + web enrichment.
+   --- INTEGRATION SEAM (email) at bottom; calendar reserved.
+   =========================================================================== */
+const LS_KEY="br_listings_v2";
+
+/* ---- column configs (their categories) ---- */
+const COLS={
+ rent:[
+  {k:"address",label:"Address",cls:"addr",fmt:addrCell},
+  {k:"price",label:"$/mo",num:1,sort:"num",fmt:l=>l.price?("$"+l.price.toLocaleString()):"—"},
+  {k:"beds",label:"Bd",num:1,sort:"num"},{k:"baths",label:"Ba",num:1,sort:"num"},
+  {k:"size",label:"Sqft",num:1,sort:"num",fmt:l=>l.size?l.size.toLocaleString():"—"},
+  {k:"neighborhood",label:"Neighborhood"},{k:"safety",label:"Crime risk",sort:"safety"},{k:"yearBuilt",label:"Yr",num:1,sort:"num"},
+  {k:"furnished",label:"Furn."},{k:"petFees",label:"Pets",cls:"wide"},
+  {k:"minLease",label:"Min lease"},{k:"likes",label:"Likes",cls:"wide"},
+  {k:"dislikes",label:"Dislikes",cls:"wide"},
+  {k:"jamie",label:"Jamie",edit:1,sort:"num"},{k:"keegan",label:"Keegan",edit:1,sort:"num"},
+  {k:"combined",label:"Combined",derived:1,sort:"num"},
+ ],
+ sale:[
+  {k:"address",label:"Address",cls:"addr",fmt:addrCell},
+  {k:"price",label:"$k",num:1,sort:"num",fmt:l=>l.price?("$"+l.price+"k"):"—"},
+  {k:"beds",label:"Bd",num:1,sort:"num"},{k:"baths",label:"Ba",num:1,sort:"num"},
+  {k:"size",label:"Sqft",num:1,sort:"num",fmt:l=>l.size?l.size.toLocaleString():"—"},
+  {k:"neighborhood",label:"Neighborhood"},{k:"safety",label:"Crime risk",sort:"safety"},{k:"yearBuilt",label:"Yr",num:1,sort:"num"},
+  {k:"likes",label:"Likes",cls:"wide"},{k:"dislikes",label:"Dislikes",cls:"wide"},
+  {k:"jamie",label:"Jamie",edit:1,sort:"num"},{k:"keegan",label:"Keegan",edit:1,sort:"num"},
+  {k:"combined",label:"Combined",derived:1,sort:"num"},
+ ]
+};
+
+let listings=load();
+let mode="rent";
+let sortKey="combined", sortDir=1;
+let filt={q:"",nb:"",minBeds:"",maxPrice:"",ranked:false,hideOff:false,safe:""};
+let editingId=null, mailId=null;
+const EMAIL={enabled:false, provider:"gmail",
+  tools:{search:"mcp__gmail__search_emails", draft:"mcp__gmail__create_draft", send:"mcp__gmail__send_email"}};
+
+function load(){ try{const r=localStorage.getItem(LS_KEY); if(r) return JSON.parse(r);}catch(e){} return JSON.parse(JSON.stringify(SEED)); }
+function save(){ try{localStorage.setItem(LS_KEY,JSON.stringify(listings));}catch(e){} }
+function rows(){ return listings.filter(l=>l.type===mode); }
+function byId(id){ return listings.find(l=>l.id===id); }
+function num(v){ return (v===0||v)&&!isNaN(parseFloat(v))?parseFloat(v):null; }
+function combined(l){ const a=num(l.jamie),b=num(l.keegan); if(a!=null&&b!=null) return Math.round((a+b)/2*10)/10; return a!=null?a:(b!=null?b:null); }
+// Radius-adjustable crime risk. Tier on VIOLENT density (incidents per sq mi) so it scales with the chosen radius.
+// "Risk tolerance": ¼ mi = only the immediate block (higher tolerance) ... 1 mi = wider area (lower tolerance).
+const RAD={"025":{mi:0.25,key:"r025",lab:"¼ mi",area:Math.PI*0.0625},"05":{mi:0.5,key:"r05",lab:"½ mi",area:Math.PI*0.25},"10":{mi:1.0,key:"r10",lab:"1 mi",area:Math.PI*1.0}};
+let RKEY="05";
+const SAFE_TIERS=[{t:"Low",max:3,c:"#1E7A34",bg:"#E7F6EC"},{t:"Moderate",max:13,c:"#9A6A00",bg:"#FFF4E0"},{t:"Elevated",max:32,c:"#C2691C",bg:"#FBE6D6"},{t:"High",max:1e9,c:"#B23B3B",bg:"#FBE7E7"}];
+function safety(l){
+  const R=RAD[RKEY], n=l[R.key];
+  if(n!=null){ const dens=n/R.area; let i=SAFE_TIERS.findIndex(s=>dens<s.max); if(i<0)i=3; const s=SAFE_TIERS[i];
+    return {tier:s.t,metric:n,density:dens,c:s.c,bg:s.bg,rank:i,fb:false}; }
+  const z=CRIME[l.zip];                       // fallback: ZIP rate for user-added listings without coords
+  if(!z) return {tier:"—",metric:null,c:"#8A8F98",bg:"#F2F2F2",rank:99,fb:true};
+  const rr=z.violent/z.pop*1000; let j=rr<3?0:rr<8?1:rr<18?2:3; const s2=SAFE_TIERS[j];
+  return {tier:s2.t,metric:null,zrate:rr,c:s2.c,bg:s2.bg,rank:j,fb:true};
+}
+function esc(s){ return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2100); }
+function isAuto(l,k){ return (l.enr||[]).indexOf(k)>=0; }
+
+function statusBadge(l){ return l.status==="off"?' <span class="badge off">OFF-MARKET</span>':(l.status==="unknown"?' <span class="badge unk">STATUS?</span>':''); }
+function addrCell(l){
+  return '<span>'+esc(l.address)+(l.zip?' <span class="zip">'+esc(l.zip)+'</span>':'')+statusBadge(l)+
+    (l.link?'<a class="lk" href="'+esc(l.link)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗</a>':'')+'</span>';
+}
+
+/* ---------- render ---------- */
+function setMode(m){ mode=m; document.getElementById("tgRent").classList.toggle("on",m==="rent");
+  document.getElementById("tgSale").classList.toggle("on",m==="sale");
+  filt={q:"",nb:"",minBeds:"",maxPrice:"",ranked:false,hideOff:false,safe:""}; if(sortKey!=="combined"&&sortKey!=="price"&&!COLS[m].find(c=>c.k===sortKey)) sortKey="combined";
+  render(); }
+
+function render(){ renderPill(); renderStats(); renderFilters(); renderTable(); }
+
+function renderPill(){ const p=document.getElementById("pillEmail"); p.classList.toggle("on",EMAIL.enabled);
+  p.lastElementChild.textContent=EMAIL.enabled?("Email: "+EMAIL.provider):"Email: not connected"; }
+
+function applyFilters(arr){
+  let a=arr.slice();
+  if(filt.q){ const q=filt.q.toLowerCase(); a=a.filter(l=>[l.address,l.neighborhood,l.likes,l.dislikes].some(x=>(x||"").toLowerCase().includes(q))); }
+  if(filt.nb) a=a.filter(l=>(l.neighborhood||"")===filt.nb);
+  if(filt.minBeds) a=a.filter(l=>num(l.beds)!=null&&num(l.beds)>=+filt.minBeds);
+  if(filt.maxPrice) a=a.filter(l=>num(l.price)!=null&&num(l.price)<=+filt.maxPrice);
+  if(filt.ranked) a=a.filter(l=>combined(l)!=null);
+  if(filt.hideOff) a=a.filter(l=>l.status!=="off");
+  if(filt.safe==="ok") a=a.filter(l=>safety(l).rank<=1);
+  if(filt.safe==="low") a=a.filter(l=>safety(l).tier==="Low");
+  return a;
+}
+function sortRows(a){
+  const col=COLS[mode].find(c=>c.k===sortKey);
+  a.sort((x,y)=>{
+    let vx,vy;
+    if(sortKey==="combined"){vx=combined(x);vy=combined(y);}
+    else if(sortKey==="safety"){const sx=safety(x),sy=safety(y);const mx=sx.metric==null?sx.rank*1000:sx.metric;const my=sy.metric==null?sy.rank*1000:sy.metric;return (mx-my)*sortDir;}
+    else {vx=x[sortKey];vy=y[sortKey];}
+    const nx=(col&&col.sort==="num");
+    if(nx){vx=num(vx);vy=num(vy); if(vx==null&&vy==null)return 0; if(vx==null)return 1; if(vy==null)return -1; return (vx-vy)*sortDir;}
+    vx=(vx==null?"":String(vx)).toLowerCase(); vy=(vy==null?"":String(vy)).toLowerCase();
+    if(vx===""&&vy==="")return 0; if(vx==="")return 1; if(vy==="")return -1;
+    return vx<vy?-1*sortDir:vx>vy?1*sortDir:0;
+  });
+  return a;
+}
+function renderStats(){
+  const a=rows(); const pr=a.map(l=>num(l.price)).filter(v=>v!=null);
+  const sz=a.map(l=>num(l.size)).filter(v=>v!=null);
+  const ranked=a.filter(l=>combined(l)!=null).length;
+  const nbs=new Set(a.map(l=>l.neighborhood).filter(Boolean)).size;
+  const unit=mode==="rent"?"/mo":"k";
+  const pmin=pr.length?Math.min(...pr):0, pmax=pr.length?Math.max(...pr):0;
+  const fmtp=v=>mode==="rent"?("$"+v.toLocaleString()):("$"+v+"k");
+  const off=a.filter(l=>l.status==="off").length;
+  const cards=[
+   {n:a.length,l:mode==="rent"?"Rentals":"For sale"},
+   {n:a.length-off,l:"Active"},
+   {n:off,l:"Off-market"},
+   {n:a.filter(l=>safety(l).tier==="Low").length,l:"Low risk"},
+   {n:ranked,l:"Ranked"},
+   {n:pr.length?fmtp(pmin)+"–"+fmtp(pmax):"—",l:"Price range"},
+   {n:sz.length?Math.round(sz.reduce((s,v)=>s+v,0)/sz.length).toLocaleString():"—",l:"Avg sqft"},
+   {n:nbs,l:"Neighborhoods"},
+  ];
+  document.getElementById("stats").innerHTML=cards.map(c=>'<div class="stat"><div class="n">'+c.n+'</div><div class="l">'+c.l+'</div></div>').join("");
+}
+function renderFilters(){
+  const a=rows(); const nbs=[...new Set(a.map(l=>l.neighborhood).filter(Boolean))].sort();
+  document.getElementById("filters").innerHTML=
+   '<input type="search" id="fq" placeholder="Search address, area, notes…" value="'+esc(filt.q)+'">'+
+   '<select id="fnb"><option value="">All neighborhoods</option>'+nbs.map(n=>'<option'+(filt.nb===n?' selected':'')+'>'+esc(n)+'</option>').join("")+'</select>'+
+   '<select id="fmb"><option value="">Beds: any</option>'+[1,2,3,4].map(b=>'<option value="'+b+'"'+(filt.minBeds==b?' selected':'')+'>'+b+'+ bd</option>').join("")+'</select>'+
+   '<input id="fmp" type="number" placeholder="'+(mode==="rent"?"Max $/mo":"Max $k")+'" value="'+esc(filt.maxPrice)+'" style="width:120px">'+
+   '<select id="frad" title="Radius the crime-risk score considers — smaller = only the immediate block (higher risk tolerance)"><option value="025"'+(RKEY==="025"?" selected":"")+'>Risk radius: ¼ mi · block</option><option value="05"'+(RKEY==="05"?" selected":"")+'>Risk radius: ½ mi · neighborhood</option><option value="10"'+(RKEY==="10"?" selected":"")+'>Risk radius: 1 mi · wider area</option></select>'+
+   '<select id="fsf"><option value="">Risk: any</option><option value="ok"'+(filt.safe==="ok"?" selected":"")+'>hide elevated/high</option><option value="low"'+(filt.safe==="low"?" selected":"")+'>low-risk only</option></select>'+
+   '<label class="chk"><input type="checkbox" id="frk"'+(filt.ranked?' checked':'')+'> ranked only</label>'+
+   '<label class="chk"><input type="checkbox" id="fho"'+(filt.hideOff?' checked':'')+'> hide off-market</label>';
+  document.getElementById("frad").onchange=e=>{RKEY=e.target.value;render();};
+  document.getElementById("fsf").onchange=e=>{filt.safe=e.target.value;renderTable();renderStats();};
+  document.getElementById("fho").onchange=e=>{filt.hideOff=e.target.checked;renderTable();renderStats();};
+  document.getElementById("fq").oninput=e=>{filt.q=e.target.value;renderTable();};
+  document.getElementById("fnb").onchange=e=>{filt.nb=e.target.value;renderTable();renderStats();};
+  document.getElementById("fmb").onchange=e=>{filt.minBeds=e.target.value;renderTable();renderStats();};
+  document.getElementById("fmp").oninput=e=>{filt.maxPrice=e.target.value;renderTable();renderStats();};
+  document.getElementById("frk").onchange=e=>{filt.ranked=e.target.checked;renderTable();renderStats();};
+}
+function renderTable(){
+  const cols=COLS[mode];
+  document.getElementById("thead").innerHTML="<tr>"+cols.map(c=>{
+    const ar=sortKey===c.k?('<span class="ar">'+(sortDir>0?"▲":"▼")+"</span>"):"";
+    return '<th onclick="setSort(\''+c.k+'\')">'+c.label+ar+"</th>";
+  }).join("")+"</tr>";
+  let a=sortRows(applyFilters(rows()));
+  const tb=document.getElementById("tbody");
+  if(!a.length){ tb.innerHTML='<tr><td colspan="'+cols.length+'" style="color:var(--soft);padding:18px">No matches.</td></tr>'; return; }
+  tb.innerHTML=a.map(l=>"<tr class=\""+(l.status==="off"?"off":"")+"\" onclick=\"openEdit('"+l.id+"')\">"+cols.map(c=>cell(l,c)).join("")+"</tr>").join("");
+}
+function cell(l,c){
+  if(c.k==="safety"){ const s=safety(l); const R=RAD[RKEY];
+    const numTxt=(s.metric!=null)?(' <span class="zip" style="color:'+s.c+';font-weight:700">'+s.metric+'</span>'):'';
+    const tip=(s.metric!=null)?(s.metric+" violent incidents within "+R.lab+" (12mo) · ¼mi "+l.r025+" · ½mi "+l.r05+" · 1mi "+l.r10):(s.zrate!=null?("ZIP "+l.zip+" approx "+s.zrate.toFixed(1)+"/1k (no coords)"):"no data");
+    return '<td><span class="badge" style="background:'+s.bg+';color:'+s.c+'" title="'+tip+'">'+s.tier+"</span>"+numTxt+"</td>"; }
+  if(c.derived){ const v=combined(l); return '<td class="num comb">'+(v==null?"—":v)+"</td>"; }
+  if(c.edit){ const v=l[c.k]==null?"":l[c.k];
+    return '<td class="num"><input class="rankin" type="number" min="1" step="1" value="'+esc(v)+'" onclick="event.stopPropagation()" onchange="setRank(\''+l.id+'\',\''+c.k+'\',this.value)"></td>'; }
+  let raw=l[c.k]; let txt=c.fmt?c.fmt(l):(raw==null||raw===""?"—":raw);
+  const cls=(c.cls?c.cls+" ":"")+(c.num?"num ":"");
+  if(c.fmt&&c.k==="address") return '<td class="'+cls.trim()+'">'+txt+"</td>";
+  let inner=esc(txt);
+  if(isAuto(l,c.k)&&raw!=null&&raw!=="") inner='<span class="auto" title="Auto-filled from public web sources — verify">'+esc(txt)+"</span>";
+  return '<td class="'+cls.trim()+'">'+inner+"</td>";
+}
+function setSort(k){ if(sortKey===k) sortDir=-sortDir; else {sortKey=k; sortDir=1;} renderTable(); }
+function setRank(id,k,v){ const l=byId(id); l[k]=v===""?null:+v; save();
+  const tr=event&&event.target?event.target.closest("tr"):null; renderTable(); renderStats(); }
+
+/* ---------- edit / add ---------- */
+function fld(id,label,val,type){ return '<div class="field"><label>'+label+'</label><input id="'+id+'" '+(type?'type="'+type+'" ':'')+'value="'+esc(val==null?"":val)+'"></div>'; }
+function openEdit(id){
+  editingId=id; const l=id?byId(id):{type:mode,enr:[]};
+  document.getElementById("editTitle").innerHTML=(id?"Edit listing":"Add "+( (l.type||mode)==="rent"?"rental":"home"))+
+    ' <span class="badge '+((l.type||mode)==="rent"?"r":"s")+'">'+((l.type||mode)==="rent"?"RENT":"SALE").toString()+"</span>";
+  document.getElementById("delBtn").style.display=id?"":"none";
+  document.getElementById("inqBtn").style.display=(id&&(l.type||mode)==="rent")?"":"none";
+  const t=l.type||mode;
+  let h=fld("e_address","Address",l.address)+
+    '<div class="g3">'+fld("e_zip","ZIP",l.zip)+fld("e_price",(t==="rent"?"Price ($/mo)":"Price ($k)"),l.price,"number")+fld("e_neighborhood","Neighborhood",l.neighborhood)+'</div>'+
+    '<div class="g3">'+fld("e_beds","Beds",l.beds,"number")+fld("e_baths","Baths",l.baths,"number")+fld("e_size","Size (sqft)",l.size,"number")+'</div>'+
+    '<div class="g3">'+fld("e_yearBuilt","Year built",l.yearBuilt)+fld("e_jamie","Jamie ranking",l.jamie,"number")+fld("e_keegan","Keegan ranking",l.keegan,"number")+'</div>';
+  if(t==="rent") h+='<div class="g3">'+fld("e_furnished","Furnished",l.furnished)+fld("e_petFees","Pet policy",l.petFees)+fld("e_minLease","Min lease (mo)",l.minLease)+'</div>';
+  const st=l.status||"active";
+  h+='<div class="field"><label>Market status</label><select id="e_status">'+
+     ["active","off","unknown"].map(s=>'<option value="'+s+'"'+(st===s?" selected":"")+'>'+({active:"Active",off:"Off-market",unknown:"Unknown"}[s])+'</option>').join("")+'</select></div>'+
+    fld("e_link","Listing link",l.link)+
+    '<div class="field"><label>Likes</label><textarea id="e_likes">'+esc(l.likes||"")+'</textarea></div>'+
+    '<div class="field"><label>Dislikes</label><textarea id="e_dislikes">'+esc(l.dislikes||"")+'</textarea></div>';
+  const sf=safety(l); const RR=RAD[RKEY], rkx={"025":"q","05":"h","10":"m"}[RKEY];
+  if(sf.metric!=null){
+    const ct=CBT[l.address]||{}, pr=PROP[l.address]||{};
+    const vt=t=>((ct[t]||{})[rkx]||0);
+    h+='<div class="srcbox" style="color:'+sf.c+';background:'+sf.bg+';border-color:'+sf.c+'44">'+
+       '<b>Crime risk: '+sf.tier+'</b> — '+sf.metric+' violent incidents within '+RR.lab+' (BRPD, last 12 mo).'+
+       '<div style="margin-top:5px;color:var(--ink)"><b>Violent (within '+RR.lab+'):</b> Homicide '+vt("homicide")+' · Agg. assault '+vt("agg_assault")+' · Robbery '+vt("robbery")+' · Rape '+vt("rape")+'</div>'+
+       '<div style="margin-top:3px"><b>Other (within ½ mi):</b> Burglary '+(pr.burglary||0)+' · Theft '+(pr.theft||0)+' · Auto theft '+(pr.mv_theft||0)+' · Weapons '+(pr.weapons||0)+' · Drugs '+(pr.drugs||0)+' · Vandalism '+(pr.vandalism||0)+' · Simple assault '+(pr.simple_assault||0)+'</div>'+
+       '<div style="font-size:10.5px;margin-top:3px">Counts exclude incidents logged without coordinates (~31% violent, ~10% other) — conservative.</div></div>';
+  } else if(sf.zrate!=null) h+='<div class="srcbox" style="color:'+sf.c+';background:'+sf.bg+';border-color:'+sf.c+'44"><b>Crime risk: '+sf.tier+'</b> — ZIP '+(l.zip||"")+' approximation ('+sf.zrate.toFixed(1)+' violent/1k); add coordinates for a radius score.</div>';
+  if(l.src) h+='<div class="srcbox"><b>Auto-fill source:</b> '+esc(l.src)+'</div>';
+  document.getElementById("editBody").innerHTML=h;
+  openModal("editScrim");
+}
+function gv(id){ const el=document.getElementById(id); return el?el.value.trim():""; }
+function saveListing(){
+  const addr=gv("e_address"); if(!addr){toast("Address required");return;}
+  let l=editingId?byId(editingId):null;
+  if(!l){ l={id:(mode[0]+Date.now()),type:mode,enr:[],src:""}; listings.push(l); }
+  const t=l.type;
+  const setf=(k,raw)=>{ const v=gv("e_"+k); l[k]=(v===""?"":(["price","beds","baths","size"].includes(k)?+v:v)); };
+  l.address=addr; ["zip","price","neighborhood","beds","baths","size","yearBuilt","link"].forEach(k=>setf(k));
+  l.likes=gv("e_likes"); l.dislikes=gv("e_dislikes");
+  l.jamie=gv("e_jamie")===""?null:+gv("e_jamie"); l.keegan=gv("e_keegan")===""?null:+gv("e_keegan");
+  l.status=gv("e_status")||"active";
+  if(t==="rent"){ ["furnished","petFees","minLease"].forEach(k=>{l[k]=gv("e_"+k);}); }
+  // a user-edited field is no longer "auto"
+  l.enr=(l.enr||[]).filter(k=>{ const el=document.getElementById("e_"+k); return !el; });
+  save(); render(); closeModal("editScrim"); toast("Saved");
+}
+function deleteListing(){ if(editingId&&confirm("Delete this listing?")){ listings=listings.filter(l=>l.id!==editingId); save(); render(); closeModal("editScrim"); toast("Deleted"); } }
+
+/* ---------- CSV export (their headers) ---------- */
+function exportCSV(){
+  const a=rows();
+  const cfg=mode==="rent"
+    ? [["Price (k/mth)","price"],["Pet Fees","petFees"],["# Beds","beds"],["# Baths","baths"],["Size (sqft)","size"],["Neighborhood","neighborhood"],["Year Built","yearBuilt"],["Furnished","furnished"],["Minimum Lease (mths)","minLease"],["Likes","likes"],["Dislikes","dislikes"],["Jamie Ranking","jamie"],["Keegan Ranking","keegan"],["Combined Ranking","__comb"],["Link","link"],["Market Status","__status"]]
+    : [["Price (k)","price"],["# Beds","beds"],["# Baths","baths"],["Size (sqft)","size"],["Neighborhood","neighborhood"],["Year Built","yearBuilt"],["Likes","likes"],["Dislikes","dislikes"],["Jamie Ranking","jamie"],["Keegan Ranking","keegan"],["Combined Ranking","__comb"],["Link","link"],["Market Status","__status"]];
+  const head=cfg.map(c=>c[0]).join(",");
+  const lines=[head].concat(a.map(l=>cfg.map(c=>{
+    let v=c[1]==="__comb"?combined(l):(c[1]==="__status"?(l.status||"active"):l[c[1]]);
+    v=(v==null?"":String(v)); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;
+  }).join(",")));
+  const blob=new Blob([lines.join("\n")],{type:"text/csv"});
+  const u=document.createElement("a"); u.href=URL.createObjectURL(blob); u.download="baton_rouge_"+mode+".csv"; u.click(); toast("CSV exported");
+}
+
+/* ===========================================================================
+   REFRESH FROM GOOGLE SHEET (live, via the connected Drive/Sheets connector)
+   Pulls the user's latest sheet edits; fills only fields the sheet has, keeps
+   web-enriched gaps and local edits otherwise. Keyed by listing link.
+   =========================================================================== */
+async function refreshFromSheet(){
+  if(!(window.cowork&&window.cowork.callMcpTool)){ toast("Live refresh runs inside Cowork only"); return; }
+  const b=document.getElementById("refreshBtn"); b.textContent="↻ Refreshing…";
+  try{
+    const r=await window.cowork.callMcpTool(READ_TOOL,{fileId:FILE_ID});
+    const raw=r.structuredContent ?? JSON.parse(r.content[0].text);
+    const md=(raw&&raw.fileContent)?raw.fileContent:(typeof raw==="string"?raw:"");
+    const parsed=parseSheet(md);
+    let filled=0,added=0;
+    for(const p of parsed){
+      let l=listings.find(x=>normLink(x.link)===normLink(p.link));
+      if(!l){ p.id=(p.type[0]+"x"+(added++)); p.enr=p.enr||[]; listings.push(l=p); continue; }
+      for(const k of Object.keys(p)){
+        if(["id","type","enr","src","link"].includes(k)) continue;
+        if(p[k]!==""&&p[k]!=null){ if(l[k]!==p[k]){ l[k]=p[k]; l.enr=(l.enr||[]).filter(x=>x!==k); filled++; } }
+      }
     }
-    .card {
-      max-width: 560px; padding: 2.5rem 2.75rem; text-align: center;
-      background: #171a21; border: 1px solid #262b36; border-radius: 16px;
-      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+    save(); render(); toast("Synced from Sheet · "+filled+" field(s) updated"+(added?", "+added+" added":""));
+  }catch(e){ toast("Refresh failed: "+(e&&e.message?e.message:e)); }
+  b.textContent="↻ Refresh from Sheet";
+}
+function normLink(u){ return (u||"").replace(/\\\\_/g,"_").replace(/[#?].*$/,"").replace(/\/+$/,"").toLowerCase(); }
+function unesc(s){ return (s||"").replace(/&#10;/g," ").replace(/\\\\([#_<>|'])/g,"$1").trim(); }
+function parseSheet(md){
+  const out=[]; const lines=md.split("\n").filter(x=>x.trim().startsWith("|"));
+  let cur=null;
+  for(const ln of lines){
+    const cells=ln.split("|").slice(1,-1).map(c=>unesc(c));
+    const joined=cells.join(" ").toLowerCase();
+    if(/^[-:\s|]+$/.test(ln.replace(/\\|/g,"|").replace(/[^|:\-\s]/g,""))&&joined.replace(/\\s/g,"")===""){ continue; }
+    if(joined.includes("price (k/mth)")){ cur="rent"; continue; }
+    if(joined.includes("price (k)")&&!joined.includes("mth")){ cur="sale"; continue; }
+    if(cells.every(c=>/^[:\-\s]*$/.test(c))) continue;        // separator row
+    if(!cur) continue;
+    const link=cells[cells.length-1]||"";
+    if(!/^https?:/i.test(link)) continue;
+    const o={type:cur,link:link};
+    const pv=v=>{v=(v||"").trim(); return v===""?"":v;};
+    const np=v=>{ v=(v||"").replace(/[$,]/g,"").trim(); return v===""?"":(isNaN(+v)?v:+v); };
+    if(cur==="rent"){
+      let p=np(cells[0]); if(typeof p==="number"&&p>0&&p<100) p=Math.round(p*1000);
+      o.price=p; o.petFees=pv(cells[1]); o.beds=np(cells[2]); o.baths=np(cells[3]); o.size=np(cells[4]);
+      o.neighborhood=pv(cells[5]); o.yearBuilt=pv(cells[6]); o.furnished=pv(cells[7]); o.minLease=pv(cells[8]);
+      o.likes=pv(cells[9]); o.dislikes=pv(cells[10]); o.jamie=np(cells[11]); o.keegan=np(cells[12]);
+    } else {
+      o.price=np(cells[0]); o.beds=np(cells[1]); o.baths=np(cells[2]); o.size=np(cells[3]);
+      o.neighborhood=pv(cells[4]); o.yearBuilt=pv(cells[5]); o.likes=pv(cells[6]); o.dislikes=pv(cells[7]);
+      o.jamie=np(cells[8]); o.keegan=np(cells[9]);
     }
-    h1 { font-size: 1.4rem; margin: 0 0 .5rem; }
-    p { line-height: 1.55; color: #aab1c0; margin: .4rem 0; }
-    .dot { display:inline-block; width:8px; height:8px; border-radius:50%;
-      background:#f5a524; margin-right:8px; vertical-align: middle;
-      animation: pulse 1.4s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{opacity:.35} 50%{opacity:1} }
-    code { background:#0f1115; padding:2px 6px; border-radius:6px; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1><span class="dot"></span>Dashboard coming online</h1>
-    <p>The Baton Rouge apartment-hunting dashboard is being prepared and will
-       appear here shortly.</p>
-    <p>This page is unlisted and set to <code>noindex</code>. If you reached it
-       by accident, there's nothing to see yet.</p>
-  </div>
-</body>
-</html>
+    out.push(o);
+  }
+  return out;
+}
+
+/* ===========================================================================
+   EMAIL SEAM  (manual today → one-click once Gmail/Outlook connected)
+   =========================================================================== */
+function buildInquiry(l){
+  const subject="Rental inquiry — "+l.address;
+  const spec=l.beds?(" ("+l.beds+"BR"+(l.price?(", $"+l.price+"/mo"):"")+")"):"";
+  const body="Hi there,\n\nI'm interested in the rental at "+l.address+spec+
+   " and would like to ask about availability and schedule a viewing. Could you let me know a few times that work this week?\n\nThank you!";
+  return {subject,body};
+}
+function draftInquiry(){ const l=byId(editingId); mailId=l.id; const {subject,body}=buildInquiry(l);
+  document.getElementById("mailTitle").textContent=subject; document.getElementById("mailBody").textContent=body;
+  document.getElementById("mailNote").innerHTML=EMAIL.enabled
+   ? "Email connected ("+EMAIL.provider+"). Wire <code>sendInquiry()</code> to <code>"+EMAIL.tools.send+"</code> to send in one click."
+   : "Manual today: copy this into the listing's contact form or your mail app. Connect Gmail/Outlook to send from here.";
+  openModal("mailScrim"); }
+function copyMail(){ navigator.clipboard.writeText(document.getElementById("mailBody").textContent).then(()=>toast("Copied")); }
+async function sendInquiry(){
+  // === WIRE LATER ===
+  // const l=byId(mailId); const {subject,body}=buildInquiry(l);
+  // await window.cowork.callMcpTool(EMAIL.tools.send,{to:l.agentEmail,subject,body});
+  toast("Stub: wire to "+EMAIL.tools.send);
+}
+function showConnect(){
+  const t=EMAIL.tools;
+  document.getElementById("connBody").innerHTML=
+   "<p><b>Today (manual):</b> rentals have a <i>Draft inquiry</i> button that writes a ready-to-send message.</p>"+
+   "<p><b>Once connected:</b> send inquiries in one click and auto-file replies. Add <b>Gmail</b> or <b>Outlook</b> in Settings → Connectors, set <code>EMAIL.enabled=true</code>, and wire:</p>"+
+   "<ul style='margin:6px 0 0;padding-left:18px;font-size:12.5px'><li><code>search</code> → <code>"+t.search+"</code></li><li><code>draft</code> → <code>"+t.draft+"</code></li><li><code>send</code> → <code>"+t.send+"</code></li></ul>"+
+   "<div class='note'>Provider-agnostic: switch <code>EMAIL.provider</code> and tool names to match whatever you connect.</div>";
+  document.getElementById("connTg").textContent=EMAIL.enabled?"Switch back to manual":"Simulate connected";
+  openModal("connScrim");
+}
+function toggleEmail(){ EMAIL.enabled=!EMAIL.enabled; renderPill(); showConnect(); toast(EMAIL.enabled?"Preview: email connected":"Back to manual"); }
+
+/* ---- modal helpers ---- */
+function openModal(id){ document.getElementById(id).classList.add("show"); }
+function closeModal(id){ document.getElementById(id).classList.remove("show"); }
+document.querySelectorAll(".scrim").forEach(s=>s.addEventListener("click",e=>{ if(e.target===s) s.classList.remove("show"); }));
+
+render();
+
+</script></body></html>
