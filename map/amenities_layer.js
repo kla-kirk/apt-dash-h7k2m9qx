@@ -4,7 +4,10 @@
    same-colored connector (pane-connect, below pins). Click an amenity → its own detail card (name, category,
    distance, approx walk/drive, Directions link). The card is a Leaflet *tooltip*, and amenity clicks
    stopPropagation, so opening one does NOT trip the shell's popupclose→deselect (which would wipe the markers).
-   Also keeps a compact "nearby amenities" list in the shared listing popup. Auto-clears on deselect. */
+   The shared listing popup also lists the nearby amenities; each row is CLICKABLE and opens that amenity's
+   card. Because the big listing popup can sit on top of nearby amenities, opening a card auto-reveals it:
+   if the amenity/card would be hidden under the popup or off-screen, the map gently pans it into a clear
+   lower-left area. Auto-clears on deselect. */
 BRMap.ready(async () => {
   const map = BRMap.map;
   const AM = await BRMap.fetchJSON("amenities.json"); if (!AM) { console.warn("amenities.json missing"); return; }
@@ -30,9 +33,11 @@ BRMap.ready(async () => {
   .am-card .amc-link{font-size:12.5px;color:#2B5797;text-decoration:none;font-weight:600}
   .am-pop{margin-top:5px;padding-top:4px;border-top:1px solid #EEF1F5}
   .am-pop .amp-h{font-weight:700;color:#3A434F;font-size:10.5px;letter-spacing:.3px;text-transform:uppercase;margin-bottom:2px}
-  .am-pop .amp-row{display:flex;align-items:center;gap:6px;font-size:12px;color:#28303A;padding:1px 0}
+  .am-pop .amp-row{display:flex;align-items:center;gap:6px;font-size:12px;color:#28303A;padding:2px 4px;margin:0 -4px;border-radius:5px;cursor:pointer}
+  .am-pop .amp-row:hover{background:#EFF4FA}
   .am-pop .amp-row .amp-nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .am-pop .amp-row .amp-d{color:#6B7280;font-size:11px;white-space:nowrap}
+  .am-pop .amp-row .amp-go{color:#9AA1AC;font-size:13px;font-weight:700;margin-left:1px}
   </style>`);
 
   function hav(a, b, c, d) { const R = 3958.7613, r = Math.PI / 180; const x = (c - a) * r, y = (d - b) * r;
@@ -49,13 +54,27 @@ BRMap.ready(async () => {
       + '<div class="amc-meta">' + LABEL[t] + ' · ' + d.toFixed(1) + ' mi from this listing</div>'
       + '<div class="amc-times">🚶 ' + td.w + ' min · 🚗 ' + td.d + ' min <span class="ap">(approx)</span></div>'
       + '<a class="amc-link" href="' + dir + '" target="_blank" rel="noopener">Directions ↗</a>'; }
+  // pan the map only if the amenity/card is hidden under the listing popup or off the edges
+  function revealCard(ll) { try {
+    const mc = map.getContainer(), mr = mc.getBoundingClientRect();
+    const el = card && card.getElement(); if (!el) return;
+    const cr = el.getBoundingClientRect();
+    const pop = document.querySelector(".leaflet-popup"); const pr = pop ? pop.getBoundingClientRect() : null;
+    const offscreen = cr.left < mr.left + 8 || cr.right > mr.right - 8 || cr.top < mr.top + 8 || cr.bottom > mr.bottom - 8;
+    const underPopup = pr && !(cr.right < pr.left || cr.left > pr.right || cr.bottom < pr.top || cr.top > pr.bottom);
+    if (!offscreen && !underPopup) return;
+    const size = map.getSize(), cp = map.latLngToContainerPoint(ll);
+    const want = L.point(Math.min(size.x * 0.26, 230), size.y * 0.72);
+    map.panBy(cp.subtract(want), { animate: true });
+  } catch (e) {} }
   function showCard(a, d, l) { const key = a[0] + "@" + a[2] + "," + a[3];
     if (cardKey === key) { hideCard(); return; }
     hideCard();
     card = L.tooltip({ permanent: true, interactive: true, direction: "top", offset: [0, -20], className: "am-card", opacity: 1 })
       .setLatLng([a[2], a[3]]).setContent(cardHtml(a, d, l)).addTo(map);
     cardKey = key;
-    const el = card.getElement(); if (el) L.DomEvent.on(el, "click dblclick mousedown", L.DomEvent.stopPropagation); }
+    const el = card.getElement(); if (el) L.DomEvent.on(el, "click dblclick mousedown", L.DomEvent.stopPropagation);
+    setTimeout(() => revealCard(L.latLng(a[2], a[3])), 30); }
 
   const clear = () => { marks.forEach((m) => map.removeLayer(m)); marks = []; hideCard(); };
 
@@ -76,6 +95,17 @@ BRMap.ready(async () => {
 
   BRMap.addPopupRow((l) => { const n = nearest(l);
     const rows = ORDER.filter((t) => n[t]).map((t) =>
-      '<div class="amp-row"><span>' + ICON[t] + '</span><span class="amp-nm">' + n[t].a[0] + '</span><span class="amp-d">' + n[t].d.toFixed(1) + 'mi</span></div>').join("");
+      '<div class="amp-row" data-t="' + t + '"><span>' + ICON[t] + '</span><span class="amp-nm">' + n[t].a[0]
+      + '</span><span class="amp-d">' + n[t].d.toFixed(1) + 'mi</span><span class="amp-go">›</span></div>').join("");
     return rows ? '<div class="am-pop"><div class="amp-h">Nearby amenities</div>' + rows + '</div>' : ""; });
+
+  // make the popup's amenity rows clickable: open that amenity's card (and reveal it from under the popup)
+  map.on("popupopen", (e) => {
+    const root = e.popup && e.popup.getElement(); const l = BRMap._selected; if (!root || !l) return;
+    const n = nearest(l);
+    root.querySelectorAll(".am-pop .amp-row").forEach((row) => {
+      const o = n[row.getAttribute("data-t")]; if (!o) return;
+      L.DomEvent.on(row, "click", (ev) => { L.DomEvent.stop(ev); showCard(o.a, o.d, l); });
+    });
+  });
 });
