@@ -2,8 +2,9 @@
    Data: crime_points.json = {cats:[[id,label,color,group]], years:[...], pts:[[lat,lon,catIdx,year]]}.
    Registers:
      • color mode "Crime risk" (DEFAULT) — tints listing pins by nearby violent-incident count
-     • map overlay "Crime incidents" — clickable discrete incident dots (popup: type + year)
-       with year + category filters, plus an opt-in "Heat density overlay" checkbox
+     • map overlay "Crime incidents" — clickable discrete incident dots; on click each fetches
+       its exact date + street address from the BR open-data API (matched by block coordinate +
+       year + offense). Year + category filters, plus an opt-in "Heat density overlay" checkbox
      • per-listing popup rows: violent risk (¼/½/1 mi) + burglary/car-theft (¼ mi)
 */
 BRMap.ready(async () => {
@@ -35,6 +36,49 @@ BRMap.ready(async () => {
     colorFor: (l) => { const s = SC[l.id]; return s ? vt(s.v[1]).c : undefined; },
     legend: VT.map((s) => '<span class="sw"><i style="background:' + s.c + '"></i>' + s.t + "</span>").join("") });
 
+  // ---- live incident detail (fetched from the BR open-data API on click) ----
+  // crime_points.json carries only lat/lon/cat/year; exact date + street are pulled on demand
+  // from data.brla.gov, matched by block coordinate + year + offense (NIBRS) code.
+  const NIBRS = { hom: ["09A", "09B", "09C"], agg: ["13A"], rob: ["120"], rape: ["11A", "11B", "11C", "11D"],
+    burg: ["220"], theft: ["23A", "23B", "23C", "23D", "23E", "23F", "23G", "23H"], auto: ["240"],
+    weap: ["520"], drug: ["35A", "35B"], vand: ["290"], simp: ["13B"], intim: ["13C"], other: [] };
+  const API = "https://data.brla.gov/resource/pbin-pcm7.json";
+  const tc = (s) => (s || "").toLowerCase().replace(/\b\w/g, (m) => m.toUpperCase());
+  const fmtDate = (s) => { if (!s) return ""; const d = new Date(s);
+    return isNaN(d) ? String(s).slice(0, 10) : d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }); };
+  function detailURL(p, useCodes) {
+    const lat = p[0], lon = p[1], yr = p[3], e = 0.0003;
+    let w = "latitude between " + (lat - e).toFixed(5) + " and " + (lat + e).toFixed(5) +
+            " and longitude between " + (lon - e).toFixed(5) + " and " + (lon + e).toFixed(5);
+    if (yr) w += " and date_extract_y(charge_date)=" + yr;
+    const codes = NIBRS[CATS[p[2]][0]] || [];
+    if (useCodes && codes.length) w += " and nibrs_code in(" + codes.map((c) => "'" + c + "'").join(",") + ")";
+    return API + "?$select=charge_date,street,neighborhood,postal_code,offense_description&$order=charge_date desc&$limit=6&$where=" + encodeURIComponent(w);
+  }
+  async function fetchDetail(p) {
+    const get = (u) => fetch(u).then((r) => (r.ok ? r.json() : [])).catch(() => []);
+    let rows = await get(detailURL(p, true));
+    if (!rows.length) rows = await get(detailURL(p, false));
+    return rows;
+  }
+  function detailHtml(p, rows) {
+    const cat = CATS[p[2]][1];
+    if (!rows || !rows.length)
+      return "<b>" + cat + "</b><br>" + (p[3] || "") + '<br><span style="color:#8a8f98;font-size:11px">exact record not found</span>';
+    const r = rows[0];
+    const loc = r.street ? tc(r.street) : (r.neighborhood ? tc(r.neighborhood) : "");
+    const hood = r.street && r.neighborhood ? " · " + tc(r.neighborhood) : "";
+    let h = "<b>" + tc(r.offense_description || cat) + "</b><br>" + fmtDate(r.charge_date);
+    if (loc) h += "<br>" + loc + hood + (r.postal_code ? " " + r.postal_code : "");
+    if (rows.length > 1) h += '<br><span style="color:#8a8f98;font-size:11px">+' + (rows.length - 1) + " more at this block</span>";
+    return h;
+  }
+  map.on("popupopen", (e) => {
+    const m = e.popup && e.popup._source; if (!m || !m._crime || m._loaded) return;
+    m._loaded = true;
+    fetchDetail(m._crime).then((rows) => { try { m.setPopupContent(detailHtml(m._crime, rows)); } catch (_) {} });
+  });
+
   // ---- map overlay: crime incidents (clickable dots primary; heat density optional) ----
   const enabled = CATS.map((c) => c[3] === "violent"); let selYear = "all"; let showHeat = false;
   let ptsLayer = null, heat = null;
@@ -53,9 +97,10 @@ BRMap.ready(async () => {
     // discrete clickable incidents — the primary view (popup: type + year)
     ptsLayer = L.layerGroup();
     for (const p of pts) {
-      L.circleMarker([p[0], p[1]], { renderer: cv, pane: BRMap.panes.heat, radius: 4, weight: 0.6, color: "#fff", fillColor: CATS[p[2]][2], fillOpacity: 0.85 })
-        .bindPopup('<b>' + CATS[p[2]][1] + "</b>" + (p[3] != null ? "<br>" + p[3] : ""))
-        .addTo(ptsLayer);
+      const cm = L.circleMarker([p[0], p[1]], { renderer: cv, pane: BRMap.panes.heat, radius: 4, weight: 0.6, color: "#fff", fillColor: CATS[p[2]][2], fillOpacity: 0.85 });
+      cm._crime = p; cm._loaded = false;
+      cm.bindPopup("<b>" + CATS[p[2]][1] + "</b>" + (p[3] != null ? "<br>" + p[3] : "") + '<br><span style="color:#8a8f98;font-size:11px">loading details…</span>');
+      cm.addTo(ptsLayer);
     }
     ptsLayer.addTo(map);
     const c = document.getElementById("crimeCount"); if (c) c.textContent = pts.length.toLocaleString() + " incidents";
@@ -84,7 +129,7 @@ BRMap.ready(async () => {
       ctx.controls.querySelectorAll(".ccat").forEach((cb) => (cb.onchange = function () { enabled[+this.dataset.i] = this.checked;
         ["violent", "property"].forEach((g) => { const ix = CATS.map((c, i) => [c, i]).filter((x) => x[0][3] === g);
           const mg = document.getElementById("m_" + g); if (mg) mg.checked = ix.every(([c, i]) => enabled[i]); }); draw(); }));
-      ctx.legend('<span class="sw">Dots = incidents — click one for type &amp; year</span>');
+      ctx.legend('<span class="sw">Dots = incidents — click one for date &amp; address</span>');
       draw();
     },
     deactivate() { removePts(); removeHeat(); }
