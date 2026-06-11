@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-<meta name="robots" content="noindex, nofollow">
-<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Baton Rouge Listings Database</title>
 <style>
@@ -46,6 +45,7 @@ tbody td{border-bottom:1px solid var(--line);padding:8px 10px;vertical-align:top
 tbody tr:hover{background:#F7FAFE;cursor:pointer}
 td.addr{font-weight:600;white-space:normal;min-width:150px}
 td.wide{white-space:normal;max-width:200px;color:var(--soft)}
+td.nbhd{white-space:normal;max-width:150px}
 td.num{text-align:right;font-variant-numeric:tabular-nums}
 .zip{color:var(--soft);font-weight:400;font-size:11px}
 .lk{color:var(--accent);text-decoration:none;font-size:11px;margin-left:6px}.lk:hover{text-decoration:underline}
@@ -159,7 +159,7 @@ const COLS={
   {k:"price",label:"$/mo",num:1,sort:"num",fmt:l=>l.price?("$"+l.price.toLocaleString()):"—"},
   {k:"beds",label:"Bd",num:1,sort:"num"},{k:"baths",label:"Ba",num:1,sort:"num"},
   {k:"size",label:"Sqft",num:1,sort:"num",fmt:l=>l.size?l.size.toLocaleString():"—"},
-  {k:"neighborhood",label:"Neighborhood"},{k:"safety",label:"Violent crime risk",sort:"safety"},{k:"burg",label:"Burglary",sort:"burg"},{k:"auto",label:"Car theft",sort:"auto"},{k:"yearBuilt",label:"Yr",num:1,sort:"num"},
+  {k:"neighborhood",label:"Neighborhood",cls:"nbhd"},{k:"safety",label:"Violent crime risk",sort:"safety",grp:"rl"},{k:"burg",label:"Burglary",sort:"burg",grp:"rl"},{k:"auto",label:"Car theft",sort:"auto",grp:"rl"},{k:"commute",label:"Commute",sort:"commute",grp:"rl"},{k:"flood",label:"Flood",sort:"flood",grp:"rl"},{k:"yearBuilt",label:"Yr",num:1,sort:"num"},
   {k:"furnished",label:"Furn."},{k:"petFees",label:"Pets",cls:"wide"},
   {k:"minLease",label:"Min lease"},{k:"likes",label:"Likes",cls:"wide"},
   {k:"dislikes",label:"Dislikes",cls:"wide"},
@@ -171,7 +171,7 @@ const COLS={
   {k:"price",label:"$k",num:1,sort:"num",fmt:l=>l.price?("$"+l.price+"k"):"—"},
   {k:"beds",label:"Bd",num:1,sort:"num"},{k:"baths",label:"Ba",num:1,sort:"num"},
   {k:"size",label:"Sqft",num:1,sort:"num",fmt:l=>l.size?l.size.toLocaleString():"—"},
-  {k:"neighborhood",label:"Neighborhood"},{k:"safety",label:"Violent crime risk",sort:"safety"},{k:"burg",label:"Burglary",sort:"burg"},{k:"auto",label:"Car theft",sort:"auto"},{k:"yearBuilt",label:"Yr",num:1,sort:"num"},
+  {k:"neighborhood",label:"Neighborhood",cls:"nbhd"},{k:"safety",label:"Violent crime risk",sort:"safety",grp:"rl"},{k:"burg",label:"Burglary",sort:"burg",grp:"rl"},{k:"auto",label:"Car theft",sort:"auto",grp:"rl"},{k:"commute",label:"Commute",sort:"commute",grp:"rl"},{k:"flood",label:"Flood",sort:"flood",grp:"rl"},{k:"yearBuilt",label:"Yr",num:1,sort:"num"},
   {k:"likes",label:"Likes",cls:"wide"},{k:"dislikes",label:"Dislikes",cls:"wide"},
   {k:"jamie",label:"Jamie",edit:1,sort:"num"},{k:"keegan",label:"Keegan",edit:1,sort:"num"},
   {k:"combined",label:"Combined",derived:1,sort:"num"},
@@ -198,6 +198,7 @@ function haver(la1,lo1,la2,lo2){const R=3958.7613,r=Math.PI/180;const dla=(la2-l
 // "Risk tolerance": ¼ mi = only the immediate block (higher tolerance) ... 1 mi = wider area (lower tolerance).
 const RAD={"025":{mi:0.25,key:"r025",lab:"¼ mi",area:Math.PI*0.0625},"05":{mi:0.5,key:"r05",lab:"½ mi",area:Math.PI*0.25},"10":{mi:1.0,key:"r10",lab:"1 mi",area:Math.PI*1.0}};
 let RKEY="05";
+let showRL=true; try{ if(localStorage.getItem("brdash.showRL")==="0") showRL=false; }catch(_){}
 const SAFE_TIERS=[{t:"Low",max:3,c:"#1E7A34",bg:"#E7F6EC"},{t:"Moderate",max:13,c:"#9A6A00",bg:"#FFF4E0"},{t:"Elevated",max:32,c:"#C2691C",bg:"#FBE6D6"},{t:"High",max:1e9,c:"#B23B3B",bg:"#FBE7E7"}];
 function safety(l){
   const R=RAD[RKEY], n=l[R.key];
@@ -212,6 +213,13 @@ const BURG14={"2115 E Ramsey Dr": 1, "2437 Fiero St": 2, "9003 Magnolia View Dr"
 const AUTO14={"2115 E Ramsey Dr": 1, "2437 Fiero St": 1, "9003 Magnolia View Dr": 1, "415 Bedford Dr": 4, "417 Bedford Dr": 4, "9446 High Point Rd": 0, "709 Staring Ln": 1, "The Terraces at Perkins Rowe": 0, "8808 Magnolia Leaf Ave": 1, "4738 Woodlyn Dr": 3, "5416 Heron Nest Dr": 0, "6024 Woodlawn Park Ct": 0, "9314 Fox Run Ave": 0, "10177 Bonnet Cove Ave": 0, "633 Fall Creek Dr": 0, "9412 Windward Rd": 0, "4573 Charleston Villa Dr": 0, "620 Nelson Dr": 0, "734 Caddo St": 1, "2103 Government St": 2, "1525 S Eugene St": 0, "750 Acadia St": 0, "541 Terry Dr": 6, "740 Acadia St": 1, "2102 Sassy Ln": 1, "2340 Government St": 3, "3650 Perkins Rd": 0, "4468 Cypress St": 0, "2326 Terrace Ave": 2, "540 Drehr Ave": 3, "2267 Cedardale Ave": 1, "4268 Arrowhead St": 0};
 const BURG_TIERS=[{t:"Low",max:1,c:"#1E7A34",bg:"#E7F6EC"},{t:"Moderate",max:5,c:"#9A6A00",bg:"#FFF4E0"},{t:"Elevated",max:11,c:"#C2691C",bg:"#FBE6D6"},{t:"High",max:1e9,c:"#B23B3B",bg:"#FBE7E7"}];
 const AUTO_TIERS=[{t:"Low",max:1,c:"#1E7A34",bg:"#E7F6EC"},{t:"Moderate",max:3,c:"#9A6A00",bg:"#FFF4E0"},{t:"Elevated",max:6,c:"#C2691C",bg:"#FBE6D6"},{t:"High",max:1e9,c:"#B23B3B",bg:"#FBE7E7"}];
+// ---- Flood (FEMA NFHL) + Commute (precomputed Mapbox drive-time to LSU) — keyed by address ----
+const FLOOD={"2115 E Ramsey Dr":{"zone":"X","subtype":"AREA OF MINIMAL FLOOD HAZARD","sfha":false,"bfe":null,"risk":"Low"},"2437 Fiero St":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"9003 Magnolia View Dr":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"415 Bedford Dr":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"417 Bedford Dr":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"9446 High Point Rd":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"709 Staring Ln":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"The Terraces at Perkins Rowe":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"8808 Magnolia Leaf Ave":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"4738 Woodlyn Dr":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"5416 Heron Nest Dr":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"6024 Woodlawn Park Ct":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"9314 Fox Run Ave":{"zone":"AE","subtype":"","sfha":true,"bfe":null,"risk":"High"},"10177 Bonnet Cove Ave":{"zone":"AE","subtype":"","sfha":true,"bfe":null,"risk":"High"},"633 Fall Creek Dr":{"zone":"AE","subtype":"","sfha":true,"bfe":null,"risk":"High"},"9412 Windward Rd":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"4573 Charleston Villa Dr":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"620 Nelson Dr":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"734 Caddo St":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"2103 Government St":{"zone":"X","subtype":"AREA OF MINIMAL FLOOD HAZARD","sfha":false,"bfe":null,"risk":"Low"},"1525 S Eugene St":{"zone":"X","subtype":"AREA OF MINIMAL FLOOD HAZARD","sfha":false,"bfe":null,"risk":"Low"},"750 Acadia St":{"zone":"X","subtype":"AREA OF MINIMAL FLOOD HAZARD","sfha":false,"bfe":null,"risk":"Low"},"541 Terry Dr":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"740 Acadia St":{"zone":"X","subtype":"AREA OF MINIMAL FLOOD HAZARD","sfha":false,"bfe":null,"risk":"Low"},"2102 Sassy Ln":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"2340 Government St":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"3650 Perkins Rd":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"4468 Cypress St":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"2326 Terrace Ave":{"zone":"X","subtype":"AREA OF MINIMAL FLOOD HAZARD","sfha":false,"bfe":null,"risk":"Low"},"540 Drehr Ave":{"zone":"X","subtype":"AREA OF MINIMAL FLOOD HAZARD","sfha":false,"bfe":null,"risk":"Low"},"2267 Cedardale Ave":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"},"4268 Arrowhead St":{"zone":"X","subtype":"AREA WITH REDUCED FLOOD RISK DUE TO LEVEE","sfha":false,"bfe":null,"risk":"Low"}};
+const COMMUTE={"2115 E Ramsey Dr":{"am":10,"pm":11,"off":11,"miles":{"am":3.6,"pm":3.6,"off":3.6}},"2437 Fiero St":{"am":9,"pm":10,"off":9,"miles":{"am":2.9,"pm":3.2,"off":3.2}},"9003 Magnolia View Dr":{"am":15,"pm":16,"off":15,"miles":{"am":5.6,"pm":5.6,"off":6.5}},"415 Bedford Dr":{"am":11,"pm":11,"off":11,"miles":{"am":3.3,"pm":3.3,"off":3.3}},"417 Bedford Dr":{"am":11,"pm":11,"off":11,"miles":{"am":3.3,"pm":3.3,"off":3.3}},"9446 High Point Rd":{"am":14,"pm":15,"off":14,"miles":{"am":5.4,"pm":5.4,"off":6.4}},"709 Staring Ln":{"am":13,"pm":14,"off":13,"miles":{"am":5.3,"pm":5.3,"off":6.3}},"The Terraces at Perkins Rowe":{"am":17,"pm":19,"off":18,"miles":{"am":8.2,"pm":7.3,"off":7.3}},"8808 Magnolia Leaf Ave":{"am":13,"pm":14,"off":13,"miles":{"am":5.3,"pm":5.3,"off":6.3}},"4738 Woodlyn Dr":{"am":24,"pm":25,"off":23,"miles":{"am":11.1,"pm":11.1,"off":11.1}},"5416 Heron Nest Dr":{"am":23,"pm":22,"off":20,"miles":{"am":12.0,"pm":12.0,"off":12.0}},"6024 Woodlawn Park Ct":{"am":27,"pm":27,"off":26,"miles":{"am":12.9,"pm":12.9,"off":12.9}},"9314 Fox Run Ave":{"am":12,"pm":13,"off":12,"miles":{"am":5.5,"pm":5.5,"off":5.5}},"10177 Bonnet Cove Ave":{"am":14,"pm":15,"off":14,"miles":{"am":6.1,"pm":6.1,"off":6.1}},"633 Fall Creek Dr":{"am":13,"pm":15,"off":13,"miles":{"am":5.8,"pm":5.8,"off":5.8}},"9412 Windward Rd":{"am":15,"pm":16,"off":15,"miles":{"am":5.5,"pm":5.5,"off":6.5}},"4573 Charleston Villa Dr":{"am":28,"pm":26,"off":24,"miles":{"am":14.1,"pm":13.8,"off":13.8}},"620 Nelson Dr":{"am":10,"pm":10,"off":9,"miles":{"am":2.9,"pm":2.9,"off":2.9}},"734 Caddo St":{"am":13,"pm":13,"off":14,"miles":{"am":4.2,"pm":4.2,"off":4.9}},"2103 Government St":{"am":9,"pm":9,"off":9,"miles":{"am":2.7,"pm":2.7,"off":2.7}},"1525 S Eugene St":{"am":8,"pm":9,"off":8,"miles":{"am":2.6,"pm":2.6,"off":2.6}},"750 Acadia St":{"am":14,"pm":14,"off":14,"miles":{"am":4.3,"pm":4.3,"off":5.0}},"541 Terry Dr":{"am":12,"pm":12,"off":12,"miles":{"am":4.2,"pm":4.2,"off":4.2}},"740 Acadia St":{"am":14,"pm":14,"off":14,"miles":{"am":4.3,"pm":4.3,"off":5.0}},"2102 Sassy Ln":{"am":8,"pm":9,"off":8,"miles":{"am":2.5,"pm":2.5,"off":2.5}},"2340 Government St":{"am":10,"pm":10,"off":10,"miles":{"am":2.9,"pm":2.9,"off":2.9}},"3650 Perkins Rd":{"am":7,"pm":8,"off":7,"miles":{"am":2.4,"pm":2.4,"off":2.4}},"4468 Cypress St":{"am":8,"pm":8,"off":8,"miles":{"am":2.4,"pm":2.4,"off":2.4}},"2326 Terrace Ave":{"am":8,"pm":9,"off":8,"miles":{"am":2.5,"pm":2.5,"off":2.5}},"540 Drehr Ave":{"am":10,"pm":10,"off":10,"miles":{"am":2.9,"pm":2.9,"off":2.9}},"2267 Cedardale Ave":{"am":8,"pm":8,"off":8,"miles":{"am":2.5,"pm":2.8,"off":2.8}},"4268 Arrowhead St":{"am":8,"pm":9,"off":8,"miles":{"am":2.6,"pm":2.6,"off":2.6}}};
+const FLOOD_STYLE={Low:{c:"#1E7A34",bg:"#E7F6EC"},Moderate:{c:"#9A6A00",bg:"#FFF4E0"},High:{c:"#B23B3B",bg:"#FBE7E7"}};
+function floodInfo(l){ const f=FLOOD[l.address]; if(!f) return null; const st=FLOOD_STYLE[f.risk]||{c:"#8A8F98",bg:"#F2F2F2"}; return {risk:f.risk,tier:f.risk,zone:f.zone,subtype:f.subtype,sfha:f.sfha,bfe:f.bfe,c:st.c,bg:st.bg}; }
+const COMMUTE_TIERS=[{max:12,c:"#1E7A34",bg:"#E7F6EC"},{max:22,c:"#9A6A00",bg:"#FFF4E0"},{max:1e9,c:"#B23B3B",bg:"#FBE7E7"}];
+function commuteInfo(l){ const c=COMMUTE[l.address]; if(!c) return null; const t=COMMUTE_TIERS.find(x=>c.am<x.max)||COMMUTE_TIERS[2]; const mi=(c.miles&&c.miles.am!=null)?c.miles.am:null; return {am:c.am,pm:c.pm,off:c.off,mi:mi,c:t.c,bg:t.bg}; }
 function scoreSafety(n,T){ if(n==null) return {tier:"—",metric:null,c:"#8A8F98",bg:"#F2F2F2",rank:99}; let i=T.findIndex(s=>n<s.max); if(i<0)i=3; const s=T[i]; return {tier:s.t,metric:n,c:s.c,bg:s.bg,rank:i}; }
 function burgN(l){ const v=BURG14[l.address]; return v==null?null:v; }
 function autoN(l){ const v=AUTO14[l.address]; return v==null?null:v; }
@@ -290,6 +298,8 @@ function sortRows(a){
     else if(sortKey==="safety"){const sx=safety(x),sy=safety(y);const mx=sx.metric==null?sx.rank*1000:sx.metric;const my=sy.metric==null?sy.rank*1000:sy.metric;return (mx-my)*sortDir;}
     else if(sortKey==="burg"){const sx=burgSafety(x),sy=burgSafety(y);const mx=sx.metric==null?99999:sx.metric;const my=sy.metric==null?99999:sy.metric;return (mx-my)*sortDir;}
     else if(sortKey==="auto"){const sx=autoSafety(x),sy=autoSafety(y);const mx=sx.metric==null?99999:sx.metric;const my=sy.metric==null?99999:sy.metric;return (mx-my)*sortDir;}
+    else if(sortKey==="commute"){const cx=commuteInfo(x),cy=commuteInfo(y);const mx=cx?cx.am:99999,my=cy?cy.am:99999;return (mx-my)*sortDir;}
+    else if(sortKey==="flood"){const M={Low:0,Moderate:1,High:2};const rk=f=>{if(!f)return 99;const v=M[f.risk];return v==null?9:v;};return (rk(floodInfo(x))-rk(floodInfo(y)))*sortDir;}
     else {vx=x[sortKey];vy=y[sortKey];}
     const nx=(col&&col.sort==="num");
     if(nx){vx=num(vx);vy=num(vy); if(vx==null&&vy==null)return 0; if(vx==null)return 1; if(vy==null)return -1; return (vx-vy)*sortDir;}
@@ -330,10 +340,12 @@ function renderFilters(){
    '<select id="frad" title="Radius the crime-risk score considers — smaller = only the immediate block (higher risk tolerance)"><option value="025"'+(RKEY==="025"?" selected":"")+'>Risk radius: ¼ mi · block</option><option value="05"'+(RKEY==="05"?" selected":"")+'>Risk radius: ½ mi · neighborhood</option><option value="10"'+(RKEY==="10"?" selected":"")+'>Risk radius: 1 mi · wider area</option></select>'+
    '<select id="fsf"><option value="">Risk: any</option><option value="ok"'+(filt.safe==="ok"?" selected":"")+'>hide elevated/high</option><option value="low"'+(filt.safe==="low"?" selected":"")+'>low-risk only</option></select>'+
    '<label class="chk"><input type="checkbox" id="frk"'+(filt.ranked?' checked':'')+'> ranked only</label>'+
-   '<label class="chk"><input type="checkbox" id="fho"'+(filt.hideOff?' checked':'')+'> hide off-market</label>';
+   '<label class="chk"><input type="checkbox" id="fho"'+(filt.hideOff?' checked':'')+'> hide off-market</label>'+
+   '<label class="chk" title="Show/hide the crime, commute &amp; flood columns"><input type="checkbox" id="frl"'+(showRL?' checked':'')+'> Risk &amp; location cols</label>';
   document.getElementById("frad").onchange=e=>{RKEY=e.target.value;render();};
   document.getElementById("fsf").onchange=e=>{filt.safe=e.target.value;renderTable();renderStats();};
   document.getElementById("fho").onchange=e=>{filt.hideOff=e.target.checked;renderTable();renderStats();};
+  document.getElementById("frl").onchange=e=>{showRL=e.target.checked; try{localStorage.setItem("brdash.showRL",showRL?"1":"0");}catch(_){} renderTable();};
   document.getElementById("fq").oninput=e=>{filt.q=e.target.value;renderTable();};
   document.getElementById("fnb").onchange=e=>{filt.nb=e.target.value;renderTable();renderStats();};
   document.getElementById("fmb").onchange=e=>{filt.minBeds=e.target.value;renderTable();renderStats();};
@@ -341,7 +353,7 @@ function renderFilters(){
   document.getElementById("frk").onchange=e=>{filt.ranked=e.target.checked;renderTable();renderStats();};
 }
 function renderTable(){
-  const cols=COLS[mode];
+  const cols=COLS[mode].filter(c=>showRL||c.grp!=="rl");
   document.getElementById("thead").innerHTML="<tr>"+cols.map(c=>{
     const ar=sortKey===c.k?('<span class="ar">'+(sortDir>0?"▲":"▼")+"</span>"):"";
     return '<th onclick="setSort(\''+c.k+'\')">'+c.label+ar+"</th>";
@@ -364,6 +376,14 @@ function cell(l,c){
     const numTxt=(s.metric!=null)?(' <span class="zip" style="color:'+s.c+';font-weight:700">'+s.metric+'</span>'):'';
     const tip=(s.metric!=null)?("Auto thefts within &frac14; mi (12mo): "+s.metric):"no data";
     return '<td><span class="badge" style="background:'+s.bg+';color:'+s.c+'" title="'+tip+'">'+s.tier+"</span>"+numTxt+"</td>"; }
+if(c.k==="commute"){ const s=commuteInfo(l);
+    if(!s) return '<td><span class="zip" style="color:#8A8F98">—</span></td>';
+    const tip="Drive to LSU — AM rush "+s.am+"m · PM rush "+s.pm+"m · off-peak "+s.off+"m"+(s.mi!=null?" · "+s.mi+" mi":"");
+    return '<td><span class="badge" style="background:'+s.bg+';color:'+s.c+'" title="'+tip+'">'+s.am+'m</span></td>'; }
+  if(c.k==="flood"){ const s=floodInfo(l);
+    if(!s) return '<td><span class="zip" style="color:#8A8F98">—</span></td>';
+    const tip="FEMA zone "+s.zone+(s.subtype?" — "+s.subtype:"")+(s.sfha?" · Special Flood Hazard Area (insurance usually required)":"")+(s.bfe!=null?" · BFE "+s.bfe+" ft":"");
+    return '<td><span class="badge" style="background:'+s.bg+';color:'+s.c+'" title="'+tip+'">'+s.tier+'</span> <span class="zip" style="color:'+s.c+';font-weight:700">'+s.zone+'</span></td>'; }
   if(c.derived){ const v=combined(l); return '<td class="num comb">'+(v==null?"—":v)+"</td>"; }
   if(c.edit){ const v=l[c.k]==null?"":l[c.k];
     return '<td class="num"><input class="rankin" type="number" min="1" step="1" value="'+esc(v)+'" onclick="event.stopPropagation()" onchange="setRank(\''+l.id+'\',\''+c.k+'\',this.value)"></td>'; }
@@ -411,9 +431,11 @@ function openEdit(id){
     h+='<div class="srcbox" style="color:'+bs.c+';background:'+bs.bg+';border-color:'+bs.c+'44"><b>Burglary risk: '+bs.tier+'</b> &mdash; '+(bs.metric==null?'n/a':bs.metric)+' burglaries within &frac14; mi (12mo)</div>';
     h+='<div class="srcbox" style="color:'+au.c+';background:'+au.bg+';border-color:'+au.c+'44"><b>Car theft risk: '+au.tier+'</b> &mdash; '+(au.metric==null?'n/a':au.metric)+' auto thefts within &frac14; mi (12mo)</div>';
   } else if(sf.zrate!=null) h+='<div class="srcbox" style="color:'+sf.c+';background:'+sf.bg+';border-color:'+sf.c+'44"><b>Violent crime risk: '+sf.tier+'</b> — ZIP '+(l.zip||"")+' approximation ('+sf.zrate.toFixed(1)+' violent/1k); add coordinates for a radius score.</div>';
-  if(l.lat!=null){ const dm=haver(l.lat,l.lon,LSU[0],LSU[1]);
+  { const fi=floodInfo(l); if(fi){ h+='<div class="srcbox" style="color:'+fi.c+';background:'+fi.bg+';border-color:'+fi.c+'44"><b>Flood risk: '+fi.tier+'</b> &mdash; FEMA zone '+fi.zone+(fi.subtype?' ('+esc(fi.subtype)+')':'')+(fi.sfha?'. In a Special Flood Hazard Area — lenders typically require flood insurance.':'.')+(fi.bfe!=null?' Base flood elevation '+fi.bfe+' ft.':'')+'</div>'; } }
+  if(l.lat!=null){ const ci=commuteInfo(l); const dm=haver(l.lat,l.lon,LSU[0],LSU[1]);
     const url="https://www.google.com/maps/dir/?api=1&destination="+LSU[0]+","+LSU[1]+"&origin="+l.lat+","+l.lon+"&travelmode=driving";
-    h+='<div class="srcbox" style="color:var(--accent);background:#EAF1FB;border-color:#cdddf5"><b>LSU commute:</b> '+dm.toFixed(1)+' mi (straight-line). <a href="'+url+'" target="_blank" rel="noopener" style="color:var(--accent)">Directions w/ live traffic ↗</a> <span style="font-size:10px;color:var(--soft)">— drive-time &amp; rush-hour estimate coming once routing is fetched</span></div>';
+    const body=ci?('<b>LSU commute:</b> '+ci.am+' min AM rush · '+ci.pm+' min PM rush · '+ci.off+' min off-peak'+(ci.mi!=null?' · '+ci.mi+' mi':'')+'. '):('<b>LSU commute:</b> '+dm.toFixed(1)+' mi (straight-line). ');
+    h+='<div class="srcbox" style="color:var(--accent);background:#EAF1FB;border-color:#cdddf5">'+body+'<a href="'+url+'" target="_blank" rel="noopener" style="color:var(--accent)">Directions w/ live traffic ↗</a></div>';
   }
   if(l.src) h+='<div class="srcbox"><b>Auto-fill source:</b> '+esc(l.src)+'</div>';
   document.getElementById("editBody").innerHTML=h;
@@ -536,10 +558,16 @@ function draftInquiry(){ const l=byId(editingId); mailId=l.id; const {subject,bo
   openModal("mailScrim"); }
 function copyMail(){ navigator.clipboard.writeText(document.getElementById("mailBody").textContent).then(()=>toast("Copied")); }
 async function sendInquiry(){
-  // === WIRE LATER ===
-  // const l=byId(mailId); const {subject,body}=buildInquiry(l);
-  // await window.cowork.callMcpTool(EMAIL.tools.send,{to:l.agentEmail,subject,body});
-  toast("Stub: wire to "+EMAIL.tools.send);
+  const l=byId(mailId); if(!l){toast("No listing selected");return;}
+  const {subject,body}=buildInquiry(l);
+  // If a mail connector is wired up, send in one click; otherwise fall back to a mailto draft.
+  if(EMAIL.enabled && window.cowork && window.cowork.callMcpTool){
+    try{ await window.cowork.callMcpTool(EMAIL.tools.send,{to:(l.agentEmail||""),subject,body}); toast("Sent via "+EMAIL.provider); return; }
+    catch(e){ toast("Send failed — opening a mail draft instead"); }
+  }
+  const to=l.agentEmail?encodeURIComponent(l.agentEmail):"";
+  window.open("mailto:"+to+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body));
+  toast("Opened mail draft");
 }
 function showConnect(){
   const t=EMAIL.tools;
