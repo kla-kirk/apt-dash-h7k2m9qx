@@ -76,13 +76,18 @@ function pinIcon(color,off){
   '<circle cx="13" cy="12" r="6.5" fill="#fff"/><text x="13" y="16" font-size="9" text-anchor="middle" fill="'+color+'">🏠</text></svg>';
  return L.divIcon({className:"pin-ico",html:svg,iconSize:[26,34],iconAnchor:[13,34],popupAnchor:[0,-30]});
 }
+const TFT={"2115 E Ramsey Dr":22,"2437 Fiero St":29,"9003 Magnolia View Dr":13,"415 Bedford Dr":153,"417 Bedford Dr":154,"9446 High Point Rd":6,"709 Staring Ln":12,"The Terraces at Perkins Rowe":0,"8808 Magnolia Leaf Ave":12,"4738 Woodlyn Dr":31,"5416 Heron Nest Dr":19,"6024 Woodlawn Park Ct":0,"9314 Fox Run Ave":8,"10177 Bonnet Cove Ave":0,"633 Fall Creek Dr":1,"9412 Windward Rd":8,"4573 Charleston Villa Dr":0,"620 Nelson Dr":3,"734 Caddo St":80,"2103 Government St":105,"1525 S Eugene St":41,"750 Acadia St":71,"541 Terry Dr":123,"740 Acadia St":73,"2102 Sassy Ln":49,"2340 Government St":112,"3650 Perkins Rd":59,"4468 Cypress St":5,"2326 Terrace Ave":68,"540 Drehr Ave":108,"2267 Cedardale Ave":63,"4268 Arrowhead St":31};
+const TFT_TIERS=[{t:"Low",max:20,c:"#1E7A34"},{t:"Moderate",max:60,c:"#9A6A00"},{t:"Elevated",max:110,c:"#C2691C"},{t:"High",max:1e9,c:"#B23B3B"}];
+function tierT(n){ const d=n/(Math.PI*0.25); let i=TFT_TIERS.findIndex(s=>d<s.max); if(i<0)i=3; return TFT_TIERS[i]; }
 function popupHtml(p){
  const s=tier(p.r05), off=p.status==="off";
  const rk=(p.jamie!=null||p.keegan!=null)?('<div class="row">Ranking — Jamie: '+(p.jamie==null?"–":p.jamie)+" · Keegan: "+(p.keegan==null?"–":p.keegan)+"</div>"):"";
  const cr=(p.r05!=null)?('<div class="row" style="margin-top:3px">Crime risk: <span class="badge" style="background:'+s.c+'22;color:'+s.c+'">'+s.t+'</span></div>'+'<div class="row" style="display:flex;gap:5px;margin-top:3px">'+'<span style="flex:1;text-align:center;background:'+s.c+'14;border:1px solid '+s.c+'33;border-radius:6px;padding:3px 2px"><b style="display:block;font-size:14px;line-height:1.15;color:'+s.c+'">'+p.r025+'</b><span style="font-size:9.5px;color:#6B7480">within &frac14; mi</span></span>'+'<span style="flex:1;text-align:center;background:'+s.c+'14;border:1px solid '+s.c+'33;border-radius:6px;padding:3px 2px"><b style="display:block;font-size:14px;line-height:1.15;color:'+s.c+'">'+p.r05+'</b><span style="font-size:9.5px;color:#6B7480">within &frac12; mi</span></span>'+'<span style="flex:1;text-align:center;background:'+s.c+'14;border:1px solid '+s.c+'33;border-radius:6px;padding:3px 2px"><b style="display:block;font-size:14px;line-height:1.15;color:'+s.c+'">'+p.r10+'</b><span style="font-size:9.5px;color:#6B7480">within 1 mi</span></span>'+'</div>'+'<div class="row" style="font-size:9.5px;color:#6B7480;margin-top:2px">violent incidents, last 12 mo</div>'):"";
+ const tn=TFT[p.address], tt=(tn!=null)?tierT(tn):null;
+ const tcr=tt?('<div class="row" style="margin-top:4px">Theft risk: <span class="badge" style="background:'+tt.c+'22;color:'+tt.c+'">'+tt.t+'</span> <span style="color:#6B7480">'+tn+' within &frac12; mi</span></div>'):"";
  return '<div class="pop"><b>'+p.address+'</b>'+(off?'<span class="tag" style="background:#E7EAEE;color:#6B7480">OFF-MARKET</span>':"")+
    '<div class="row">'+money(p.price,p.type)+(p.beds?" · "+p.beds+"bd":"")+(p.baths?"/"+p.baths+"ba":"")+(p.size?" · "+p.size.toLocaleString()+" sqft":"")+'</div>'+
-   '<div class="row">'+(p.neighborhood||"")+" · ZIP "+p.zip+'</div>'+cr+rk+
+   '<div class="row">'+(p.neighborhood||"")+" · ZIP "+p.zip+'</div>'+cr+tcr+rk+
    (p.link?'<div class="row"><a href="'+p.link+'" target="_blank" rel="noopener">Open listing ↗</a></div>':"")+'</div>';
 }
 const bounds=[];
