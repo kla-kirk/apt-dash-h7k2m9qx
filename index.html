@@ -101,11 +101,11 @@ small.muted{color:var(--soft)}
  <div class="filters" id="filters"></div>
  <div class="tablewrap"><table id="tbl"><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
  <div class="legend">Sort by clicking a column. <span class="auto">Highlighted</span> = auto-filled from public web sources (verify). <span class="badge off">OFF-MARKET</span> rows are greyed &amp; struck through. Combined = average of Jamie &amp; Keegan rankings (lower is better). Rankings are editable inline.<br>
- <b>Crime risk</b> = violent incidents (BRPD, last 12 mo) near the address; the number next to the tier is the count within your chosen <b>risk radius</b> (¼ / ½ / 1 mi — set it at top-left). Tiers
+ <b>Violent crime risk</b> = violent incidents (BRPD, last 12 mo) near the address; the number next to the tier is the count within your chosen <b>risk radius</b> (¼ / ½ / 1 mi — set it at top-left). Tiers
  <span class="badge" style="background:#E7F6EC;color:#1E7A34">Low</span>
  <span class="badge" style="background:#FFF4E0;color:#9A6A00">Moderate</span>
  <span class="badge" style="background:#FBE6D6;color:#C2691C">Elevated</span>
- <span class="badge" style="background:#FBE7E7;color:#B23B3B">High</span> scale by area (incidents per sq mi), so a smaller radius shows the block itself, not nearby areas. <b>Theft risk</b> = burglary + auto theft within &frac12; mi (same tier colors, separate scale). Click a listing for the murder/robbery/assault breakdown. Full map: <code>crime_map.html</code>.</div>
+ <span class="badge" style="background:#FBE7E7;color:#B23B3B">High</span> scale by area (incidents per sq mi), so a smaller radius shows the block itself, not nearby areas. <b>Burglary</b> &amp; <b>Car theft</b> = incident counts within &frac14; mi, each tiered on its own scale. Click a listing for the murder/robbery/assault breakdown. Full map: <code>crime_map.html</code>.</div>
  <p style="margin-top:12px"><small class="muted">Stored locally in this dashboard; mirrors <code>listings.xlsx</code> and the <b>Baton Rouge Places</b> Google Sheet. <b>Refresh from Sheet</b> pulls your latest sheet edits (e.g. new rankings) and keeps web-filled gaps. Email is manual today and plugs in via the seam in the code.<br>Crime data: 846 geocoded violent incidents (murder, aggravated assault, robbery, rape) from Baton Rouge Police "Crime Incidents" open data (data.brla.gov, pbin-pcm7), last 12 months, scored by distance to each address. A street-level map with every incident is in <code>crime_map.html</code>.</small></p>
 </div>
 
@@ -159,7 +159,7 @@ const COLS={
   {k:"price",label:"$/mo",num:1,sort:"num",fmt:l=>l.price?("$"+l.price.toLocaleString()):"—"},
   {k:"beds",label:"Bd",num:1,sort:"num"},{k:"baths",label:"Ba",num:1,sort:"num"},
   {k:"size",label:"Sqft",num:1,sort:"num",fmt:l=>l.size?l.size.toLocaleString():"—"},
-  {k:"neighborhood",label:"Neighborhood"},{k:"safety",label:"Crime risk",sort:"safety"},{k:"theft",label:"Theft risk",sort:"theft"},{k:"yearBuilt",label:"Yr",num:1,sort:"num"},
+  {k:"neighborhood",label:"Neighborhood"},{k:"safety",label:"Violent crime risk",sort:"safety"},{k:"burg",label:"Burglary",sort:"burg"},{k:"auto",label:"Car theft",sort:"auto"},{k:"yearBuilt",label:"Yr",num:1,sort:"num"},
   {k:"furnished",label:"Furn."},{k:"petFees",label:"Pets",cls:"wide"},
   {k:"minLease",label:"Min lease"},{k:"likes",label:"Likes",cls:"wide"},
   {k:"dislikes",label:"Dislikes",cls:"wide"},
@@ -171,7 +171,7 @@ const COLS={
   {k:"price",label:"$k",num:1,sort:"num",fmt:l=>l.price?("$"+l.price+"k"):"—"},
   {k:"beds",label:"Bd",num:1,sort:"num"},{k:"baths",label:"Ba",num:1,sort:"num"},
   {k:"size",label:"Sqft",num:1,sort:"num",fmt:l=>l.size?l.size.toLocaleString():"—"},
-  {k:"neighborhood",label:"Neighborhood"},{k:"safety",label:"Crime risk",sort:"safety"},{k:"theft",label:"Theft risk",sort:"theft"},{k:"yearBuilt",label:"Yr",num:1,sort:"num"},
+  {k:"neighborhood",label:"Neighborhood"},{k:"safety",label:"Violent crime risk",sort:"safety"},{k:"burg",label:"Burglary",sort:"burg"},{k:"auto",label:"Car theft",sort:"auto"},{k:"yearBuilt",label:"Yr",num:1,sort:"num"},
   {k:"likes",label:"Likes",cls:"wide"},{k:"dislikes",label:"Dislikes",cls:"wide"},
   {k:"jamie",label:"Jamie",edit:1,sort:"num"},{k:"keegan",label:"Keegan",edit:1,sort:"num"},
   {k:"combined",label:"Combined",derived:1,sort:"num"},
@@ -208,9 +208,15 @@ function safety(l){
   const rr=z.violent/z.pop*1000; let j=rr<3?0:rr<8?1:rr<18?2:3; const s2=SAFE_TIERS[j];
   return {tier:s2.t,metric:null,zrate:rr,c:s2.c,bg:s2.bg,rank:j,fb:true};
 }
-const THEFT_TIERS=[{t:"Low",max:6,c:"#1E7A34",bg:"#E7F6EC"},{t:"Moderate",max:18,c:"#9A6A00",bg:"#FFF4E0"},{t:"Elevated",max:40,c:"#C2691C",bg:"#FBE6D6"},{t:"High",max:1e9,c:"#B23B3B",bg:"#FBE7E7"}];
-function theftScore(l){ const pr=PROP[l.address]; if(!pr&&!CBT[l.address]) return null; return ((pr&&pr.burglary)||0)+((pr&&pr.mv_theft)||0); }
-function theftSafety(l){ const n=theftScore(l); if(n==null) return {tier:"\u2014",metric:null,c:"#8A8F98",bg:"#F2F2F2",rank:99}; const dens=n/(Math.PI*0.25); let i=THEFT_TIERS.findIndex(s=>dens<s.max); if(i<0)i=3; const s=THEFT_TIERS[i]; return {tier:s.t,metric:n,density:dens,c:s.c,bg:s.bg,rank:i}; }
+const BURG14={"2115 E Ramsey Dr": 1, "2437 Fiero St": 2, "9003 Magnolia View Dr": 1, "415 Bedford Dr": 16, "417 Bedford Dr": 16, "9446 High Point Rd": 0, "709 Staring Ln": 1, "The Terraces at Perkins Rowe": 0, "8808 Magnolia Leaf Ave": 1, "4738 Woodlyn Dr": 3, "5416 Heron Nest Dr": 0, "6024 Woodlawn Park Ct": 0, "9314 Fox Run Ave": 0, "10177 Bonnet Cove Ave": 0, "633 Fall Creek Dr": 0, "9412 Windward Rd": 0, "4573 Charleston Villa Dr": 0, "620 Nelson Dr": 1, "734 Caddo St": 1, "2103 Government St": 9, "1525 S Eugene St": 0, "750 Acadia St": 0, "541 Terry Dr": 11, "740 Acadia St": 0, "2102 Sassy Ln": 0, "2340 Government St": 14, "3650 Perkins Rd": 1, "4468 Cypress St": 1, "2326 Terrace Ave": 0, "540 Drehr Ave": 11, "2267 Cedardale Ave": 5, "4268 Arrowhead St": 1};
+const AUTO14={"2115 E Ramsey Dr": 1, "2437 Fiero St": 1, "9003 Magnolia View Dr": 1, "415 Bedford Dr": 4, "417 Bedford Dr": 4, "9446 High Point Rd": 0, "709 Staring Ln": 1, "The Terraces at Perkins Rowe": 0, "8808 Magnolia Leaf Ave": 1, "4738 Woodlyn Dr": 3, "5416 Heron Nest Dr": 0, "6024 Woodlawn Park Ct": 0, "9314 Fox Run Ave": 0, "10177 Bonnet Cove Ave": 0, "633 Fall Creek Dr": 0, "9412 Windward Rd": 0, "4573 Charleston Villa Dr": 0, "620 Nelson Dr": 0, "734 Caddo St": 1, "2103 Government St": 2, "1525 S Eugene St": 0, "750 Acadia St": 0, "541 Terry Dr": 6, "740 Acadia St": 1, "2102 Sassy Ln": 1, "2340 Government St": 3, "3650 Perkins Rd": 0, "4468 Cypress St": 0, "2326 Terrace Ave": 2, "540 Drehr Ave": 3, "2267 Cedardale Ave": 1, "4268 Arrowhead St": 0};
+const BURG_TIERS=[{t:"Low",max:1,c:"#1E7A34",bg:"#E7F6EC"},{t:"Moderate",max:5,c:"#9A6A00",bg:"#FFF4E0"},{t:"Elevated",max:11,c:"#C2691C",bg:"#FBE6D6"},{t:"High",max:1e9,c:"#B23B3B",bg:"#FBE7E7"}];
+const AUTO_TIERS=[{t:"Low",max:1,c:"#1E7A34",bg:"#E7F6EC"},{t:"Moderate",max:3,c:"#9A6A00",bg:"#FFF4E0"},{t:"Elevated",max:6,c:"#C2691C",bg:"#FBE6D6"},{t:"High",max:1e9,c:"#B23B3B",bg:"#FBE7E7"}];
+function scoreSafety(n,T){ if(n==null) return {tier:"—",metric:null,c:"#8A8F98",bg:"#F2F2F2",rank:99}; let i=T.findIndex(s=>n<s.max); if(i<0)i=3; const s=T[i]; return {tier:s.t,metric:n,c:s.c,bg:s.bg,rank:i}; }
+function burgN(l){ const v=BURG14[l.address]; return v==null?null:v; }
+function autoN(l){ const v=AUTO14[l.address]; return v==null?null:v; }
+function burgSafety(l){ return scoreSafety(burgN(l),BURG_TIERS); }
+function autoSafety(l){ return scoreSafety(autoN(l),AUTO_TIERS); }
 function esc(s){ return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2100); }
 function isAuto(l,k){ return (l.enr||[]).indexOf(k)>=0; }
@@ -282,7 +288,8 @@ function sortRows(a){
     let vx,vy;
     if(sortKey==="combined"){vx=combined(x);vy=combined(y);}
     else if(sortKey==="safety"){const sx=safety(x),sy=safety(y);const mx=sx.metric==null?sx.rank*1000:sx.metric;const my=sy.metric==null?sy.rank*1000:sy.metric;return (mx-my)*sortDir;}
-    else if(sortKey==="theft"){const sx=theftSafety(x),sy=theftSafety(y);const mx=sx.metric==null?99999:sx.metric;const my=sy.metric==null?99999:sy.metric;return (mx-my)*sortDir;}
+    else if(sortKey==="burg"){const sx=burgSafety(x),sy=burgSafety(y);const mx=sx.metric==null?99999:sx.metric;const my=sy.metric==null?99999:sy.metric;return (mx-my)*sortDir;}
+    else if(sortKey==="auto"){const sx=autoSafety(x),sy=autoSafety(y);const mx=sx.metric==null?99999:sx.metric;const my=sy.metric==null?99999:sy.metric;return (mx-my)*sortDir;}
     else {vx=x[sortKey];vy=y[sortKey];}
     const nx=(col&&col.sort==="num");
     if(nx){vx=num(vx);vy=num(vy); if(vx==null&&vy==null)return 0; if(vx==null)return 1; if(vy==null)return -1; return (vx-vy)*sortDir;}
@@ -349,9 +356,13 @@ function cell(l,c){
     const numTxt=(s.metric!=null)?(' <span class="zip" style="color:'+s.c+';font-weight:700">'+s.metric+'</span>'):'';
     const tip=(s.metric!=null)?(s.metric+" violent incidents within "+R.lab+" (12mo) · ¼mi "+l.r025+" · ½mi "+l.r05+" · 1mi "+l.r10):(s.zrate!=null?("ZIP "+l.zip+" approx "+s.zrate.toFixed(1)+"/1k (no coords)"):"no data");
     return '<td><span class="badge" style="background:'+s.bg+';color:'+s.c+'" title="'+tip+'">'+s.tier+"</span>"+numTxt+"</td>"; }
-  if(c.k==="theft"){ const s=theftSafety(l); const cb=CBT[l.address]||{}, pr=PROP[l.address]||{};
+  if(c.k==="burg"){ const s=burgSafety(l);
     const numTxt=(s.metric!=null)?(' <span class="zip" style="color:'+s.c+';font-weight:700">'+s.metric+'</span>'):'';
-    const tip=(s.metric!=null)?("Within &frac12;mi (12mo): Burglary "+(pr.burglary||0)+" + Auto theft "+(pr.mv_theft||0)):"no data";
+    const tip=(s.metric!=null)?("Burglaries within &frac14; mi (12mo): "+s.metric):"no data";
+    return '<td><span class="badge" style="background:'+s.bg+';color:'+s.c+'" title="'+tip+'">'+s.tier+"</span>"+numTxt+"</td>"; }
+  if(c.k==="auto"){ const s=autoSafety(l);
+    const numTxt=(s.metric!=null)?(' <span class="zip" style="color:'+s.c+';font-weight:700">'+s.metric+'</span>'):'';
+    const tip=(s.metric!=null)?("Auto thefts within &frac14; mi (12mo): "+s.metric):"no data";
     return '<td><span class="badge" style="background:'+s.bg+';color:'+s.c+'" title="'+tip+'">'+s.tier+"</span>"+numTxt+"</td>"; }
   if(c.derived){ const v=combined(l); return '<td class="num comb">'+(v==null?"—":v)+"</td>"; }
   if(c.edit){ const v=l[c.k]==null?"":l[c.k];
@@ -392,13 +403,14 @@ function openEdit(id){
     const ct=CBT[l.address]||{}, pr=PROP[l.address]||{};
     const vt=t=>((ct[t]||{})[rkx]||0);
     h+='<div class="srcbox" style="color:'+sf.c+';background:'+sf.bg+';border-color:'+sf.c+'44">'+
-       '<b>Crime risk: '+sf.tier+'</b> — '+sf.metric+' violent incidents within '+RR.lab+' (BRPD, last 12 mo).'+
+       '<b>Violent crime risk: '+sf.tier+'</b> — '+sf.metric+' violent incidents within '+RR.lab+' (BRPD, last 12 mo).'+
        '<div style="margin-top:5px;color:var(--ink)"><b>Violent (within '+RR.lab+'):</b> Homicide '+vt("homicide")+' · Agg. assault '+vt("agg_assault")+' · Robbery '+vt("robbery")+' · Rape '+vt("rape")+'</div>'+
        '<div style="margin-top:3px"><b>Other (within ½ mi):</b> Burglary '+(pr.burglary||0)+' · Theft '+(pr.theft||0)+' · Auto theft '+(pr.mv_theft||0)+' · Weapons '+(pr.weapons||0)+' · Drugs '+(pr.drugs||0)+' · Vandalism '+(pr.vandalism||0)+' · Simple assault '+(pr.simple_assault||0)+'</div>'+
        '<div style="font-size:10.5px;margin-top:3px">Counts exclude incidents logged without coordinates (~31% violent, ~10% other) — conservative.</div></div>';
-    const ts=theftSafety(l);
-    h+='<div class="srcbox" style="color:'+ts.c+';background:'+ts.bg+';border-color:'+ts.c+'44"><b>Theft risk: '+ts.tier+'</b> &mdash; '+ts.metric+' burglary+auto-theft within &frac12; mi (12mo).<div style="margin-top:3px;color:var(--ink)">Burglary '+(pr.burglary||0)+' &middot; Auto theft '+(pr.mv_theft||0)+'</div></div>';
-  } else if(sf.zrate!=null) h+='<div class="srcbox" style="color:'+sf.c+';background:'+sf.bg+';border-color:'+sf.c+'44"><b>Crime risk: '+sf.tier+'</b> — ZIP '+(l.zip||"")+' approximation ('+sf.zrate.toFixed(1)+' violent/1k); add coordinates for a radius score.</div>';
+    const bs=burgSafety(l), au=autoSafety(l);
+    h+='<div class="srcbox" style="color:'+bs.c+';background:'+bs.bg+';border-color:'+bs.c+'44"><b>Burglary risk: '+bs.tier+'</b> &mdash; '+(bs.metric==null?'n/a':bs.metric)+' burglaries within &frac14; mi (12mo)</div>';
+    h+='<div class="srcbox" style="color:'+au.c+';background:'+au.bg+';border-color:'+au.c+'44"><b>Car theft risk: '+au.tier+'</b> &mdash; '+(au.metric==null?'n/a':au.metric)+' auto thefts within &frac14; mi (12mo)</div>';
+  } else if(sf.zrate!=null) h+='<div class="srcbox" style="color:'+sf.c+';background:'+sf.bg+';border-color:'+sf.c+'44"><b>Violent crime risk: '+sf.tier+'</b> — ZIP '+(l.zip||"")+' approximation ('+sf.zrate.toFixed(1)+' violent/1k); add coordinates for a radius score.</div>';
   if(l.lat!=null){ const dm=haver(l.lat,l.lon,LSU[0],LSU[1]);
     const url="https://www.google.com/maps/dir/?api=1&destination="+LSU[0]+","+LSU[1]+"&origin="+l.lat+","+l.lon+"&travelmode=driving";
     h+='<div class="srcbox" style="color:var(--accent);background:#EAF1FB;border-color:#cdddf5"><b>LSU commute:</b> '+dm.toFixed(1)+' mi (straight-line). <a href="'+url+'" target="_blank" rel="noopener" style="color:var(--accent)">Directions w/ live traffic ↗</a> <span style="font-size:10px;color:var(--soft)">— drive-time &amp; rush-hour estimate coming once routing is fetched</span></div>';
