@@ -29,10 +29,14 @@ html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Seg
 .pin-ico svg{display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
 .pin-ico.dim{opacity:.4;transition:opacity .15s}
 .pop b{font-size:13px}.pop .row{color:#5A6472;font-size:12px;margin-top:2px}.pop a{color:#2B5797}
+#info{position:absolute;top:54px;left:50px;z-index:1000;background:#fff;border:1px solid #E2E7EF;border-radius:10px;box-shadow:0 2px 12px rgba(16,24,40,.20);font-size:12.5px;width:300px;max-height:calc(100% - 70px);overflow:auto;padding:12px 14px;display:none}
+#info .info-x{position:absolute;top:5px;right:7px;border:none;background:transparent;font-size:19px;line-height:1;color:#8A93A0;cursor:pointer;padding:2px 5px;border-radius:6px}
+#info .info-x:hover{background:#F0F2F5;color:#333}
+#info .pop{padding-right:16px}
 .badge{display:inline-block;font-size:10.5px;font-weight:700;border-radius:5px;padding:1px 7px}
 .amlbl{background:rgba(255,255,255,.93);border:1px solid #999;border-radius:4px;padding:0 3px;font-size:10px;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.15)}
 .faclbl{background:rgba(255,235,235,.95);border:1px solid #C53030;color:#7B2020;border-radius:4px;padding:0 3px;font-size:10px;white-space:nowrap}
-@media(max-width:640px){#panel{width:210px;max-height:70vh}.hdr{display:none}}
+@media(max-width:640px){#panel{width:210px;max-height:70vh}.hdr{display:none}#info{top:10px;left:48px;width:60vw;max-height:64vh}}
 </style></head><body>
 <div id="map"></div>
 <div class="hdr"><b>Baton Rouge map</b> — pick one map overlay, color the listings, click a 🏠 for its details.</div>
@@ -45,6 +49,7 @@ html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Seg
   <div class="sec" id="secDetail"></div>
  </div>
 </div>
+<div id="info"></div>
 <script>
 // ============================================================================
 //  Baton Rouge map — plugin shell.
@@ -92,7 +97,7 @@ base["Standard"].addTo(map);
 
 const BASE_PIN="#2B5797";
 const BRMap={
- map, listings:[], pins:{}, _rows:[], _clicks:[], _ready:[], _sections:{}, _lk:{},
+ map, listings:[], pins:{}, _rows:[], _clicks:[], _ready:[], _sections:{}, _lk:{}, _detailRenderFns:[],
  _areas:[], _colors:[], _details:[], _activeArea:null, _activeColor:null, _selected:null,
  panes:{areas:"pane-areas",heat:"pane-heat",routes:"pane-routes",facils:"pane-facils",connect:"pane-connect",labels:"pane-labels"},
  fetchJSON(u){return fetch(u,{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);},
@@ -178,7 +183,16 @@ const BRMap={
  _fireSelect(l){ this._selected=l;
    this._details.forEach(d=>{ try{d.clear&&d.clear();}catch(_){} if(d._on){ try{d.select&&d.select(l);}catch(_){} } });
    this._clicks.forEach(fn=>{try{fn(l);}catch(e){}}); },
- _fireClear(){ this._selected=null; this._details.forEach(d=>{ try{d.clear&&d.clear();}catch(_){} }); }
+ _fireClear(){ this._selected=null; this._details.forEach(d=>{ try{d.clear&&d.clear();}catch(_){} }); },
+ // ---- fixed listing-detail panel (replaces the old Leaflet listing popup) ----
+ onDetailRender(fn){ this._detailRenderFns.push(fn); },
+ _renderDetail(l){ const host=document.getElementById("info"); if(!host) return;
+   host.innerHTML='<button class="info-x" id="infoX" title="Close" aria-label="Close">×</button>'+basePopup(l);
+   host.style.display="block"; const x=document.getElementById("infoX"); if(x) x.onclick=()=>this.closeDetail();
+   this._detailRenderFns.forEach(fn=>{ try{fn(l,host);}catch(e){console.warn(e);} }); },
+ openDetail(l){ this._fireSelect(l); this._renderDetail(l); },
+ refreshDetail(){ if(this._selected) this._renderDetail(this._selected); },
+ closeDetail(){ const host=document.getElementById("info"); if(host){ host.style.display="none"; host.innerHTML=""; } this._fireClear(); }
 };
 
 function pinIcon(color,off){const o=off?0.5:1;
@@ -205,10 +219,10 @@ BRMap.fetchJSON("listings.json").then(ls=>{
  BRMap.listings=ls||[]; const b=[];
  BRMap.listings.forEach(l=>{ BRMap._lk[l.id]=l; l._color=BASE_PIN;
    const m=L.marker([l.lat,l.lon],{icon:pinIcon(BASE_PIN,l.status==="off"),zIndexOffset:1000});
-   m.bindPopup(()=>basePopup(l)); m.on("click",()=>BRMap._fireSelect(l));
+   m.on("click",()=>BRMap.openDetail(l));
    m.addTo(map); BRMap.pins[l.id]=m; b.push([l.lat,l.lon]); });
  if(b.length) map.fitBounds(b,{padding:[40,40]});
- map.on("popupclose",()=>BRMap._fireClear());
+ document.addEventListener("keydown",ev=>{ if(ev.key==="Escape"&&BRMap._selected) BRMap.closeDetail(); });
  BRMap._ready.forEach(fn=>{try{fn();}catch(e){console.warn(e);}}); BRMap._ready=[];
 });
 window.BRMap=BRMap;

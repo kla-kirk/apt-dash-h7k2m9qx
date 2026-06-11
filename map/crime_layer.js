@@ -134,18 +134,19 @@ BRMap.ready(async () => {
     });
   }
 
+  // crime incident dot popups (these stay as Leaflet popups) → fetch exact date + address
   map.on("popupopen", (e) => {
     const m = e.popup && e.popup._source;
-    // (a) crime incident dot → fetch exact date + address
     if (m && m._crime) {
       if (m._loaded) return; m._loaded = true;
       fetchDetail(m._crime).then((rows) => { try { m.setPopupContent(detailHtml(m._crime, rows)); } catch (_) {} });
-      return;
     }
-    // (b) listing popup → wire the avg / 12-mo / total toggle
-    const root = e.popup.getElement && e.popup.getElement(); if (!root) return;
+  });
+
+  // listing detail panel → wire the avg / 12-mo / total toggle (migrated from popupopen)
+  if (BRMap.onDetailRender) BRMap.onDetailRender((l, root) => {
     const cwin = root.querySelector(".cwin"); if (!cwin) return;
-    const lid = cwin.getAttribute("data-lid"), s = SC[lid], l = BRMap._lk[lid]; if (!s || !l) return;
+    const lid = cwin.getAttribute("data-lid"), s = SC[lid]; if (!s) return;
     const t = vt(s.avg.v[1]);
     const body = cwin.querySelector(".cwin-body"), cap = cwin.querySelector(".cwin-cap");
     let cur = "avg";

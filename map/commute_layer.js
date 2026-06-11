@@ -81,7 +81,7 @@ BRMap.ready(async () => {
     if (showAlts) r.alts.forEach((a) => casedLine(a, { color: GREY, w: 4, opacity: 0.85 }).forEach((ln) => { ln.addTo(map); lsuLayers.push(ln); }));
     casedLine(r.primary, { color: BLUE, w: 5.5 }).forEach((ln) => { ln.addTo(map); lsuLayers.push(ln); });
     lsuDot = L.circleMarker(LSU, { pane: RPANE, radius: 6, color: "#fff", weight: 2, fillColor: BLUE, fillOpacity: 1 })
-      .bindTooltip("LSU", { permanent: false }).addTo(map); lsuLayers.push(lsuDot);
+      .bindTooltip("🎓 LSU" + (r.dur != null ? " · " + Math.round(r.dur) + " min" : ""), { permanent: true, direction: "top", offset: [0, -8], className: "lsu-lbl" }).addTo(map); lsuLayers.push(lsuDot);
     fit(r.primary);
   }
 
@@ -126,8 +126,7 @@ BRMap.ready(async () => {
   ["commute", "amroute"].forEach((id) => { const el = cb(id); if (el) el.addEventListener("change", () => { syncFlags(); if (!lsuOn) clearLSU(); if (!amOn) clearAm(); }); });
   syncFlags();
 
-  function refreshPopup() { if (!current) return; const pin = BRMap.pins[current.id];
-    if (pin && pin.isPopupOpen && pin.isPopupOpen() && typeof basePopup === "function") pin.setPopupContent(basePopup(current)); }
+  function refreshPopup() { if (current && BRMap.refreshDetail) BRMap.refreshDetail(); }
 
   // ---------- popup rows ----------
   const TMETA = { am: "AM rush", pm: "PM rush", off: "off-peak" };
@@ -153,7 +152,8 @@ BRMap.ready(async () => {
   document.head.insertAdjacentHTML("beforeend",
     "<style>.cm-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}" +
     ".cm-chip{font:inherit;font-size:11px;line-height:1;padding:3px 7px;border:1px solid #C7CDD6;border-radius:12px;background:#fff;color:#2B5797;cursor:pointer}" +
-    ".cm-chip:hover{background:#EEF3FB;border-color:#2B5797}</style>");
+    ".cm-chip:hover{background:#EEF3FB;border-color:#2B5797}" +
+    ".leaflet-tooltip.lsu-lbl{background:#1A73E8;color:#fff;border:1px solid #fff;border-radius:6px;font-size:11px;font-weight:700;padding:1px 7px;box-shadow:0 1px 3px rgba(0,0,0,.4)}.leaflet-tooltip.lsu-lbl:before{display:none}</style>");
   document.addEventListener("click", (e) => { const b = e.target.closest && e.target.closest(".cm-chip"); if (!b) return;
     e.preventDefault(); e.stopPropagation(); if (!amOn) return; const r = REG[b.dataset.id]; if (r) drawAmenity(r.addr, r.name); }, true);
 

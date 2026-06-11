@@ -59,12 +59,12 @@ BRMap.ready(async () => {
     const mc = map.getContainer(), mr = mc.getBoundingClientRect();
     const el = card && card.getElement(); if (!el) return;
     const cr = el.getBoundingClientRect();
-    const pop = document.querySelector(".leaflet-popup"); const pr = pop ? pop.getBoundingClientRect() : null;
+    const pop = document.getElementById("info"); const pr = (pop && pop.style.display !== "none") ? pop.getBoundingClientRect() : null;
     const offscreen = cr.left < mr.left + 8 || cr.right > mr.right - 8 || cr.top < mr.top + 8 || cr.bottom > mr.bottom - 8;
     const underPopup = pr && !(cr.right < pr.left || cr.left > pr.right || cr.bottom < pr.top || cr.top > pr.bottom);
     if (!offscreen && !underPopup) return;
     const size = map.getSize(), cp = map.latLngToContainerPoint(ll);
-    const want = L.point(Math.min(size.x * 0.26, 230), size.y * 0.72);
+    const want = L.point(Math.max(size.x * 0.6, 360), size.y * 0.5);
     map.panBy(cp.subtract(want), { animate: true });
   } catch (e) {} }
   function showCard(a, d, l) { const key = a[0] + "@" + a[2] + "," + a[3];
@@ -99,9 +99,8 @@ BRMap.ready(async () => {
       + '</span><span class="amp-d">' + n[t].d.toFixed(1) + 'mi</span><span class="amp-go">›</span></div>').join("");
     return rows ? '<div class="am-pop"><div class="amp-h">Nearby amenities</div>' + rows + '</div>' : ""; });
 
-  // make the popup's amenity rows clickable: open that amenity's card (and reveal it from under the popup)
-  map.on("popupopen", (e) => {
-    const root = e.popup && e.popup.getElement(); const l = BRMap._selected; if (!root || !l) return;
+  // make the listing-panel amenity rows clickable: open that amenity's card (migrated from popupopen)
+  if (BRMap.onDetailRender) BRMap.onDetailRender((l, root) => {
     const n = nearest(l);
     root.querySelectorAll(".am-pop .amp-row").forEach((row) => {
       const o = n[row.getAttribute("data-t")]; if (!o) return;
