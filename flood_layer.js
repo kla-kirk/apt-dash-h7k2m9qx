@@ -100,12 +100,19 @@ BRMap.ready(async () => {
     });
   }
 
-  // ---------- ring-highlight of High/Highest listings (own layer; no setPinColor) ----------
-  const rings = L.layerGroup();
+  // ---------- flood flags for High/Highest listings ----------
+  // A small 💧 marker offset up-and-right of the pin — deliberately NOT a pin recolor,
+  // halo, or ring, so the pin's own color/shading stays reserved for the crime module.
+  const flags = L.layerGroup();
   BRMap.listings.forEach(l => { const r = resolve(l); if (!r) return;
     if (r.tier === "High" || r.tier === "Highest") {
-      L.circleMarker([l.lat, l.lon], { radius: 20, color: TIER[r.tier].c, weight: 3,
-        opacity: 0.9, fill: false, interactive: false }).addTo(rings); } });
+      const col = TIER[r.tier].c;
+      L.marker([l.lat, l.lon], { interactive: false, keyboard: false, zIndexOffset: 2000,
+        icon: L.divIcon({ className: "flood-flag",
+          html: '<div style="width:16px;height:16px;line-height:15px;text-align:center;font-size:11px;'
+              + 'background:#fff;border:2px solid ' + col + ';border-radius:50%;'
+              + 'box-shadow:0 1px 2px rgba(0,0,0,.45)">💧</div>',
+          iconSize: [16, 16], iconAnchor: [-6, 30] }) }).addTo(flags); } });
 
   // ---------- elevation-relief overlay (toggleable hillshade; complements the
   // shell's "Topographic (elevation)" base option, but works over ANY base) ----------
@@ -117,7 +124,7 @@ BRMap.ready(async () => {
   const zoneDis = gj ? "" : ' disabled title="flood_zones.geojson not uploaded yet"';
   sec.insertAdjacentHTML("beforeend",
     '<label><input type="checkbox" id="flZone"' + zoneDis + '> 🌊 Flood-zone shading' + (gj ? "" : ' <span class="mut">(pending)</span>') + '</label>' +
-    '<label><input type="checkbox" id="flRing"> ◎ Ring high-risk listings</label>' +
+    '<label><input type="checkbox" id="flFlag"> 💧 Flag high-risk listings</label>' +
     '<label><input type="checkbox" id="flHill"> ⛰ Elevation shading</label>' +
     '<label><input type="checkbox" id="fl2016"> 〜 2016 flood extent</label>' +
     '<div class="mut" style="margin-top:5px">Risk: ' +
@@ -133,8 +140,8 @@ BRMap.ready(async () => {
   if (elZone) elZone.onchange = e => { if (!zoneLayer) return;
     e.target.checked ? zoneLayer.addTo(BRMap.map) : BRMap.map.removeLayer(zoneLayer); };
 
-  document.getElementById("flRing").onchange = e => {
-    e.target.checked ? rings.addTo(BRMap.map) : BRMap.map.removeLayer(rings); };
+  document.getElementById("flFlag").onchange = e => {
+    e.target.checked ? flags.addTo(BRMap.map) : BRMap.map.removeLayer(flags); };
 
   document.getElementById("flHill").onchange = e => {
     e.target.checked ? hill.addTo(BRMap.map) : BRMap.map.removeLayer(hill); };
