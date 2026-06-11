@@ -1,0 +1,221 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Baton Rouge Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+<style>
+html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+#map{position:absolute;inset:0}
+/* ---- layers panel ---- */
+#panel{position:absolute;top:10px;right:10px;z-index:1000;background:#fff;border:1px solid #E2E7EF;border-radius:10px;box-shadow:0 2px 10px rgba(16,24,40,.18);font-size:12.5px;width:244px;max-height:92vh;overflow:auto}
+#panelHead{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;font-size:13px;font-weight:700;background:#F7F9FC;border-bottom:1px solid #EEF1F5;border-radius:10px 10px 0 0;cursor:pointer;position:sticky;top:0}
+#panelHead .tg{font-weight:700;color:#5A6472;border:1px solid #D9DEE6;border-radius:6px;width:20px;height:20px;line-height:18px;text-align:center;background:#fff}
+#panelBody.collapsed{display:none}
+.sec{padding:8px 11px;border-bottom:1px solid #F0F2F5}
+.sec:last-child{border-bottom:none}
+.sec .st{font-weight:700;display:block;margin-bottom:5px}
+#panel label{display:flex;align-items:center;gap:6px;margin:3px 0;cursor:pointer;line-height:1.3}
+#panel .sub{margin-left:18px}
+#panel i{display:inline-block;width:11px;height:11px;border-radius:50%;border:1px solid rgba(0,0,0,.3);flex:none}
+#panel i.sq{border-radius:2px}
+#panel select{width:100%;padding:5px;border:1px solid #D9DEE6;border-radius:7px;font:inherit;margin:2px 0}
+#panel .mut{color:#5A6472;font-size:11px;margin-top:2px}
+.ctl{margin:4px 0 2px 18px;padding-left:8px;border-left:2px solid #EEF1F5}
+.ctl.hidden{display:none}
+.legend{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:4px}
+.legend .sw{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#5A6472}
+.legend .bar{height:9px;width:54px;border-radius:3px;background:linear-gradient(90deg,#2D8A4E,#E7C13B,#C2691C,#B23B3B)}
+.hdr{position:absolute;top:10px;left:50px;z-index:1000;background:#fff;border:1px solid #E2E7EF;border-radius:10px;padding:7px 11px;box-shadow:0 2px 8px rgba(16,24,40,.15);font-size:12.5px;max-width:40%}
+.pin-ico svg{display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
+.pin-ico.dim{opacity:.4;transition:opacity .15s}
+.pop b{font-size:13px}.pop .row{color:#5A6472;font-size:12px;margin-top:2px}.pop a{color:#2B5797}
+.amlbl{background:rgba(255,255,255,.93);border:1px solid #999;border-radius:4px;padding:0 3px;font-size:10px;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.faclbl{background:rgba(255,235,235,.95);border:1px solid #C53030;color:#7B2020;border-radius:4px;padding:0 3px;font-size:10px;white-space:nowrap}
+@media(max-width:640px){#panel{width:210px;max-height:70vh}.hdr{display:none}}
+</style></head><body>
+<div id="map"></div>
+<div class="hdr"><b>Baton Rouge map</b> — pick one map overlay, color the listings, click a 🏠 for its details.</div>
+<div id="panel">
+ <div id="panelHead"><span>Layers</span><span class="tg" id="panelTg">–</span></div>
+ <div id="panelBody">
+  <div class="sec" id="secBase"></div>
+  <div class="sec" id="secArea"></div>
+  <div class="sec" id="secColor"></div>
+  <div class="sec" id="secDetail"></div>
+ </div>
+</div>
+<script>
+// ============================================================================
+//  Baton Rouge map — plugin shell.
+//  Layer modules register through one of three groups so the map never clutters:
+//    addArea(...)      single-select MAP OVERLAY (only one paints the map at a time)
+//    addColorMode(...) single-select "color the listings by" (one pin tint source)
+//    addDetail(...)    per-listing detail shown only for the clicked home, auto-cleared
+//  Named panes give a deterministic stack so labels always sit above pins, and
+//  area fills always sit below everything. Legacy section()/onListingClick/
+//  addPopupRow/setPinColor are retained so older modules keep working.
+// ============================================================================
+const map=L.map("map",{preferCanvas:true,zoomControl:true}).setView([30.45,-91.13],11);
+
+// ---- named panes (z-order: fills < heat < routes < facilities < connectors < PINS < labels < popups)
+function mkPane(name,z){ map.createPane(name); map.getPane(name).style.zIndex=z;
+  // overlay panes shouldn't eat clicks meant for pins, except where a layer binds popups
+  if(z<600) map.getPane(name).style.pointerEvents="auto"; }
+mkPane("pane-areas",410);     // flood polygons, choropleth fills
+mkPane("pane-heat",420);      // crime density / heat
+mkPane("pane-routes",430);    // commute lines
+mkPane("pane-facils",440);    // facility dots
+mkPane("pane-connect",450);   // amenity dashed connectors
+mkPane("pane-labels",660);    // amenity / facility text labels — ABOVE pins (markerPane=600)
+
+// ---- persisted UI preferences ----
+const LS="brmap.v1";
+let PREF={}; try{PREF=JSON.parse(localStorage.getItem(LS))||{};}catch(e){PREF={};}
+function savePref(){ try{localStorage.setItem(LS,JSON.stringify(PREF));}catch(e){} }
+
+// ---- base maps
+const base={
+ "Standard":L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"&copy; OpenStreetMap"}),
+ "Topographic":L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17,attribution:"&copy; OpenTopoMap (CC-BY-SA)"}),
+ "Satellite":L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"&copy; Esri"})
+};
+base["Standard"].addTo(map);
+(function(){ const el=document.getElementById("secBase"); el.innerHTML='<span class="st">Base map</span>';
+ const first=Object.keys(base)[0];
+ const savedBase=(PREF.base&&base[PREF.base])?PREF.base:first;
+ if(savedBase!==first){ Object.values(base).forEach(l=>map.removeLayer(l)); base[savedBase].addTo(map); }
+ Object.keys(base).forEach((k,idx)=>{ const id="base_"+idx;
+   el.insertAdjacentHTML("beforeend",'<label><input type="radio" name="base" '+(k===savedBase?"checked":"")+' id="'+id+'"> '+k+'</label>');
+   document.getElementById(id).onchange=()=>{Object.values(base).forEach(l=>map.removeLayer(l));base[k].addTo(map);PREF.base=k;savePref();}; });
+})();
+
+const BASE_PIN="#2B5797";
+const BRMap={
+ map, listings:[], pins:{}, _rows:[], _clicks:[], _ready:[], _sections:{}, _lk:{},
+ _areas:[], _colors:[], _details:[], _activeArea:null, _activeColor:null, _selected:null,
+ panes:{areas:"pane-areas",heat:"pane-heat",routes:"pane-routes",facils:"pane-facils",connect:"pane-connect",labels:"pane-labels"},
+ fetchJSON(u){return fetch(u,{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);},
+ fetchText(u){return fetch(u,{cache:"no-store"}).then(r=>r.ok?r.text():null).catch(()=>null);},
+ ready(fn){ if(this.listings.length) fn(); else this._ready.push(fn); },
+ addPopupRow(fn){ this._rows.push(fn); },
+ onListingClick(fn){ this._clicks.push(fn); },
+ setPinColor(id,color){ const p=this.pins[id]; if(p){ this._lk[id]._color=color; p.setIcon(pinIcon(color,this._lk[id].status==="off")); } },
+ colorPins(fn){ this.listings.forEach(l=>this.setPinColor(l.id, fn(l)||BASE_PIN)); },
+ resetPins(){ this.listings.forEach(l=>this.setPinColor(l.id, BASE_PIN)); },
+
+ // ---- legacy generic section (kept for compatibility) ----
+ section(id,title){ if(this._sections[id]) return this._sections[id];
+   const d=document.createElement("div"); d.className="sec"; d.innerHTML='<span class="st">'+title+'</span>';
+   document.getElementById("panelBody").appendChild(d); this._sections[id]=d; return d; },
+
+ // ---- single-select MAP OVERLAY ----
+ addArea(opt){ this._areas.push(opt); this._renderAreas(); },
+ _renderAreas(){ const host=document.getElementById("secArea");
+   host.innerHTML='<span class="st">Map overlay <span class="mut">(pick one)</span></span>';
+   const add=(val,label)=>{ const id="area_"+val; const wrap=document.createElement("div");
+     wrap.innerHTML='<label><input type="radio" name="brArea" value="'+val+'" id="'+id+'"> '+label+'</label><div class="ctl hidden" id="ctl_'+val+'"></div>';
+     host.appendChild(wrap); };
+   add("none","None");
+   this._areas.forEach(a=>add(a.id,a.label));
+   const def=(this._areas.find(a=>a.def)||{}).id;
+   const want=(PREF.area!=null&&(PREF.area==="none"||this._areas.some(a=>a.id===PREF.area)))?PREF.area:(def||"none");
+   host.querySelectorAll('input[name="brArea"]').forEach(r=>{ r.checked=(r.value===want);
+     r.onchange=()=>this._selectArea(r.value); });
+   this._selectArea(want,true);
+ },
+ _selectArea(val,silent){
+   PREF.area=val; savePref();
+   if(this._activeArea){ const prev=this._areas.find(a=>a.id===this._activeArea);
+     try{prev&&prev.deactivate&&prev.deactivate();}catch(e){console.warn(e);}
+     const pc=document.getElementById("ctl_"+this._activeArea); if(pc){pc.classList.add("hidden");pc.innerHTML="";} }
+   this._activeArea=(val==="none")?null:val;
+   if(this._activeArea){ const a=this._areas.find(x=>x.id===val);
+     const ctl=document.getElementById("ctl_"+val); if(ctl)ctl.classList.remove("hidden");
+     const ctx={controls:ctl, legend(html){ if(ctl) ctl.insertAdjacentHTML("beforeend",'<div class="legend">'+html+'</div>'); }};
+     try{a&&a.activate&&a.activate(ctx);}catch(e){console.warn(e);} }
+ },
+
+ // ---- single-select PIN COLOR ----
+ addColorMode(opt){ this._colors.push(opt); this._renderColors(); },
+ _renderColors(){ const host=document.getElementById("secColor");
+   host.innerHTML='<span class="st">Color listings by</span>';
+   const add=(val,label)=>{ host.insertAdjacentHTML("beforeend",
+     '<label><input type="radio" name="brColor" value="'+val+'" id="col_'+val+'"> '+label+'</label>'); };
+   add("default","Price pin (default)");
+   this._colors.forEach(c=>add(c.id,c.label));
+   host.insertAdjacentHTML("beforeend",'<div class="mut" id="colorLegend"></div>');
+   const def=(this._colors.find(c=>c.def)||{}).id;
+   const want=(PREF.color!=null&&(PREF.color==="default"||this._colors.some(c=>c.id===PREF.color)))?PREF.color:(def||"default");
+   host.querySelectorAll('input[name="brColor"]').forEach(r=>{ r.checked=(r.value===want);
+     r.onchange=()=>this._selectColor(r.value); });
+   this._selectColor(want,true);
+ },
+ _selectColor(val){
+   PREF.color=val; savePref();
+   this._activeColor=(val==="default")?null:val;
+   const leg=document.getElementById("colorLegend"); if(leg)leg.innerHTML="";
+   if(!this._activeColor){ this.resetPins(); return; }
+   const c=this._colors.find(x=>x.id===val); if(!c)return;
+   this.colorPins(l=>c.colorFor?c.colorFor(l):BASE_PIN);
+   if(leg&&c.legend) leg.innerHTML='<div class="legend">'+c.legend+'</div>';
+ },
+
+ // ---- per-listing DETAIL ----
+ addDetail(opt){ this._details.push(opt);
+   const host=document.getElementById("secDetail");
+   if(!host.dataset.init){ host.innerHTML='<span class="st">On selected listing</span>'; host.dataset.init="1"; }
+   const id="det_"+opt.id;
+   const sv=PREF.details&&PREF.details[opt.id];
+   const def=(sv!==undefined)?!!sv:(opt.def!==false);
+   host.insertAdjacentHTML("beforeend",'<label><input type="checkbox" id="'+id+'" '+(def?"checked":"")+'> '+opt.label+'</label>');
+   opt._on=def;
+   document.getElementById(id).onchange=e=>{ opt._on=e.target.checked;
+     if(!PREF.details)PREF.details={}; PREF.details[opt.id]=opt._on; savePref();
+     if(!opt._on){ try{opt.clear&&opt.clear();}catch(_){} }
+     else if(this._selected){ try{opt.select&&opt.select(this._selected);}catch(_){} } };
+ },
+ _fireSelect(l){ this._selected=l;
+   this._details.forEach(d=>{ try{d.clear&&d.clear();}catch(_){} if(d._on){ try{d.select&&d.select(l);}catch(_){} } });
+   this._clicks.forEach(fn=>{try{fn(l);}catch(e){}}); },
+ _fireClear(){ this._selected=null; this._details.forEach(d=>{ try{d.clear&&d.clear();}catch(_){} }); }
+};
+
+function pinIcon(color,off){const o=off?0.5:1;
+ const svg='<svg width="26" height="34" viewBox="0 0 26 34" xmlns="http://www.w3.org/2000/svg" style="opacity:'+o+'"><path d="M13 0C6 0 1 5 1 12c0 8 12 22 12 22s12-14 12-22C25 5 20 0 13 0z" fill="'+color+'" stroke="#fff" stroke-width="2"/><circle cx="13" cy="12" r="6.5" fill="#fff"/><text x="13" y="15.5" font-size="8" text-anchor="middle">🏠</text></svg>';
+ return L.divIcon({className:"pin-ico",html:svg,iconSize:[26,34],iconAnchor:[13,34],popupAnchor:[0,-30]});}
+function money(p,t){return p==null?"—":(t==="rent"?("$"+p.toLocaleString()+"/mo"):("$"+p+"k"));}
+function basePopup(l){
+ let h='<div class="pop"><b>'+l.address+'</b>'+(l.status==="off"?' <span style="font-size:10px;color:#888">(off-mkt)</span>':"")+
+  '<div class="row">'+money(l.price,l.type)+(l.beds?" · "+l.beds+"bd":"")+(l.baths?"/"+l.baths+"ba":"")+(l.size?" · "+l.size.toLocaleString()+"sf":"")+"</div>"+
+  '<div class="row">'+(l.neighborhood||"")+" · ZIP "+l.zip+"</div>";
+ BRMap._rows.forEach(fn=>{ try{const r=fn(l); if(r) h+=r;}catch(e){} });
+ if(l.link) h+='<div class="row"><a href="'+l.link+'" target="_blank" rel="noopener">Listing ↗</a></div>';
+ return h+"</div>";
+}
+
+// ---- panel collapse (persisted) ----
+if(PREF.collapsed){ document.getElementById("panelBody").classList.add("collapsed"); document.getElementById("panelTg").textContent="+"; }
+document.getElementById("panelHead").onclick=()=>{ const b=document.getElementById("panelBody");
+ b.classList.toggle("collapsed"); const c=b.classList.contains("collapsed");
+ document.getElementById("panelTg").textContent=c?"+":"–"; PREF.collapsed=c; savePref(); };
+
+// ---- load shared listings + draw pins ----
+BRMap.fetchJSON("listings.json").then(ls=>{
+ BRMap.listings=ls||[]; const b=[];
+ BRMap.listings.forEach(l=>{ BRMap._lk[l.id]=l; l._color=BASE_PIN;
+   const m=L.marker([l.lat,l.lon],{icon:pinIcon(BASE_PIN,l.status==="off"),zIndexOffset:1000});
+   m.bindPopup(()=>basePopup(l)); m.on("click",()=>BRMap._fireSelect(l));
+   m.addTo(map); BRMap.pins[l.id]=m; b.push([l.lat,l.lon]); });
+ if(b.length) map.fitBounds(b,{padding:[40,40]});
+ map.on("popupclose",()=>BRMap._fireClear());
+ BRMap._ready.forEach(fn=>{try{fn();}catch(e){console.warn(e);}}); BRMap._ready=[];
+});
+window.BRMap=BRMap;
+</script>
+<!-- ===== layer modules ===== -->
+<script src="crime_layer.js" defer></script>
+<script src="amenities_layer.js" defer></script>
+<script src="flood_layer.js" defer></script>
+<script src="commute_layer.js" defer></script>
+<script src="air_layer.js" defer></script>
+</body></html>

@@ -1,0 +1,94 @@
+{
+  "generated_at_utc": "2026-06-11T05:18:41Z",
+  "study_area": "Baton Rouge, LA",
+  "methodology_version": "0.1.0",
+  "listings": [
+    {
+      "listing_id": "sample-br-001",
+      "address": "100 Lafayette St",
+      "lat": 30.4492,
+      "lon": -91.1871,
+      "overall_environmental_burden_score": null,
+      "burden_category": null,
+      "confidence_label": "Low",
+      "subscores": {
+        "toxic_air": null,
+        "industrial_facility": null,
+        "ambient_air": null,
+        "traffic_diesel": null,
+        "downwind": null,
+        "water_soil_flood": null
+      },
+      "top_contributors": [],
+      "nearby_facilities_summary": [],
+      "caveats": [
+        "Relative environmental burden screening score; not a medical prediction.",
+        "Do not interpret any field as cancer probability.",
+        "AirToxScreen source data unavailable; toxic-air sub-score excluded.",
+        "Facility emissions/compliance source data unavailable; industrial sub-score excluded.",
+        "Ambient monitor data unavailable; ambient-air sub-score excluded.",
+        "Traffic/AADT source data unavailable; traffic sub-score excluded.",
+        "Wind and facility pairing data unavailable; downwind sub-score excluded.",
+        "Water/soil/flood source data unavailable; water-soil-flood sub-score excluded."
+      ]
+    },
+    {
+      "listing_id": "sample-br-002",
+      "address": "305 River Rd S",
+      "lat": 30.4416,
+      "lon": -91.1906,
+      "overall_environmental_burden_score": null,
+      "burden_category": null,
+      "confidence_label": "Low",
+      "subscores": {
+        "toxic_air": null,
+        "industrial_facility": null,
+        "ambient_air": null,
+        "traffic_diesel": null,
+        "downwind": null,
+        "water_soil_flood": null
+      },
+      "top_contributors": [],
+      "nearby_facilities_summary": [],
+      "caveats": [
+        "Relative environmental burden screening score; not a medical prediction.",
+        "Do not interpret any field as cancer probability.",
+        "AirToxScreen source data unavailable; toxic-air sub-score excluded.",
+        "Facility emissions/compliance source data unavailable; industrial sub-score excluded.",
+        "Ambient monitor data unavailable; ambient-air sub-score excluded.",
+        "Traffic/AADT source data unavailable; traffic sub-score excluded.",
+        "Wind and facility pairing data unavailable; downwind sub-score excluded.",
+        "Water/soil/flood source data unavailable; water-soil-flood sub-score excluded."
+      ]
+    },
+    {
+      "listing_id": "sample-br-003",
+      "address": "7711 Goodwood Blvd",
+      "lat": 30.4431,
+      "lon": -91.1109,
+      "overall_environmental_burden_score": null,
+      "burden_category": null,
+      "confidence_label": "Low",
+      "subscores": {
+        "toxic_air": null,
+        "industrial_facility": null,
+        "ambient_air": null,
+        "traffic_diesel": null,
+        "downwind": null,
+        "water_soil_flood": null
+      },
+      "top_contributors": [],
+      "nearby_facilities_summary": [],
+      "caveats": [
+        "Relative environmental burden screening score; not a medical prediction.",
+        "Do not interpret any field as cancer probability.",
+        "AirToxScreen source data unavailable; toxic-air sub-score excluded.",
+        "Facility emissions/compliance source data unavailable; industrial sub-score excluded.",
+        "Ambient monitor data unavailable; ambient-air sub-score excluded.",
+        "Traffic/AADT source data unavailable; traffic sub-score excluded.",
+        "Wind and facility pairing data unavailable; downwind sub-score excluded.",
+        "Water/soil/flood source data unavailable; water-soil-flood sub-score excluded."
+      ]
+    }
+  ]
+}
