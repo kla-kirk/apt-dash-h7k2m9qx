@@ -70,7 +70,7 @@ mkPane("pane-connect",450);   // amenity dashed connectors
 mkPane("pane-labels",660);    // amenity / facility text labels — ABOVE pins (markerPane=600)
 
 // ---- persisted UI preferences ----
-const LS="brmap.v2";
+const LS="brmap.v1";
 let PREF={}; try{PREF=JSON.parse(localStorage.getItem(LS))||{};}catch(e){PREF={};}
 function savePref(){ try{localStorage.setItem(LS,JSON.stringify(PREF));}catch(e){} }
 
@@ -142,7 +142,7 @@ const BRMap={
    host.innerHTML='<span class="st">Color listings by</span>';
    const add=(val,label)=>{ host.insertAdjacentHTML("beforeend",
      '<label><input type="radio" name="brColor" value="'+val+'" id="col_'+val+'"> '+label+'</label>'); };
-   add("default","None (plain pin)");
+   add("default","Price pin (default)");
    this._colors.forEach(c=>add(c.id,c.label));
    host.insertAdjacentHTML("beforeend",'<div class="mut" id="colorLegend"></div>');
    const def=(this._colors.find(c=>c.def)||{}).id;
