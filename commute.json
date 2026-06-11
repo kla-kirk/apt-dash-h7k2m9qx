@@ -1,0 +1,322 @@
+{
+  "2115 E Ramsey Dr": {
+    "am": 10,
+    "pm": 11,
+    "off": 11,
+    "miles": {
+      "am": 3.6,
+      "pm": 3.6,
+      "off": 3.6
+    }
+  },
+  "2437 Fiero St": {
+    "am": 9,
+    "pm": 10,
+    "off": 9,
+    "miles": {
+      "am": 2.9,
+      "pm": 3.2,
+      "off": 3.2
+    }
+  },
+  "9003 Magnolia View Dr": {
+    "am": 15,
+    "pm": 16,
+    "off": 15,
+    "miles": {
+      "am": 5.6,
+      "pm": 5.6,
+      "off": 6.5
+    }
+  },
+  "415 Bedford Dr": {
+    "am": 11,
+    "pm": 11,
+    "off": 11,
+    "miles": {
+      "am": 3.3,
+      "pm": 3.3,
+      "off": 3.3
+    }
+  },
+  "417 Bedford Dr": {
+    "am": 11,
+    "pm": 11,
+    "off": 11,
+    "miles": {
+      "am": 3.3,
+      "pm": 3.3,
+      "off": 3.3
+    }
+  },
+  "9446 High Point Rd": {
+    "am": 14,
+    "pm": 15,
+    "off": 14,
+    "miles": {
+      "am": 5.4,
+      "pm": 5.4,
+      "off": 6.4
+    }
+  },
+  "709 Staring Ln": {
+    "am": 13,
+    "pm": 14,
+    "off": 13,
+    "miles": {
+      "am": 5.3,
+      "pm": 5.3,
+      "off": 6.3
+    }
+  },
+  "The Terraces at Perkins Rowe": {
+    "am": 17,
+    "pm": 19,
+    "off": 18,
+    "miles": {
+      "am": 8.2,
+      "pm": 7.3,
+      "off": 7.3
+    }
+  },
+  "8808 Magnolia Leaf Ave": {
+    "am": 13,
+    "pm": 14,
+    "off": 13,
+    "miles": {
+      "am": 5.3,
+      "pm": 5.3,
+      "off": 6.3
+    }
+  },
+  "4738 Woodlyn Dr": {
+    "am": 24,
+    "pm": 25,
+    "off": 23,
+    "miles": {
+      "am": 11.1,
+      "pm": 11.1,
+      "off": 11.1
+    }
+  },
+  "5416 Heron Nest Dr": {
+    "am": 23,
+    "pm": 22,
+    "off": 20,
+    "miles": {
+      "am": 12.0,
+      "pm": 12.0,
+      "off": 12.0
+    }
+  },
+  "6024 Woodlawn Park Ct": {
+    "am": 27,
+    "pm": 27,
+    "off": 26,
+    "miles": {
+      "am": 12.9,
+      "pm": 12.9,
+      "off": 12.9
+    }
+  },
+  "9314 Fox Run Ave": {
+    "am": 12,
+    "pm": 13,
+    "off": 12,
+    "miles": {
+      "am": 5.5,
+      "pm": 5.5,
+      "off": 5.5
+    }
+  },
+  "10177 Bonnet Cove Ave": {
+    "am": 14,
+    "pm": 15,
+    "off": 14,
+    "miles": {
+      "am": 6.1,
+      "pm": 6.1,
+      "off": 6.1
+    }
+  },
+  "633 Fall Creek Dr": {
+    "am": 13,
+    "pm": 15,
+    "off": 13,
+    "miles": {
+      "am": 5.8,
+      "pm": 5.8,
+      "off": 5.8
+    }
+  },
+  "9412 Windward Rd": {
+    "am": 15,
+    "pm": 16,
+    "off": 15,
+    "miles": {
+      "am": 5.5,
+      "pm": 5.5,
+      "off": 6.5
+    }
+  },
+  "4573 Charleston Villa Dr": {
+    "am": 28,
+    "pm": 26,
+    "off": 24,
+    "miles": {
+      "am": 14.1,
+      "pm": 13.8,
+      "off": 13.8
+    }
+  },
+  "620 Nelson Dr": {
+    "am": 10,
+    "pm": 10,
+    "off": 9,
+    "miles": {
+      "am": 2.9,
+      "pm": 2.9,
+      "off": 2.9
+    }
+  },
+  "734 Caddo St": {
+    "am": 13,
+    "pm": 13,
+    "off": 14,
+    "miles": {
+      "am": 4.2,
+      "pm": 4.2,
+      "off": 4.9
+    }
+  },
+  "2103 Government St": {
+    "am": 9,
+    "pm": 9,
+    "off": 9,
+    "miles": {
+      "am": 2.7,
+      "pm": 2.7,
+      "off": 2.7
+    }
+  },
+  "1525 S Eugene St": {
+    "am": 8,
+    "pm": 9,
+    "off": 8,
+    "miles": {
+      "am": 2.6,
+      "pm": 2.6,
+      "off": 2.6
+    }
+  },
+  "750 Acadia St": {
+    "am": 14,
+    "pm": 14,
+    "off": 14,
+    "miles": {
+      "am": 4.3,
+      "pm": 4.3,
+      "off": 5.0
+    }
+  },
+  "541 Terry Dr": {
+    "am": 12,
+    "pm": 12,
+    "off": 12,
+    "miles": {
+      "am": 4.2,
+      "pm": 4.2,
+      "off": 4.2
+    }
+  },
+  "740 Acadia St": {
+    "am": 14,
+    "pm": 14,
+    "off": 14,
+    "miles": {
+      "am": 4.3,
+      "pm": 4.3,
+      "off": 5.0
+    }
+  },
+  "2102 Sassy Ln": {
+    "am": 8,
+    "pm": 9,
+    "off": 8,
+    "miles": {
+      "am": 2.5,
+      "pm": 2.5,
+      "off": 2.5
+    }
+  },
+  "2340 Government St": {
+    "am": 10,
+    "pm": 10,
+    "off": 10,
+    "miles": {
+      "am": 2.9,
+      "pm": 2.9,
+      "off": 2.9
+    }
+  },
+  "3650 Perkins Rd": {
+    "am": 7,
+    "pm": 8,
+    "off": 7,
+    "miles": {
+      "am": 2.4,
+      "pm": 2.4,
+      "off": 2.4
+    }
+  },
+  "4468 Cypress St": {
+    "am": 8,
+    "pm": 8,
+    "off": 8,
+    "miles": {
+      "am": 2.4,
+      "pm": 2.4,
+      "off": 2.4
+    }
+  },
+  "2326 Terrace Ave": {
+    "am": 8,
+    "pm": 9,
+    "off": 8,
+    "miles": {
+      "am": 2.5,
+      "pm": 2.5,
+      "off": 2.5
+    }
+  },
+  "540 Drehr Ave": {
+    "am": 10,
+    "pm": 10,
+    "off": 10,
+    "miles": {
+      "am": 2.9,
+      "pm": 2.9,
+      "off": 2.9
+    }
+  },
+  "2267 Cedardale Ave": {
+    "am": 8,
+    "pm": 8,
+    "off": 8,
+    "miles": {
+      "am": 2.5,
+      "pm": 2.8,
+      "off": 2.8
+    }
+  },
+  "4268 Arrowhead St": {
+    "am": 8,
+    "pm": 9,
+    "off": 8,
+    "miles": {
+      "am": 2.6,
+      "pm": 2.6,
+      "off": 2.6
+    }
+  }
+}
