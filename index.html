@@ -83,6 +83,8 @@ small.muted{color:var(--soft)}
 .svgwrap{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
 #svgmap{width:100%;height:auto;display:block}
 .mpin:hover circle{stroke:#1A1A1A}
+.mapbanner{background:#EAF1FB;border:1px solid #cdddf5;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mapbanner .muted{color:var(--soft);font-size:11.5px}.mapbanner code{font-size:11px}
 </style></head>
 <body><div class="wrap">
  <div class="top">
@@ -90,12 +92,11 @@ small.muted{color:var(--soft)}
   <div class="toggle"><button id="tgRent" class="on" onclick="setMode('rent')">For Rent</button><button id="tgSale" onclick="setMode('sale')">For Sale</button></div>
   <div class="spacer"></div>
   <div class="pill" id="pillEmail" onclick="showConnect()"><span class="dot"></span><span>Email: not connected</span></div>
+  <a class="btn ghost sm" href="https://kla-kirk.github.io/apt-dash-h7k2m9qx/crime_map.html" target="_blank" rel="noopener" title="Opens the full interactive street map in your browser">🗺️ Open full map ↗</a>
   <button class="btn ghost sm" id="refreshBtn" onclick="refreshFromSheet()">↻ Refresh from Sheet</button>
   <button class="btn ghost sm" onclick="exportCSV()">Export CSV</button>
   <button class="btn" onclick="openEdit(null)">+ Add</button>
  </div>
- <div class="tabs"><button class="tabbtn on" id="tbDb" onclick="showTab('db')">📋 Database</button><button class="tabbtn" id="tbMap" onclick="showTab('map')">🗺️ Map</button></div>
- <div id="tabDb">
  <div class="stats" id="stats"></div>
  <div class="filters" id="filters"></div>
  <div class="tablewrap"><table id="tbl"><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
@@ -105,12 +106,6 @@ small.muted{color:var(--soft)}
  <span class="badge" style="background:#FFF4E0;color:#9A6A00">Moderate</span>
  <span class="badge" style="background:#FBE6D6;color:#C2691C">Elevated</span>
  <span class="badge" style="background:#FBE7E7;color:#B23B3B">High</span> scale by area (incidents per sq mi), so a smaller radius shows the block itself, not nearby areas. Click a listing for the murder/robbery/assault breakdown. Full map: <code>crime_map.html</code>.</div>
- </div><!-- /tabDb -->
- <div id="tabMap" style="display:none">
-  <div class="mapctl" id="mapctl"></div>
-  <div class="svgwrap"><svg id="svgmap" viewBox="0 0 1000 680" preserveAspectRatio="xMidYMid meet"></svg></div>
-  <div class="legend" id="maplegend"></div>
- </div>
  <p style="margin-top:12px"><small class="muted">Stored locally in this dashboard; mirrors <code>listings.xlsx</code> and the <b>Baton Rouge Places</b> Google Sheet. <b>Refresh from Sheet</b> pulls your latest sheet edits (e.g. new rankings) and keeps web-filled gaps. Email is manual today and plugs in via the seam in the code.<br>Crime data: 846 geocoded violent incidents (murder, aggravated assault, robbery, rape) from Baton Rouge Police "Crime Incidents" open data (data.brla.gov, pbin-pcm7), last 12 months, scored by distance to each address. A street-level map with every incident is in <code>crime_map.html</code>.</small></p>
 </div>
 
@@ -260,7 +255,7 @@ function renderMap(){
 }
 function closeAndEdit(id){ openEdit(id); }
 
-function render(){ renderPill(); renderStats(); renderFilters(); renderTable(); if(document.getElementById("tabMap")&&document.getElementById("tabMap").style.display!=="none") renderMap(); }
+function render(){ renderPill(); renderStats(); renderFilters(); renderTable(); }
 
 function renderPill(){ const p=document.getElementById("pillEmail"); p.classList.toggle("on",EMAIL.enabled);
   p.lastElementChild.textContent=EMAIL.enabled?("Email: "+EMAIL.provider):"Email: not connected"; }

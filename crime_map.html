@@ -100,20 +100,19 @@ rentG.addTo(map); saleG.addTo(map);
 map.on("popupclose",()=>{ rings.forEach(r=>map.removeLayer(r)); rings=[]; });
 if(bounds.length) map.fitBounds(bounds,{padding:[40,40]});
 
+const sw=k=>'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+CAT[k].c+';margin-right:5px;vertical-align:middle"></span>';
 const overlays={"🏠 Rentals":rentG,"🏠 For sale":saleG};
-overlays["—— Violent ——"]=L.layerGroup();
-["09A","13A","120","11A"].forEach(k=>overlays[CAT[k].l]=layers[k]);
-overlays["—— Property / other ——"]=L.layerGroup();
-["220","THEFT","240","520","DRUGS","290","13B"].forEach(k=>overlays[CAT[k].l]=layers[k]);
-L.control.layers(null,overlays,{collapsed:false}).addTo(map);
+overlays["<b style=\"color:#5A6472\">— Violent —</b>"]=L.layerGroup();
+["09A","13A","120","11A"].forEach(k=>overlays[sw(k)+CAT[k].l]=layers[k]);
+overlays["<b style=\"color:#5A6472\">— Property / other —</b>"]=L.layerGroup();
+["220","THEFT","240","520","DRUGS","290","13B"].forEach(k=>overlays[sw(k)+CAT[k].l]=layers[k]);
+L.control.layers(null,overlays,{collapsed:false,sortLayers:false}).addTo(map);
 
-const legend=L.control({position:"bottomright"});
+const legend=L.control({position:"bottomleft"});
 legend.onAdd=function(){const div=L.DomUtil.create("div","legend");
  div.innerHTML='<b>🏠 Listings</b> — pin color = crime risk (violent within &frac12;mi)<br>'+
   TIERS.map(t=>'<div><i style="background:'+t.c+'"></i>'+t.t+'</div>').join("")+
-  '<b style="display:block;margin-top:6px">Incident dots</b>'+
-  ["09A","13A","120","11A","220","THEFT","240","520","DRUGS","290","13B"].map(k=>'<div><i style="background:'+CAT[k].c+'"></i>'+CAT[k].l+'</div>').join("")+
-  '<div class="small">Dots grow as you zoom in. BRPD Crime Incidents (data.brla.gov, pbin-pcm7), last 12 mo near the listings. Citywide + multi-year coming. ~31% of violent incidents lack coordinates.</div>';
+  '<div class="small">Crime types (with their colors) toggle at top-right. Dots grow as you zoom in. BRPD Crime Incidents (data.brla.gov, pbin-pcm7), last 12 mo near the listings; citywide + multi-year coming. ~31% of violent incidents lack coordinates.</div>';
  return div;};
 legend.addTo(map);
 
