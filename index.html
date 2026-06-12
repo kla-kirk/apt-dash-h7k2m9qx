@@ -1000,11 +1000,14 @@ function openTourPlanner(){
   var head='<div class="plhead"><div class="plstats"><span class="plchip accent">'+s.n+' approved</span><span class="plchip">'+s.sched+' scheduled</span><span class="plchip ok">'+s.conf+' confirmed</span><span class="plchip warn">'+s.awa+' awaiting</span></div>'+
     '<div class="plactions"><button class="btn sm" onclick="openAvailabilitySetup()">Set availability</button><button class="btn ghost sm" onclick="downloadIcs()">Export .ics</button><button class="btn ghost sm" onclick="exportPlannerState()">Export</button><button class="btn ghost sm" onclick="importPlannerState()">Import</button></div></div>';
   var seg='<div class="plseg"><button id="plseg-cal" onclick="setPlannerTab(\'cal\')">📅 Calendar</button><button id="plseg-map" onclick="setPlannerTab(\'map\')">🗺 Map &amp; route</button><button id="plseg-out" onclick="setPlannerTab(\'out\')">✉ Outreach</button></div>';
-  openDynamicModal("plannerScrim","Tour Planner · June 19-22, 2026",head+seg+'<div id="plView"></div>','<button class="btn ghost sm" onclick="closeDynamic(\'plannerScrim\')">Close</button>',1280);
-  renderPlannerView();
+  openDynamicModal("plannerScrim","Tour Planner · June 19-22, 2026",head+seg+'<div class="plgrid"><div class="plmain"><div id="plView"></div></div><aside class="plrail" id="plRail"></aside></div>','<button class="btn ghost sm" onclick="closeDynamic(\'plannerScrim\')">Close</button>',1280);
+  renderPlannerView();renderPlannerRail();
 }
 function setPlannerTab(t){plannerTab=t;renderPlannerView();}
 function renderPlannerView(){var v=document.getElementById("plView");if(!v)return;["cal","map","out"].forEach(function(t){var b=document.getElementById("plseg-"+t);if(b)b.classList.toggle("on",t===plannerTab);});v.innerHTML=plannerTab==="cal"?plCalendar():plannerTab==="map"?plMap():plOutreach();}
+function plRiskBadges(l){var out='';try{var s=safety(l);if(s&&s.tier)out+='<span class="plmini" style="background:'+s.bg+';color:'+s.c+'">Crime '+s.tier+'</span>';}catch(e){}try{var f=floodInfo(l);if(f&&f.risk)out+='<span class="plmini" style="background:'+f.bg+';color:'+f.c+'">Flood '+f.risk+'</span>';}catch(e){}if(l.pollLabel){var c=riskColor(l.pollLabel);out+='<span class="plmini" style="background:'+c[0]+';color:'+c[1]+'">Pollution '+l.pollLabel+'</span>';}return out;}
+function plQueueCard(l){return '<div class="plqcard'+(l.status==="off"?' off':'')+'"><div class="plqaddr'+(l.status==="off"?' struck':'')+'">'+esc(l.address)+'</div><div class="zip">'+fmtPriceL(l)+(l.type==="rent"?"/mo":"")+'</div><div class="plqchips">'+sourceChips(l)+'</div><div class="plqchips">'+plRiskBadges(l)+'</div>'+(l.status==="off"?'<div class="note" style="color:#b23b3b;margin:4px 0 0">Off-market — flagged</div>':'')+'<div class="plqbtns"><button class="btn sm plsched" onclick="openScheduleListing(\''+l.id+'\')">Schedule</button><button class="btn ghost sm" onclick="openMessageComposer(\''+l.id+'\',\'initial\')">Message</button></div></div>';}
+function renderPlannerRail(){var el=document.getElementById("plRail");if(!el)return;var q=activeTourListings().filter(function(l){var t=l.tour||{};return !(t.date&&t.start);});el.innerHTML='<div class="plrailhead"><h4 style="font-size:14px;margin:0">Not yet scheduled</h4><span class="zip">'+q.length+' place'+(q.length!=1?'s':'')+'</span></div><div class="plrailbody">'+(q.length?q.map(plQueueCard).join(""):'<div class="zip" style="padding:10px">All approved places have a time 🎉</div>')+'</div>';}
 function plCalendar(){
   var av=loadAvailability(),H0=8,H1=20,PXH=44,BODYH=(H1-H0)*PXH;
   var hm2=function(t){var p=(t||"0:0").split(":").map(Number);return p[0]+(p[1]||0)/60;};
@@ -1027,7 +1030,7 @@ function quickFill(date,slot){
   var body='<div class="note">Book '+dateLabel(date)+' at '+fmtTime(slot)+' with one of your approved places:</div>'+(cand.length?cand.map(function(l){return '<div class="qfill" onclick="assignSlot(\''+l.id+'\',\''+date+'\',\''+slot+'\')"><b>'+esc(l.address)+(l.status==="off"?' <span class="sourcechip warn">Off-market</span>':'')+'</b><span class="zip">'+fmtPriceL(l)+(l.type==="rent"?"/mo":"")+'</span></div>';}).join(""):'<div class="zip">All approved places already have a time. Edit one from the calendar.</div>');
   openDynamicModal("qfillScrim","Book "+fmtTime(slot),body,'<button class="btn ghost sm" onclick="closeDynamic(\'qfillScrim\')">Cancel</button>');
 }
-function assignSlot(id,date,slot){var l=byId(id);if(!l)return;var t=tourOf(l);t.date=date;t.start=slot;if(t.state==="to_contact")t.state="tentative";save();render();closeDynamic("qfillScrim");renderPlannerView();toast("Tour added to "+dateLabel(date));}
+function assignSlot(id,date,slot){var l=byId(id);if(!l)return;var t=tourOf(l);t.date=date;t.start=slot;if(t.state==="to_contact")t.state="tentative";save();render();closeDynamic("qfillScrim");renderPlannerView();renderPlannerRail();toast("Tour added to "+dateLabel(date));}
 function setPlMapDay(d){plMapDay=d;plOpt=false;renderPlannerView();}
 function togglePlOpt(){plOpt=!plOpt;renderPlannerView();}
 function plMap(){
