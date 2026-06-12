@@ -1,25 +1,28 @@
 /* POLLUTION / INDUSTRIAL-PROXIMITY module — owned by the "air" chat.
-   Editable files (map_site/): air_layer.js, air.json, pollution_facilities.json, pollution_metadata.json.
+   Editable files (map_site/): air_layer.js, air.json (+ pollution_facilities.json, pollution_metadata.json).
 
-   Runtime data (fetched lazily, all absent-safe — the shell loads fine if these are missing):
-     air.json = {
-       generated_at_utc, methodology,
-       listings: { "<address>": { score:0-100, cancer_risk:null, pm25:null, label,
-                    nearest_facility_mi, proximity_release_score,
-                    nearby_facilities:[ {name, distance_mi, sources:[...], releases_lbs} ] } },
-       facilities: [ {name, lat, lon, kind, sector, releases_lbs, sources:[...]} ]   // ~8,265 sites
-     }
-     pollution_facilities.json = same `facilities` array (fallback if air.json has none).
+   Focus: "Cancer Alley"-type heavy industry — EPA TRI reporters (refineries, chemical/
+   petrochemical plants) with 2024 reported release pounds, plus RMP chemical-accident
+   facilities and OSM industrial features. EPA FRS registry gap-fill (land developers,
+   medical offices, storm-water permits, …) is NOT shown — it was the noise in the old layer.
 
-   Registers (new shell API), degrading to legacy section() for the toggle:
-     • color mode "Pollution / industrial proximity" — tints listing pins by score (single-select).
-     • a per-listing popup row — proximity label + nearest-facility distance + top nearby sites.
-     • a "Pollution / industrial proximity" section with an "Industrial / chemical / petroleum sites"
-       checkbox that draws the facility layer (source-colored, capped for performance).
+   Runtime data (air.json, fetched lazily, absent-safe):
+     listings["<address>"] = { score:0-100, label, cancer_risk:null, pm25:null,
+        nearest_facility_mi, nearest_facility_name, proximity_release_score,
+        nearby_facilities:[ {name, distance_mi, releases_lbs, sector, sources} ] }
+     facilities = [ {name, lat, lon, kind, sector, releases_lbs|null, sources:[...]} ]   (~532)
 
-   This is an INDUSTRIAL-PROXIMITY screening / comparison layer, not a medical-risk estimate.
-   EJScreen was attempted during the build but unreachable (DNS), so the air-toxics fields
-   `cancer_risk` and `pm25` are null; the UI says so plainly and never implies a health prediction. */
+   Registers (new shell API):
+     • addArea  "Pollution — TRI release heat"  : a leaflet-heat field weighted by 2024 TRI
+        release pounds (the heat map).
+     • addColorMode "Pollution proximity (TRI)" : tints listing pins by the relative score.
+     • section() checkbox "Industrial / chemical / petroleum sites" : the facility markers,
+        colored by source and sized by release magnitude.
+     • a per-listing popup row (score + nearest emitter + top nearby emitters).
+
+   Score is a RELATIVE TRI-release proximity rank across the compared listings — a screening
+   signal, not an absolute concentration or a medical/health prediction. cancer_risk and pm25
+   are null because EJScreen was unreachable at build time. */
 BRMap.ready(async () => {
   const map = BRMap.map;
   const A = await BRMap.fetchJSON("air.json");
@@ -32,110 +35,112 @@ BRMap.ready(async () => {
 
   const esc = s => String(s == null ? "" : s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  // pin / label color by score: 0-32 green · 33-65 amber · 66-100 red
+  // pin / label color by score (percentile rank): 0-32 green · 33-65 amber · 66-100 red
   const col = s => s >= 66 ? "#B23B3B" : s >= 33 ? "#C2691C" : "#1E7A34";
   const miFmt = v => v == null ? "" : (v < 10 ? Number(v).toFixed(1) : String(Math.round(v)));
-  const SRC_ORDER = ["TRI", "RMP", "FRS", "OSM"];
+  const lbs = v => Math.round(v).toLocaleString();
+  const SRC_ORDER = ["TRI", "RMP", "OSM", "FRS"];
   const srcLabel = s => (s || []).slice().sort((a, b) => SRC_ORDER.indexOf(a) - SRC_ORDER.indexOf(b)).join(" + ");
-
-  const EJ_CAVEAT = "EJScreen metrics unavailable: cancer_risk &amp; pm25 are null (EJScreen lookup failed — DNS — " +
-    "during build). Industrial-proximity screening / comparison layer, not a medical-risk estimate.";
+  const EJ = "cancer_risk &amp; pm25 are null — EJScreen was unreachable at build. Relative TRI-release " +
+    "proximity screening signal, not an absolute concentration or a medical estimate.";
 
   // ---------- per-listing popup row ----------
   BRMap.addPopupRow(l => {
     const a = LI[l.address];
-    if (!a || a.score == null) return "";
+    if (!a || a.score == null) return '<div class="row mut">Pollution data unavailable.</div>';
     const c = col(a.score);
-    let h = '<div class="row">Pollution proximity: <b style="color:' + c + '">' + esc(a.label || Math.round(a.score)) + '</b>'
-      + (a.nearest_facility_mi != null ? ' · nearest facility ' + miFmt(a.nearest_facility_mi) + ' mi' : '') + '</div>';
+    let h = '<div class="row">Pollution proximity: <b style="color:' + c + '">' + esc(a.label) + '</b>'
+      + ' <span style="color:#5A6472">(' + Math.round(a.score) + '/100)</span>'
+      + (a.nearest_facility_name ? '<br><span style="color:#5A6472">nearest TRI site: ' + esc(a.nearest_facility_name)
+        + (a.nearest_facility_mi != null ? ' · ' + miFmt(a.nearest_facility_mi) + ' mi' : '') + '</span>' : '')
+      + '</div>';
     const nf = (a.nearby_facilities || []).slice(0, 4);
     if (nf.length) {
-      h += '<div class="row" style="font-size:11px">' + nf.map(f => {
-        const bits = [esc(f.name)];
-        if (f.distance_mi != null) bits.push(miFmt(f.distance_mi) + " mi");
-        if (f.releases_lbs != null) bits.push(Math.round(f.releases_lbs).toLocaleString() + " lb");
-        if (f.sources && f.sources.length) bits.push(esc(srcLabel(f.sources)));
+      h += '<div class="row" style="font-size:11px">Heaviest TRI emitters nearby:<br>' + nf.map(f => {
+        const bits = [esc(f.name), miFmt(f.distance_mi) + " mi"];
+        if (f.releases_lbs != null) bits.push(lbs(f.releases_lbs) + " lb");
         return "· " + bits.join(" · ");
       }).join("<br>") + '</div>';
     }
-    h += '<div class="row mut" style="font-size:10.5px">' + EJ_CAVEAT + '</div>';
+    h += '<div class="row mut" style="font-size:10.5px">' + EJ + '</div>';
     return h;
   });
 
-  // ---------- color mode: tint pins by pollution-proximity score ----------
+  // ---------- color mode: tint pins by relative TRI-proximity score ----------
   if (typeof BRMap.addColorMode === "function") {
     BRMap.addColorMode({
       id: "pollution",
-      label: "Pollution / industrial proximity",
+      label: "Pollution proximity (TRI)",
       colorFor: l => { const a = LI[l.address]; return a && a.score != null ? col(a.score) : undefined; },
-      legend: '<span class="sw"><i style="background:#1E7A34"></i>Low</span>'
+      legend: '<span class="sw"><i style="background:#1E7A34"></i>Lower</span>'
         + '<span class="sw"><i style="background:#C2691C"></i>Moderate</span>'
-        + '<span class="sw"><i style="background:#B23B3B"></i>High</span>'
+        + '<span class="sw"><i style="background:#B23B3B"></i>Higher</span>'
     });
   }
 
-  // ---------- facility layer ----------
+  // ---------- heat map: TRI release pounds (map overlay) ----------
+  const emitters = FAC.filter(f => f.releases_lbs != null && f.releases_lbs > 0);
+  if (typeof BRMap.addArea === "function" && typeof L.heatLayer === "function" && emitters.length) {
+    const maxR = Math.max.apply(null, emitters.map(f => f.releases_lbs));
+    // sqrt-scaled intensity so mid-tier plants register while the mega-emitters still dominate
+    const pts = emitters.map(f => [f.lat, f.lon, Math.max(0.06, Math.sqrt(f.releases_lbs / maxR))]);
+    const grad = { 0.0: "#2c7fb8", 0.3: "#41b6c4", 0.5: "#a1dab4", 0.7: "#fed976", 0.85: "#fd8d3c", 1.0: "#bd0026" };
+    let heat = null;
+    BRMap.addArea({
+      id: "pollheat",
+      label: "Pollution — TRI release heat",
+      activate(ctx) {
+        if (!heat) heat = L.heatLayer(pts, { radius: 30, blur: 22, max: 1.0, minOpacity: 0.3, gradient: grad, pane: BRMap.panes && BRMap.panes.heat });
+        heat.addTo(map);
+        if (ctx && ctx.legend) ctx.legend(
+          '<span class="sw">Low</span><span class="bar" style="background:linear-gradient(90deg,#2c7fb8,#41b6c4,#a1dab4,#fed976,#fd8d3c,#bd0026)"></span><span class="sw">High</span>'
+          + '<div class="mut" style="width:100%">2024 TRI air/total release lbs, distance-blurred (sqrt-scaled).</div>');
+      },
+      deactivate() { if (heat) map.removeLayer(heat); }
+    });
+  }
+
+  // ---------- facility markers (industrial only) ----------
   function facStyle(f) {
-    if (f.releases_lbs != null) {                 // TRI facility with 2024 reported releases → red / dark red
+    if (f.releases_lbs != null) {                  // TRI reporter — red, sized by 2024 release pounds
       const big = f.releases_lbs >= 1e6;
-      return { color: big ? "#7B1E1E" : "#9B2C2C", fill: big ? "#B23B3B" : "#E05353", r: big ? 6 : 4.5 };
+      const r = 4 + 8 * Math.sqrt(Math.min(f.releases_lbs, 7.2e6) / 7.2e6);
+      return { color: big ? "#7B1E1E" : "#9B2C2C", fill: big ? "#C0392B" : "#E05353", r: Math.max(4, r) };
     }
-    if ((f.sources || []).includes("RMP")) return { color: "#B45309", fill: "#DD6B20", r: 4 };   // RMP → orange
-    return { color: "#8A93A0", fill: "#AEB6BF", r: 3 };                                           // FRS/OSM-only → muted gray
+    if ((f.sources || []).includes("RMP")) return { color: "#B45309", fill: "#DD6B20", r: 4.5 };  // RMP chemical-accident
+    return { color: "#6B7280", fill: "#AEB6BF", r: 3 };                                           // OSM / other industrial
   }
   function facPopup(f) {
     let h = '<div class="pop"><b>⚠ ' + esc(f.name || "Facility") + '</b>';
-    const ks = (f.kind && f.sector && f.kind !== f.sector) ? esc(f.kind) + " · " + esc(f.sector) : esc(f.kind || f.sector || "");
+    const ks = (f.kind && f.sector && f.kind !== f.sector) ? esc(f.kind) + " · " + esc(f.sector) : esc(f.sector || f.kind || "");
     if (ks) h += '<div class="row">' + ks + '</div>';
     if (f.sources && f.sources.length) h += '<div class="row">Sources: ' + esc(srcLabel(f.sources)) + '</div>';
-    if (f.releases_lbs != null) h += '<div class="row">2024 TRI releases: ' + Math.round(f.releases_lbs).toLocaleString() + ' lb</div>';
-    h += '<div class="row mut" style="font-size:10.5px">TRI releases are 2024 reported total releases in pounds; '
-      + 'OSM/FRS/RMP identify facilities but do not imply measured emissions.</div>';
+    if (f.releases_lbs != null) h += '<div class="row"><b>2024 TRI releases: ' + lbs(f.releases_lbs) + ' lb</b></div>';
+    h += '<div class="row mut" style="font-size:10.5px">TRI releases are 2024 reported total releases (lb); '
+      + 'RMP/OSM identify chemical/industrial sites but do not imply measured emissions.</div>';
     return h + '</div>';
   }
-
   const facPane = (BRMap.panes && BRMap.panes.facils) || undefined;
   const renderer = L.canvas({ pane: facPane, padding: 0.5 });
-  const facLayer = L.layerGroup();
-  // Always-render "priority" sites (TRI releasers + RMP) so the big chemical/petroleum plants
-  // are guaranteed visible; gap-fill FRS/OSM points only within the current view, capped.
-  const isPriority = f => f.releases_lbs != null || (f.sources || []).includes("RMP");
-  const PRIORITY = FAC.filter(isPriority);
-  const OTHERS = FAC.filter(f => !isPriority(f));
-  const CAP = 1200;
-  function mk(f) {
+  const facLayer = L.layerGroup(FAC.map(f => {
     const st = facStyle(f);
     return L.circleMarker([f.lat, f.lon], { renderer, radius: st.r, color: st.color, weight: 1, fillColor: st.fill, fillOpacity: 0.75 })
       .bindPopup(() => facPopup(f));
-  }
-  function redraw() {
-    facLayer.clearLayers();
-    PRIORITY.forEach(f => mk(f).addTo(facLayer));
-    const b = map.getBounds(); let n = 0;
-    for (const f of OTHERS) { if (n >= CAP) break; if (b.contains([f.lat, f.lon])) { mk(f).addTo(facLayer); n++; } }
-    const cnt = document.getElementById("polCount");
-    if (cnt) cnt.textContent = (PRIORITY.length + n).toLocaleString() + " of " + FAC.length.toLocaleString() + " sites shown (priority + in view)";
-  }
+  }));
+  const nTRI = FAC.filter(f => f.releases_lbs != null).length;
+  const nRMP = FAC.filter(f => f.releases_lbs == null && (f.sources || []).includes("RMP")).length;
+  const nOSM = FAC.length - nTRI - nRMP;
 
-  const sec = BRMap.section("pollution", "Pollution / industrial proximity");
+  const sec = BRMap.section("air", "Pollution / industrial proximity");
   sec.insertAdjacentHTML("beforeend",
     '<label><input type="checkbox" id="polFac"> Industrial / chemical / petroleum sites</label>' +
     '<div class="legend" style="margin-top:3px">' +
-      '<span class="sw"><i style="background:#B23B3B"></i>TRI (2024 releases)</span>' +
+      '<span class="sw"><i style="background:#C0392B"></i>TRI (2024 releases, sized)</span>' +
       '<span class="sw"><i style="background:#DD6B20"></i>RMP</span>' +
-      '<span class="sw"><i style="background:#AEB6BF"></i>FRS / OSM</span></div>' +
-    '<div class="mut" id="polCount"></div>' +
-    '<div class="mut" style="font-size:10.5px">' + FAC.length.toLocaleString() + ' sites — OSM: locations/types only; ' +
-      'TRI: 2024 reported releases for 85 matched facilities; FRS/RMP: EPA registry. ' + EJ_CAVEAT + '</div>');
+      '<span class="sw"><i style="background:#AEB6BF"></i>industrial (OSM)</span></div>' +
+    '<div class="mut">' + nTRI + ' TRI emitters · ' + nRMP + ' RMP · ' + nOSM + ' other industrial. ' +
+      'EPA FRS registry-only points excluded. ' + EJ + '</div>');
 
-  let onMove = null;
   const facEl = document.getElementById("polFac");
-  if (facEl) facEl.onchange = e => {
-    if (e.target.checked) { redraw(); facLayer.addTo(map); onMove = () => redraw(); map.on("moveend", onMove); }
-    else {
-      if (onMove) { map.off("moveend", onMove); onMove = null; }
-      map.removeLayer(facLayer); facLayer.clearLayers();
-      const cnt = document.getElementById("polCount"); if (cnt) cnt.textContent = "";
-    }
-  };
+  if (facEl) facEl.onchange = e => { e.target.checked ? facLayer.addTo(map) : map.removeLayer(facLayer); };
 });
