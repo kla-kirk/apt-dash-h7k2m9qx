@@ -104,7 +104,9 @@ BRMap.ready(async () => {
       '.pop .air-nb .top i{width:8px;height:8px;border-radius:50%;border:none;flex:none}',
       '.pop .air-nb .top .nm{flex:1;font-weight:600;color:#26303B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       '.pop .air-nb .top .d{color:#566070;font-size:11px;white-space:nowrap}',
-      '.pop .air-nb .risk{font-size:10px;color:#566070;margin-left:15px;margin-top:1px;line-height:1.35}'
+      '.pop .air-nb .risk{font-size:10px;color:#566070;margin-left:15px;margin-top:1px;line-height:1.35}',
+      '.pop .air-nb .nbgo{color:#B4BCC6;font-weight:700}',
+      '.pop .air-nb[data-fac]:hover{background:#F7F9FC}'
     ].join("") + '</style>');
   }
 
@@ -143,6 +145,7 @@ BRMap.ready(async () => {
       h += '<div class="row" style="font-size:11px"><span style="color:#566070;font-weight:600">Nearby industrial &amp; emission sites:</span>'
         + nf.map(f => {
           const full = FACBYNAME[normName(f.name)] || {};
+          const fkey = full.name ? normName(full.name) : "";
           const rt = full.dominant_risk_type || "lower";
           const bits = [];
           if (full.dominant_chemical) { let dx = esc(full.dominant_chemical); if (full.dominant_risk_type) dx += " · " + esc(full.dominant_risk_type); if (full.facility_toxicity_score != null) dx += " · hazard " + Math.round(full.facility_toxicity_score); bits.push(dx); }
@@ -151,12 +154,20 @@ BRMap.ready(async () => {
           else if (f.npdes_dmr_pounds != null) bits.push("Industrial water discharge " + lbs(f.npdes_dmr_pounds) + " lb");
           else if ((f.sources || []).includes("RMP")) bits.push("Hazardous-chemical accident-risk plan");
           else bits.push(srcPlain(f.sources) || "registry site");
-          return '<div class="air-nb"><div class="top"><i style="background:' + rc(rt) + '"></i><span class="nm">' + prettyFac(f.name)
-            + '</span><span class="d">' + miFmt(f.distance_mi) + ' mi</span></div><div class="risk">' + bits.join("") + '</div></div>';
-        }).join("") + '</div>';
+          return '<div class="air-nb"' + (fkey ? ' data-fac="' + fkey + '"' : ' style="cursor:default"') + '><div class="top"><i style="background:' + rc(rt) + '"></i><span class="nm">' + prettyFac(f.name)
+            + '</span><span class="d">' + miFmt(f.distance_mi) + ' mi</span>' + (fkey ? '<span class="nbgo">›</span>' : '') + '</div><div class="risk">' + bits.join("") + '</div></div>';
+        }).join("") + '<div style="font-size:10px;color:#7C8694;margin-top:4px">Click a site for its full chemical breakdown.</div></div>';
     }
     return h;
   }, "env");
+
+  // make the nearby-site rows clickable: open that plant's full left panel
+  if (typeof BRMap.onDetailRender === "function") BRMap.onDetailRender((l, root) => {
+    root.querySelectorAll(".air-nb[data-fac]").forEach(el => {
+      const ff = FACBYNAME[el.getAttribute("data-fac")];
+      if (ff) el.addEventListener("click", () => openFacPanel(ff, null));
+    });
+  });
 
   // ---------- at-a-glance summary chip (listing panel) ----------
   if (typeof BRMap.addSummaryChip === "function") {
@@ -208,7 +219,7 @@ BRMap.ready(async () => {
   const WIND_IS_FALLBACK = /fallback/i.test(WIND_SRC);
   let selCancer = "1e-5";
   let selNoncancer = "HQ1";
-  let openMarker = null;
+  let openMarker = null, openFac = null;   // openFac works whether opened from a marker or the nearby-sites list
   // a footprint is "active" when its level matches the current selection for its risk_type
   function levelMatch(fp) {
     if (fp.risk_type === "cancer") return fp.level === selCancer;
@@ -412,6 +423,7 @@ BRMap.ready(async () => {
       + 'The shaded shapes are <b>modeled</b> wind-rose Gaussian plume estimates from this plant’s reported releases and each chemical’s toxicity threshold — cancer (purple), chronic / respiratory (amber), and acute (dashed red). They are estimates of reach, not measured plumes.'
       + (fpRows ? '<div style="margin-top:6px">' + fpRows + '</div>' : '')
       + '<div class="air-about">A relative ranking of the pollution sources near you, built from EPA and Louisiana air-emissions data — not a personal health estimate.</div>'
+      + '<div style="margin-top:8px"><a href="https://www.epa.gov/AirToxScreen" target="_blank" rel="noopener" style="color:#2B5797;text-decoration:none;font-weight:600">Methodology &amp; data sources ↗</a></div>'
       + '</div></details>';
     return h + '</div>';
   }
@@ -433,7 +445,7 @@ BRMap.ready(async () => {
     const x = facInfo.querySelector(".facinfo-x"); if (x) x.onclick = closeFacPanel;
   }
   function openFacPanel(f, m) {
-    openMarker = m;
+    openMarker = m; openFac = f;
     if (typeof BRMap.closeDetail === "function") { try { BRMap.closeDetail(); } catch (e) {} }   // one left panel at a time
     renderFacPanel(f);
     facInfo.style.display = "block"; facInfo.scrollTop = 0;
@@ -441,7 +453,7 @@ BRMap.ready(async () => {
   }
   function closeFacPanel() {
     facInfo.style.display = "none"; facInfo.innerHTML = "";
-    openMarker = null; clearFootprints();
+    openMarker = null; openFac = null; clearFootprints();
   }
   if (typeof BRMap.onListingClick === "function") BRMap.onListingClick(() => closeFacPanel());   // clicking a listing closes the facility panel
   document.addEventListener("keydown", e => { if (e.key === "Escape" && facInfo.style.display === "block") closeFacPanel(); });
@@ -522,20 +534,20 @@ BRMap.ready(async () => {
         const heatEl = ctx.controls.querySelector("#polHeat");
         if (heatEl) heatEl.onchange = e => setHeat(e.target.checked);
         const fpEl = ctx.controls.querySelector("#polFp");
-        if (fpEl) fpEl.onchange = e => { footprintsOn = e.target.checked; if (!footprintsOn) clearFootprints(); else if (openMarker && openMarker._fac) drawFootprints(openMarker._fac); };
+        if (fpEl) fpEl.onchange = e => { footprintsOn = e.target.checked; if (!footprintsOn) clearFootprints(); else if (openFac) drawFootprints(openFac); };
         const hidEl = ctx.controls.querySelector("#polHidden");
         if (hidEl) hidEl.onchange = e => setHidden(e.target.checked);
         const seg = ctx.controls.querySelector("#polCancerSeg");
         if (seg) seg.querySelectorAll("button").forEach(btn => btn.onclick = () => {
           selCancer = btn.dataset.lv;
           seg.querySelectorAll("button").forEach(b => { const on = b.dataset.lv === selCancer; b.style.background = on ? "#7B3FA0" : "#fff"; b.style.color = on ? "#fff" : "#444"; });
-          if (openMarker && openMarker._fac) { if (footprintsOn) drawFootprints(openMarker._fac); renderFacPanel(openMarker._fac); }
+          if (openFac) { if (footprintsOn) drawFootprints(openFac); renderFacPanel(openFac); }
         });
         const ncSeg = ctx.controls.querySelector("#polNoncancerSeg");
         if (ncSeg) ncSeg.querySelectorAll("button").forEach(btn => btn.onclick = () => {
           selNoncancer = btn.dataset.lv;
           ncSeg.querySelectorAll("button").forEach(b => { const on = b.dataset.lv === selNoncancer; b.style.background = on ? "#CC7A1C" : "#fff"; b.style.color = on ? "#fff" : "#444"; });
-          if (openMarker && openMarker._fac) { if (footprintsOn) drawFootprints(openMarker._fac); renderFacPanel(openMarker._fac); }
+          if (openFac) { if (footprintsOn) drawFootprints(openFac); renderFacPanel(openFac); }
         });
       },
       deactivate() {
