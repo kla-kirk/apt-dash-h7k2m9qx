@@ -105,6 +105,43 @@ BRMap.ready(async () => {
     });
   }
 
+  // ---------- exposure-risk rings (research-based; shaded around a clicked plant) ----------
+  const RING_PANE = (BRMap.panes && BRMap.panes.areas) || undefined, MI_M = 1609.344;
+  // Chronic ambient bands: ambient concentration falls off steeply but isn't a hard edge. Generic
+  // screening distances (EPA uses 10 km for "fenceline" communities; ~500x drop within ~2 km; RSEI to 50 km).
+  const CHRONIC = [
+    { m: 10000, op: 0.05, label: "10 km — EPA fenceline screening extent" },
+    { m: 5000, op: 0.09, label: "5 km — elevated chronic zone" },
+    { m: 1600, op: 0.16, label: "1.6 km (~1 mi) — fenceline / steep-decay peak" }
+  ];
+  // Worst-case ACCIDENTAL-release toxic-endpoint radius (miles). Plant-specific from EPA RMP filings
+  // where sourced; otherwise a corridor reference for RMP plants (they all file a worst-case scenario).
+  // ~25 mi is the documented upper end for the corridor's big toxic-gas plants (phosgene/HF/chlorine).
+  const WORSTCASE_EXACT = [{ test: /rubicon/i, mi: 25, note: "phosgene, EPA RMP" }];
+  const WORSTCASE_REF_MI = 25;
+  function worstCase(f) {
+    const ex = WORSTCASE_EXACT.find(w => w.test.test(f.name || ""));
+    if (ex) return { mi: ex.mi, exact: true, note: ex.note };
+    if ((f.sources || []).includes("RMP")) return { mi: WORSTCASE_REF_MI, exact: false };
+    return null;
+  }
+  const ringsLayer = L.layerGroup();
+  function clearRings() { ringsLayer.clearLayers(); if (map.hasLayer(ringsLayer)) map.removeLayer(ringsLayer); }
+  function ringEligible(f) { return f && (f.releases_lbs != null || (f.sources || []).includes("RMP")); }
+  function drawRings(f) {
+    ringsLayer.clearLayers();
+    if (!ringEligible(f)) return;
+    CHRONIC.forEach(z => L.circle([f.lat, f.lon], { radius: z.m, pane: RING_PANE, interactive: false,
+      stroke: true, color: "#b71c1c", weight: 1, opacity: 0.4, fill: true, fillColor: "#e53935", fillOpacity: z.op }).addTo(ringsLayer));
+    const wc = worstCase(f);
+    if (wc) L.circle([f.lat, f.lon], { radius: wc.mi * MI_M, pane: RING_PANE, interactive: false, fill: false,
+      stroke: true, color: "#6d0000", weight: 2, opacity: wc.exact ? 0.9 : 0.55, dashArray: wc.exact ? "8,5" : "2,8" }).addTo(ringsLayer);
+    if (!map.hasLayer(ringsLayer)) ringsLayer.addTo(map);
+  }
+  let ringsOn = true;
+  map.on("popupopen", e => { const f = e.popup && e.popup._source && e.popup._source._fac; if (ringsOn && f) drawRings(f); });
+  map.on("popupclose", clearRings);
+
   // ---------- facility markers (industrial only) ----------
   function facStyle(f) {
     if (f.releases_lbs != null) {                  // TRI reporter — red, sized by 2024 release pounds
@@ -121,6 +158,9 @@ BRMap.ready(async () => {
     if (ks) h += '<div class="row">' + ks + '</div>';
     if (f.sources && f.sources.length) h += '<div class="row">Sources: ' + esc(srcLabel(f.sources)) + '</div>';
     if (f.releases_lbs != null) h += '<div class="row"><b>2024 TRI releases: ' + lbs(f.releases_lbs) + ' lb</b></div>';
+    const wc = worstCase(f);
+    if (wc) h += '<div class="row">Worst-case release radius: ~' + wc.mi + ' mi'
+      + (wc.exact ? ' <span style="color:#5A6472">(RMP: ' + esc(wc.note) + ')</span>' : ' <span style="color:#5A6472">(corridor reference)</span>') + '</div>';
     h += '<div class="row mut" style="font-size:10.5px">TRI releases are 2024 reported total releases (lb); '
       + 'RMP/OSM identify chemical/industrial sites but do not imply measured emissions.</div>';
     return h + '</div>';
@@ -129,8 +169,10 @@ BRMap.ready(async () => {
   const renderer = L.canvas({ pane: facPane, padding: 0.5 });
   const facLayer = L.layerGroup(FAC.map(f => {
     const st = facStyle(f);
-    return L.circleMarker([f.lat, f.lon], { renderer, radius: st.r, color: st.color, weight: 1, fillColor: st.fill, fillOpacity: 0.75 })
+    const m = L.circleMarker([f.lat, f.lon], { renderer, radius: st.r, color: st.color, weight: 1, fillColor: st.fill, fillOpacity: 0.75 })
       .bindPopup(() => facPopup(f));
+    m._fac = f;                                     // lets popupopen draw this plant's exposure rings
+    return m;
   }));
   const nTRI = FAC.filter(f => f.releases_lbs != null).length;
   const nRMP = FAC.filter(f => f.releases_lbs == null && (f.sources || []).includes("RMP")).length;
@@ -144,8 +186,18 @@ BRMap.ready(async () => {
       '<span class="sw"><i style="background:#DD6B20"></i>RMP</span>' +
       '<span class="sw"><i style="background:#AEB6BF"></i>industrial (OSM)</span></div>' +
     '<div class="mut">' + nTRI + ' TRI emitters · ' + nRMP + ' RMP · ' + nOSM + ' other industrial. ' +
-      'EPA FRS registry-only points excluded. ' + EJ + '</div>');
+      'EPA FRS registry-only points excluded. ' + EJ + '</div>' +
+    '<label style="margin-top:7px"><input type="checkbox" id="polRings" checked> Exposure-risk rings (click a plant)</label>' +
+    '<div class="legend" style="margin-top:2px">' +
+      '<span class="sw"><i style="background:#e53935"></i>chronic ≤1.6 / 5 / 10 km</span>' +
+      '<span class="sw"><i class="sq" style="background:transparent;border:1px dashed #6d0000"></i>worst-case (accidental)</span></div>' +
+    '<div class="mut" style="margin-left:18px">Click a plant to shade its zones. Filled = chronic ambient bands ' +
+      '(EPA/RSEI screening distances). Dashed = worst-case accidental-release radius — bold-dash where sourced ' +
+      '(Rubicon ≈25 mi, phosgene RMP), fine-dash = ~25 mi corridor reference for other RMP plants. ' +
+      'Screening reference distances, not a plant-specific dispersion model.</div>');
 
   const facEl = document.getElementById("polFac");
-  if (facEl) facEl.onchange = e => { e.target.checked ? facLayer.addTo(map) : map.removeLayer(facLayer); };
+  if (facEl) facEl.onchange = e => { if (e.target.checked) facLayer.addTo(map); else { map.removeLayer(facLayer); clearRings(); } };
+  const ringsEl = document.getElementById("polRings");
+  if (ringsEl) ringsEl.onchange = e => { ringsOn = e.target.checked; if (!ringsOn) clearRings(); };
 });
