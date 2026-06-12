@@ -304,7 +304,19 @@ BRMap.ready(async () => {
   // ---------- facility markers: size by air pounds, color by dominant risk type ----------
   const RISK_MARK = { cancer: { color: "#7B3FA0", fill: "#ab47bc" }, acute: { color: "#C0392B", fill: "#ef5350" },
     noncancer: { color: "#CC7A1C", fill: "#fb8c00" }, lower: { color: "#6B7280", fill: "#AEB6BF" } };
+  // Heavy LDEQ-only emitters: big reported annual air tonnage but no TRI pollutant breakdown, so no
+  // plume/score. Render as a neutral "reported emissions" marker sized by tonnage so they don't vanish
+  // beside scored plants. Teal is deliberately NOT one of the cancer/acute/noncancer/lower risk colors.
+  const EMIT_MARK = { color: "#0F6F86", fill: "#3FB0C4" };
+  const LDEQ_HEAVY_TPY = 1000;   // tons/yr above which we call it a "heavy" reported emitter
+  function ldeqOnlyEmitter(f) {
+    return f.releases_lbs == null && f.facility_toxicity_score == null
+      && !(Array.isArray(f.risk_footprints) && f.risk_footprints.length)
+      && f.ldeq_air_emissions_tpy != null && f.ldeq_air_emissions_tpy > 0;
+  }
+  const ldeqRadius = tpy => Math.max(4.5, 4 + 9 * Math.sqrt(Math.min(tpy, 1e6) / 1e6));   // sized by tonnage (cap 1e6)
   function facStyle(f) {
+    if (ldeqOnlyEmitter(f)) return { color: EMIT_MARK.color, fill: EMIT_MARK.fill, r: ldeqRadius(f.ldeq_air_emissions_tpy) };
     let r;
     if (f.releases_lbs != null) r = Math.max(4, 4 + 8 * Math.sqrt(Math.min(f.releases_lbs, 7.2e6) / 7.2e6));
     else r = (f.sources || []).includes("RMP") ? 4.5 : 3;
@@ -381,6 +393,14 @@ BRMap.ready(async () => {
     if (ks) h += '<div class="air-sub">' + ks + '</div>';
     if (f.sources && f.sources.length) h += '<div class="air-src">Listed in: ' + srcPlain(f.sources) + '</div>';
 
+    if (ldeqOnlyEmitter(f)) {
+      const heavy = f.ldeq_air_emissions_tpy >= LDEQ_HEAVY_TPY;
+      h += '<div class="air-badges" style="margin-top:9px"><span class="air-badge" style="background:#0F6F8622;color:#0B5566"><i style="background:#0F6F86"></i>'
+          + (heavy ? "Heavy reported air emitter" : "LDEQ air-emissions facility") + '</span></div>'
+        + '<div class="air-rel" style="margin-top:7px"><b>Reported annual air emissions: ' + tpy(f.ldeq_air_emissions_tpy) + ' tons/yr</b> <span style="color:#7C8694">· Louisiana LDEQ</span></div>'
+        + '<div class="air-about" style="margin-top:6px">Large reported annual air emissions. No plume shown because pollutant-level toxicity data is unavailable for this LDEQ record.</div>';
+    }
+
     if (sc != null) {
       h += '<div class="air-score"><b class="n" style="color:' + domc + '">' + Math.round(sc) + '<small>/100</small></b>'
         + '<div class="m"><div class="lbl">toxic-air hazard score</div><div class="air-gauge"><i style="width:' + Math.round(sc) + '%;background:' + domc + '"></i></div></div></div>';
@@ -393,7 +413,7 @@ BRMap.ready(async () => {
       h += '<div class="air-rel">Reported toxic-air releases, 2024: <b>' + lbs(airv) + ' lb</b> ' + relTip
         + (f.total_lbs != null && f.total_lbs > airv ? ' <span style="color:#7C8694">· incl. water &amp; land ' + lbs(f.total_lbs) + ' lb</span>' : '') + '</div>';
     }
-    if (f.ldeq_air_emissions_tpy != null) h += '<div class="air-rel" style="margin-top:4px">Louisiana air emissions: ' + tpy(f.ldeq_air_emissions_tpy) + ' tons/yr</div>';
+    if (f.ldeq_air_emissions_tpy != null && !ldeqOnlyEmitter(f)) h += '<div class="air-rel" style="margin-top:4px">Louisiana air emissions: ' + tpy(f.ldeq_air_emissions_tpy) + ' tons/yr</div>';
 
     const brk = f.chemical_risk_breakdown;
     if (brk && brk.top_overall_chemicals && brk.top_overall_chemicals.length) {
@@ -428,7 +448,9 @@ BRMap.ready(async () => {
     // About this score — methodology + the modeled-plume footprint detail (honors cancer level) + calm note
     const fpRows = footprintRows(f);
     h += '<details class="grp"><summary><span>About this score &amp; the plumes</span><span class="chev">▸</span></summary><div class="grp-body" style="font-size:11px;color:#566070;line-height:1.5">'
-      + 'The shaded shapes are <b>modeled</b> wind-rose Gaussian plume estimates from this plant’s reported releases and each chemical’s toxicity threshold — cancer (purple), chronic / respiratory (amber), and acute (dashed red). They are estimates of reach, not measured plumes.'
+      + (ldeqOnlyEmitter(f)
+          ? 'This is a Louisiana LDEQ facility-level air-emissions total with no pollutant-level breakdown, so no toxicity plume is modeled for it.'
+          : 'The shaded shapes are <b>modeled</b> wind-rose Gaussian plume estimates from this plant’s reported releases and each chemical’s toxicity threshold — cancer (purple), chronic / respiratory (amber), and acute (dashed red). They are estimates of reach, not measured plumes.')
       + (fpRows ? '<div style="margin-top:6px">' + fpRows + '</div>' : '')
       + '<div class="air-about">A relative ranking of the pollution sources near you, built from EPA and Louisiana air-emissions data — not a personal health estimate.</div>'
       + '<div style="margin-top:8px"><a href="https://www.epa.gov/AirToxScreen" target="_blank" rel="noopener" style="color:#2B5797;text-decoration:none;font-weight:600">Methodology &amp; data sources ↗</a></div>'
@@ -526,8 +548,9 @@ BRMap.ready(async () => {
           '<div class="legend"><span class="sw"><i style="background:#7B3FA0"></i>Mainly carcinogens</span>'
             + '<span class="sw"><i style="background:#C0392B"></i>Acute toxic gas</span>'
             + '<span class="sw"><i style="background:#CC7A1C"></i>Chronic / respiratory</span>'
-            + '<span class="sw"><i style="background:#AEB6BF"></i>Lower / unclassified</span></div>'
-          + '<div class="mut">Larger dots = more released.</div>'
+            + '<span class="sw"><i style="background:#AEB6BF"></i>Lower / unclassified</span>'
+            + '<span class="sw"><i style="background:#3FB0C4"></i>Heavy LDEQ emitter (no plume data)</span></div>'
+          + '<div class="mut">Larger dots = more released (or, for teal, more reported LDEQ tonnage).</div>'
           + (heat ? '<label style="margin-top:6px"><input type="checkbox" id="polHeat"' + (heatOn ? " checked" : "") + '> Emissions heat map</label>' : '')
           + '<label style="margin-top:4px"><input type="checkbox" id="polFp"' + (footprintsOn ? " checked" : "") + '> Dispersion-plume footprints <span class="mut" style="margin:0">(click a plant)</span></label>'
           + '<div class="sub" style="margin-top:3px"><span class="mut" style="font-weight:700;color:#3A434F">Cancer plume level</span>'
