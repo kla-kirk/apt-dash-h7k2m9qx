@@ -148,6 +148,13 @@ table.cmp td.win{background:var(--salebg)}table.cmp td.win .v{color:var(--accent
 .kv{display:grid;grid-template-columns:118px 1fr;gap:5px 10px;font-size:13px}.kv .k{color:var(--soft)}.kv .v{color:var(--ink);font-weight:500}
 .drow{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;gap:10px}
 .closeX{border:0;background:transparent;font-size:22px;line-height:1;color:var(--g400);cursor:pointer}.closeX:hover{color:var(--g700)}
+.compact tbody td{padding:5px 12px}.compact thead th{padding:7px 12px}
+.colsmenu{position:absolute;z-index:90;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-pop);padding:10px;min-width:236px;max-height:70vh;overflow:auto}
+.colsmenu .cmh{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--soft);margin:2px 4px 8px}
+.colsmenu .cmrow{display:flex;align-items:center;gap:9px;padding:5px 6px;border-radius:6px;cursor:pointer;font-size:13px}
+.colsmenu .cmrow:hover{background:var(--bg)}.colsmenu .cmrow input{accent-color:var(--accent)}
+.colsmenu .cmg{margin-left:auto;font-size:10.5px;color:var(--g400)}
+.colsmenu .cmf{border-top:1px solid var(--line2);margin-top:8px;padding-top:8px;display:flex;justify-content:flex-end}
 </style></head>
 <body><div class="wrap">
  <div class="top">
@@ -156,6 +163,8 @@ table.cmp td.win{background:var(--salebg)}table.cmp td.win .v{color:var(--accent
   <div class="spacer"></div>
   <div class="pill" id="pillEmail" onclick="showConnect()"><span class="dot"></span><span>Email: not connected</span></div>
   <a class="btn ghost sm" href="https://kla-kirk.github.io/apt-dash-h7k2m9qx/map/" target="_blank" rel="noopener" title="Opens the full interactive street map in your browser">🗺️ Open full map ↗</a>
+  <button class="btn ghost sm" id="colsBtn" onclick="toggleColsMenu(this)">⊞ Columns</button>
+  <button class="btn ghost sm" id="densBtn" onclick="toggleDensity()">≡ Comfortable</button>
   <button class="btn ghost sm" id="refreshBtn" onclick="refreshFromSheet()">↻ Refresh from Sheet</button>
   <button class="btn ghost sm" onclick="exportCSV()">Export CSV</button>
   <button class="btn" onclick="openEdit(null)">+ Add</button>
@@ -245,25 +254,25 @@ const LS_KEY="br_listings_v2";
 const COLS={
  rent:[
   {k:"address",label:"Address",cls:"addr",fmt:addrCell},
-  {k:"price",label:"$/mo",num:1,sort:"num",fmt:l=>l.price?("$"+l.price.toLocaleString()):"—"},
-  {k:"beds",label:"Bd",num:1,sort:"num"},{k:"baths",label:"Ba",num:1,sort:"num"},
-  {k:"size",label:"Sqft",num:1,sort:"num",fmt:l=>l.size?l.size.toLocaleString():"—"},
-  {k:"neighborhood",label:"Neighborhood",cls:"nbhd"},{k:"safety",label:"Violent crime risk",sort:"safety",grp:"rl"},{k:"burg",label:"Burglary",sort:"burg",grp:"rl"},{k:"auto",label:"Car theft",sort:"auto",grp:"rl"},{k:"commute",label:"Commute",sort:"commute",grp:"rl"},{k:"flood",label:"Flood",sort:"flood",grp:"rl"},{k:"yearBuilt",label:"Yr",num:1,sort:"num"},
+  {k:"price",label:"$/mo",num:1,sort:"num",def:1,g:"Core",fmt:l=>l.price?("$"+l.price.toLocaleString()):"—"},
+  {k:"beds",label:"Bd",num:1,sort:"num",def:1,g:"Core"},{k:"baths",label:"Ba",num:1,sort:"num",def:1,g:"Core"},
+  {k:"size",label:"Sqft",num:1,sort:"num",def:1,g:"Core",fmt:l=>l.size?l.size.toLocaleString():"—"},
+  {k:"neighborhood",label:"Neighborhood",cls:"nbhd",def:1,g:"Core"},{k:"safety",label:"Safety",sort:"safety",def:1,g:"Risk & location"},{k:"commute",label:"Commute",sort:"commute",def:1,g:"Risk & location"},{k:"flood",label:"Flood",sort:"flood",def:1,g:"Risk & location"},{k:"burg",label:"Burglary",sort:"burg",g:"Risk & location"},{k:"auto",label:"Car theft",sort:"auto",g:"Risk & location"},{k:"yearBuilt",label:"Yr",num:1,sort:"num",g:"Details"},
   {k:"furnished",label:"Furn."},{k:"petFees",label:"Pets",cls:"wide"},
   {k:"minLease",label:"Min lease"},{k:"likes",label:"Likes",cls:"wide"},
   {k:"dislikes",label:"Dislikes",cls:"wide"},
-  {k:"jamie",label:"Jamie",edit:1,sort:"num"},{k:"keegan",label:"Keegan",edit:1,sort:"num"},
-  {k:"combined",label:"Combined",derived:1,sort:"num"},
+  {k:"jamie",label:"Jamie",edit:1,sort:"num",def:1,g:"Rankings"},{k:"keegan",label:"Keegan",edit:1,sort:"num",def:1,g:"Rankings"},
+  {k:"combined",label:"Combined",derived:1,sort:"num",def:1,g:"Rankings"},
  ],
  sale:[
   {k:"address",label:"Address",cls:"addr",fmt:addrCell},
-  {k:"price",label:"$k",num:1,sort:"num",fmt:l=>l.price?("$"+l.price+"k"):"—"},
-  {k:"beds",label:"Bd",num:1,sort:"num"},{k:"baths",label:"Ba",num:1,sort:"num"},
-  {k:"size",label:"Sqft",num:1,sort:"num",fmt:l=>l.size?l.size.toLocaleString():"—"},
-  {k:"neighborhood",label:"Neighborhood",cls:"nbhd"},{k:"safety",label:"Violent crime risk",sort:"safety",grp:"rl"},{k:"burg",label:"Burglary",sort:"burg",grp:"rl"},{k:"auto",label:"Car theft",sort:"auto",grp:"rl"},{k:"commute",label:"Commute",sort:"commute",grp:"rl"},{k:"flood",label:"Flood",sort:"flood",grp:"rl"},{k:"yearBuilt",label:"Yr",num:1,sort:"num"},
+  {k:"price",label:"$k",num:1,sort:"num",def:1,g:"Core",fmt:l=>l.price?("$"+l.price+"k"):"—"},
+  {k:"beds",label:"Bd",num:1,sort:"num",def:1,g:"Core"},{k:"baths",label:"Ba",num:1,sort:"num",def:1,g:"Core"},
+  {k:"size",label:"Sqft",num:1,sort:"num",def:1,g:"Core",fmt:l=>l.size?l.size.toLocaleString():"—"},
+  {k:"neighborhood",label:"Neighborhood",cls:"nbhd",def:1,g:"Core"},{k:"safety",label:"Safety",sort:"safety",def:1,g:"Risk & location"},{k:"commute",label:"Commute",sort:"commute",def:1,g:"Risk & location"},{k:"flood",label:"Flood",sort:"flood",def:1,g:"Risk & location"},{k:"burg",label:"Burglary",sort:"burg",g:"Risk & location"},{k:"auto",label:"Car theft",sort:"auto",g:"Risk & location"},{k:"yearBuilt",label:"Yr",num:1,sort:"num",g:"Details"},
   {k:"likes",label:"Likes",cls:"wide"},{k:"dislikes",label:"Dislikes",cls:"wide"},
-  {k:"jamie",label:"Jamie",edit:1,sort:"num"},{k:"keegan",label:"Keegan",edit:1,sort:"num"},
-  {k:"combined",label:"Combined",derived:1,sort:"num"},
+  {k:"jamie",label:"Jamie",edit:1,sort:"num",def:1,g:"Rankings"},{k:"keegan",label:"Keegan",edit:1,sort:"num",def:1,g:"Rankings"},
+  {k:"combined",label:"Combined",derived:1,sort:"num",def:1,g:"Rankings"},
  ]
 };
 
@@ -288,7 +297,11 @@ function haver(la1,lo1,la2,lo2){const R=3958.7613,r=Math.PI/180;const dla=(la2-l
 // "Risk tolerance": ¼ mi = only the immediate block (higher tolerance) ... 1 mi = wider area (lower tolerance).
 const RAD={"025":{mi:0.25,key:"r025",lab:"¼ mi",area:Math.PI*0.0625},"05":{mi:0.5,key:"r05",lab:"½ mi",area:Math.PI*0.25},"10":{mi:1.0,key:"r10",lab:"1 mi",area:Math.PI*1.0}};
 let RKEY="05";
-let showRL=true; try{ if(localStorage.getItem("brdash.showRL")==="0") showRL=false; }catch(_){}
+let visibleCols=null; let density="comfortable";
+try{ const dd=localStorage.getItem("brdash.density"); if(dd) density=dd; const vc=localStorage.getItem("brdash.cols"); if(vc) visibleCols=new Set(JSON.parse(vc)); }catch(_){}
+function defaultCols(){ return new Set(COLS[mode].filter(c=>c.def).map(c=>c.k)); }
+function ensureCols(){ if(!visibleCols) visibleCols=defaultCols(); visibleCols.add("address"); }
+function persistCols(){ try{localStorage.setItem("brdash.cols",JSON.stringify([...visibleCols]));}catch(_){} }
 const SAFE_TIERS=[{t:"Low",max:3,c:"#1E7A34",bg:"#E7F6EC"},{t:"Moderate",max:13,c:"#9A6A00",bg:"#FFF4E0"},{t:"Elevated",max:32,c:"#C2691C",bg:"#FBE6D6"},{t:"High",max:1e9,c:"#B23B3B",bg:"#FBE7E7"}];
 function safety(l){
   const R=RAD[RKEY], n=l[R.key];
@@ -453,6 +466,25 @@ function openDetail(id){
   document.getElementById("detailScrim").classList.add("show"); document.getElementById("detailDrawer").classList.add("show");
 }
 function closeDetail(){ detailId=null; document.getElementById("detailScrim").classList.remove("show"); document.getElementById("detailDrawer").classList.remove("show"); }
+function applyDensity(){ document.body.classList.toggle("compact",density==="compact"); const b=document.getElementById("densBtn"); if(b)b.textContent=density==="comfortable"?"≡ Comfortable":"≡ Compact"; }
+function toggleDensity(){ density=density==="comfortable"?"compact":"comfortable"; try{localStorage.setItem("brdash.density",density);}catch(_){} applyDensity(); }
+function closeColsOnce(e){ const m=document.getElementById("colsMenu"); if(m&&!m.contains(e.target)){ m.remove(); document.removeEventListener("click",closeColsOnce);} }
+function resetCols(){ visibleCols=defaultCols(); visibleCols.add("address"); persistCols(); const m=document.getElementById("colsMenu"); if(m)m.remove(); renderTable(); }
+function toggleColsMenu(btn){
+  const ex=document.getElementById("colsMenu"); if(ex){ex.remove();return;}
+  ensureCols();
+  const groups=[...new Set(COLS[mode].filter(c=>c.k!=="address").map(c=>c.g))];
+  let h='<div class="cmh">Show columns</div>';
+  groups.forEach(g=>{ COLS[mode].filter(c=>c.g===g&&c.k!=="address").forEach(c=>{
+    h+='<label class="cmrow"><input type="checkbox" data-col="'+c.k+'"'+(visibleCols.has(c.k)?' checked':'')+'> '+c.label+' <span class="cmg">'+g+'</span></label>'; }); });
+  h+='<div class="cmf"><button class="btn ghost sm" onclick="resetCols()">Reset to default</button></div>';
+  const m=document.createElement("div"); m.id="colsMenu"; m.className="colsmenu"; m.innerHTML=h;
+  document.body.appendChild(m);
+  const r=btn.getBoundingClientRect(); m.style.top=(r.bottom+window.scrollY+6)+"px"; m.style.left=(Math.max(8,Math.min(r.left,window.innerWidth-258))+window.scrollX)+"px";
+  m.addEventListener("click",e=>e.stopPropagation());
+  m.querySelectorAll("[data-col]").forEach(cb=>cb.addEventListener("change",e=>{ const k=e.target.getAttribute("data-col"); if(e.target.checked)visibleCols.add(k); else visibleCols.delete(k); persistCols(); renderTable(); }));
+  setTimeout(()=>document.addEventListener("click",closeColsOnce),0);
+}
 function renderReviewTabs(){
   const all=rows(); const c=s=>all.filter(l=>(l.reviewState||"accepted")===s).length;
   const tab=(s,lab,cls)=>'<button class="rtab '+cls+(reviewFilter===s?" on":"")+'" onclick="setReviewFilter(\''+s+'\')">'+lab+' <span class="ct">'+c(s)+'</span></button>';
@@ -537,15 +569,12 @@ function renderStats(){
   const pmin=pr.length?Math.min(...pr):0, pmax=pr.length?Math.max(...pr):0;
   const fmtp=v=>mode==="rent"?("$"+v.toLocaleString()):("$"+v+"k");
   const off=a.filter(l=>l.status==="off").length;
+  const pr2=pr.slice().sort((x,y)=>x-y); const med=pr2.length?pr2[Math.floor(pr2.length/2)]:null;
   const cards=[
    {n:a.length,l:mode==="rent"?"Rentals":"For sale"},
-   {n:a.length-off,l:"Active"},
-   {n:off,l:"Off-market"},
-   {n:a.filter(l=>safety(l).tier==="Low").length,l:"Low risk"},
-   {n:ranked,l:"Ranked"},
-   {n:pr.length?fmtp(pmin)+"–"+fmtp(pmax):"—",l:"Price range"},
-   {n:sz.length?Math.round(sz.reduce((s,v)=>s+v,0)/sz.length).toLocaleString():"—",l:"Avg sqft"},
-   {n:nbs,l:"Neighborhoods"},
+   {n:med==null?"—":fmtp(med),l:"Median price"},
+   {n:a.filter(l=>safety(l).tier==="Low").length,l:"Low safety risk"},
+   {n:a.filter(l=>l.shortlisted).length,l:"Shortlisted"},
   ];
   document.getElementById("stats").innerHTML=cards.map(c=>'<div class="stat"><div class="n">'+c.n+'</div><div class="l">'+c.l+'</div></div>').join("");
 }
@@ -560,12 +589,10 @@ function renderFilters(){
    '<select id="fsf"><option value="">Risk: any</option><option value="ok"'+(filt.safe==="ok"?" selected":"")+'>hide elevated/high</option><option value="low"'+(filt.safe==="low"?" selected":"")+'>low-risk only</option></select>'+
    '<label class="chk"><input type="checkbox" id="frk"'+(filt.ranked?' checked':'')+'> ranked only</label>'+
    '<label class="chk"><input type="checkbox" id="fho"'+(filt.hideOff?' checked':'')+'> hide off-market</label>'+
-   '<label class="chk" title="Show/hide the crime, commute &amp; flood columns"><input type="checkbox" id="frl"'+(showRL?' checked':'')+'> Risk &amp; location cols</label>'+
    '<label class="chk"><input type="checkbox" id="fsl"'+(filt.shortOnly?' checked':'')+'> ★ Shortlist only</label>';
   document.getElementById("frad").onchange=e=>{RKEY=e.target.value;render();};
   document.getElementById("fsf").onchange=e=>{filt.safe=e.target.value;renderTable();renderStats();};
   document.getElementById("fho").onchange=e=>{filt.hideOff=e.target.checked;renderTable();renderStats();};
-  document.getElementById("frl").onchange=e=>{showRL=e.target.checked; try{localStorage.setItem("brdash.showRL",showRL?"1":"0");}catch(_){} renderTable();};
   document.getElementById("fsl").onchange=e=>{filt.shortOnly=e.target.checked;renderTable();renderStats();};
   document.getElementById("fq").oninput=e=>{filt.q=e.target.value;renderTable();};
   document.getElementById("fnb").onchange=e=>{filt.nb=e.target.value;renderTable();renderStats();};
@@ -574,7 +601,8 @@ function renderFilters(){
   document.getElementById("frk").onchange=e=>{filt.ranked=e.target.checked;renderTable();renderStats();};
 }
 function renderTable(){
-  const cols=COLS[mode].filter(c=>showRL||c.grp!=="rl");
+  ensureCols(); document.body.classList.toggle("compact",density==="compact");
+  const cols=COLS[mode].filter(c=>c.k==="address"||visibleCols.has(c.k));
   document.getElementById("thead").innerHTML="<tr>"+cols.map(c=>{
     const ar=sortKey===c.k?('<span class="ar">'+(sortDir>0?"▲":"▼")+"</span>"):"";
     return '<th onclick="setSort(\''+c.k+'\')">'+c.label+ar+"</th>";
@@ -809,7 +837,7 @@ function openModal(id){ document.getElementById(id).classList.add("show"); }
 function closeModal(id){ document.getElementById(id).classList.remove("show"); }
 document.querySelectorAll(".scrim").forEach(s=>s.addEventListener("click",e=>{ if(e.target===s) s.classList.remove("show"); }));
 
-render();
+applyDensity(); render();
 refreshFromSheet(true);
 
 </script></body></html>
