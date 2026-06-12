@@ -6,20 +6,21 @@ This file is the standing contract — re-read it before touching the air layer.
 
 ## Ownership
 
-**Codex owns the DATA:**
-- The ETL pipeline and **`map_site/air.json`** (all of it: listing scores + facility records).
-- **Does NOT edit `map_site/air_layer.js`.** If a new facility `source` or field needs to render
-  (marker color, label, etc.), expose it in `air.json` and ask Claude to render it — don't wire it
-  into the JS.
-- **Runs `enrich_chemicals.py` as the LAST step of every pipeline run**, after writing `air.json`.
-  It is non-destructive: it only adds `chemicals` / `air_lbs` / `total_lbs` to facilities by matching
-  the EPA TRI 2024 CSV. Skipping it wipes the per-plant toxin breakdown the popups depend on.
+**Codex owns the DATA (produces locally, does NOT deploy):**
+- The ETL pipeline and the contents of **`map_site/air.json`** — listing scores, facility records, and the
+  chemical-risk fields (`facility_toxicity_score`, `dominant_chemical`, `dominant_risk_type`,
+  `chemical_risk_breakdown`, `risk_radii`, per-chemical scores, `chemical_risk_methodology`).
+- **Does NOT edit `map_site/air_layer.js`** and **does NOT push to the repo.** If a new facility
+  `source`/field needs to render (marker color, label, ring, etc.), expose it in `air.json` and tell
+  Claude to render it — don't wire it into the JS.
+- When `air.json` is regenerated, **tell Claude** so Claude can push it.
 
-**Claude owns the RENDERING:**
-- **`map_site/air_layer.js`** — heat map, exposure-risk rings, pin color mode, popups, markers, legends.
-- **`enrich_chemicals.py`** — the chemical post-processor Codex runs.
-- Claude does NOT regenerate `air.json`. (`build_air_score.py` is retired in favor of Codex's pipeline
-  + `enrich_chemicals.py`.)
+**Claude owns the RENDERING + all repo deploys:**
+- **`map_site/air_layer.js`** — heat map, screening-radius rings, pin color mode, popups, markers, legends.
+- **Pushes BOTH `air.json` and `air_layer.js`** to the repo `map/` folder, together, so the data and the
+  renderer never drift (that drift is what broke the live map before).
+- Does NOT regenerate `air.json`. (`build_air_score.py` and `enrich_chemicals.py` are retired — Codex's
+  pipeline now produces the chemical-risk fields directly.)
 
 ## Interface — `air.json` schema
 
@@ -49,20 +50,29 @@ Do not rename these fields without telling the other side.
       "rmp_worstcase_mi": 0,    // optional; a plant's real EPA RMP worst-case toxic-endpoint distance.
                                 //   If present, Claude draws it instead of the ~25 mi corridor reference.
 
-      // added by enrich_chemicals.py — do not hand-edit:
+      // chemical-risk fields from Codex's pipeline (TRI-linked facilities). Renderer prefers these;
+      // the older `chemical_summary{}` block is kept only as a backward-compat fallback.
       "air_lbs": 0, "total_lbs": 0,
-      "chemicals": [ { "name": "...", "total_lbs": 0, "air_lbs": 0, "carcinogen": false } ]
+      "facility_toxicity_score": 0,                 // 0-100 screening burden
+      "dominant_chemical": "...", "dominant_risk_type": "cancer|acute|noncancer|lower",
+      "risk_radii": [ { "chemical": "...", "radius_mi": 0, "risk_type": "cancer|noncancer|acute|lower", "basis": "..." } ],
+      "chemical_risk_breakdown": { "top_cancer_chemicals": [ {"name":"...","air_lbs":0,"score":0} ],
+                                   "top_acute_chemicals": [ ... ], "top_overall_chemicals": [ ... ] },
+      "chemicals": [ { "name": "...", "cas": "...", "air_lbs": 0, "total_lbs": 0, "carcinogen": false,
+                       "risk_family": "...", "risk_notes": "...", "cancer_potency_score": 0,
+                       "noncancer_inhalation_score": 0, "acute_hazard_score": 0, "overall_toxicity_score": 0 } ]
     }
   ]
 }
 ```
 
 Required for Claude's rendering: the `listings` fields above (popup row + pin coloring) and the facility
-`chemicals` / `releases_lbs` / `sources` fields. **`releases_lbs` means AIR releases** (equals `air_lbs`);
-the full cross-media total goes in `total_lbs`.
+chemical-risk fields. **`releases_lbs` / `air_lbs` mean AIR releases** (fugitive+stack); the full
+cross-media total goes in `total_lbs`. Markers/rings color by `dominant_risk_type` / `risk_type`.
 
 ## Deploy protocol (repo `map/` folder)
 
-- Codex never uploads `air_layer.js`; Claude never uploads `air.json`. Each side deploys only its own file.
-- Announce before pushing, so we don't upload the same file seconds apart.
+- **Claude is the sole pusher.** When Codex regenerates `air.json`, it tells Claude, and Claude pushes
+  `air.json` **and** `air_layer.js` together so the data and renderer stay in sync. Codex never uploads
+  to the repo. (Deploy = manual upload via the GitHub web UI; Pages redeploys ~1 min.)
 - This contract file is shared; either side may update it, but flag the change to the other.
