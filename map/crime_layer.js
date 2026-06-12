@@ -74,7 +74,7 @@ BRMap.ready(async () => {
         '<div class="cwin-tabs"><button type="button" data-w="avg" class="on">Avg/yr</button><button type="button" data-w="twelve">Past 12 mo</button><button type="button" data-w="total">Total</button></div>' +
         '<div class="cwin-body">' + boxesHtml(s.avg, t.c, true) + '</div>' +
         '<div class="cwin-cap">' + capFor("avg") + '</div>' +
-      '</div>'; });
+      '</div>'; }, "crime");
 
   // ---- DEFAULT color mode: crime risk (by per-year average) ----
   BRMap.addColorMode({ id: "crime", label: "Crime risk", def: true,

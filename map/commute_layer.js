@@ -134,7 +134,7 @@ BRMap.ready(async () => {
     const v = c[timeMode], mi = c.miles && (c.miles[timeMode] != null ? c.miles[timeMode] : c.miles.off);
     return '<div class="row">→ LSU (' + TMETA[timeMode] + '): ' + (v != null ? "<b>" + Math.round(v) + " min</b>" : "—") +
       (mi != null ? ' <span class="mut">· ' + (+mi).toFixed(1) + " mi</span>" : "") + "</div>" +
-      '<div class="row mut">AM ' + c.am + " · PM " + c.pm + " · off " + c.off + " min</div>"; });
+      '<div class="row mut">AM ' + c.am + " · PM " + c.pm + " · off " + c.off + " min</div>"; }, "commute");
 
   // amenity route chips (only when we actually have route data for this listing)
   const REG = {};
@@ -146,7 +146,7 @@ BRMap.ready(async () => {
       const mins = seg ? Math.round(seg.dur) : null;
       return '<button class="cm-chip" data-id="' + id + '" title="Route to ' + name.replace(/"/g, "&quot;") + '">' +
         (ICON[t] || "•") + " " + (mins != null ? mins + "m" : "route") + "</button>"; }).join("");
-    return '<div class="row" style="margin-top:4px"><span class="mut">Route to nearby:</span><div class="cm-chips">' + chips + "</div></div>"; });
+    return '<div class="row" style="margin-top:4px"><span class="mut">Route to nearby:</span><div class="cm-chips">' + chips + "</div></div>"; }, "commute");
 
   // chip styles + delegated click
   document.head.insertAdjacentHTML("beforeend",

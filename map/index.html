@@ -34,6 +34,12 @@ html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Seg
 #info .info-x:hover{background:#F0F2F5;color:#333}
 #info .pop{padding-right:16px}
 .badge{display:inline-block;font-size:10.5px;font-weight:700;border-radius:5px;padding:1px 7px}
+.pop details.grp{border-top:1px solid #EEF1F5;margin-top:5px}
+.pop details.grp>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:700;font-size:10.5px;letter-spacing:.3px;text-transform:uppercase;color:#3A434F;padding:7px 0 4px}
+.pop details.grp>summary::-webkit-details-marker{display:none}
+.pop details.grp>summary .chev{margin-left:auto;color:#9AA1AC;font-size:11px;transition:transform .15s}
+.pop details.grp[open]>summary .chev{transform:rotate(90deg)}
+.pop details.grp .grp-body{padding-bottom:3px}
 .amlbl{background:rgba(255,255,255,.93);border:1px solid #999;border-radius:4px;padding:0 3px;font-size:10px;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.15)}
 .faclbl{background:rgba(255,235,235,.95);border:1px solid #C53030;color:#7B2020;border-radius:4px;padding:0 3px;font-size:10px;white-space:nowrap}
 @media(max-width:640px){#panel{width:210px;max-height:70vh}.hdr{display:none}#info{top:10px;left:48px;width:60vw;max-height:64vh}}
@@ -103,7 +109,7 @@ const BRMap={
  fetchJSON(u){return fetch(u,{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);},
  fetchText(u){return fetch(u,{cache:"no-store"}).then(r=>r.ok?r.text():null).catch(()=>null);},
  ready(fn){ if(this.listings.length) fn(); else this._ready.push(fn); },
- addPopupRow(fn){ this._rows.push(fn); },
+ addPopupRow(fn,group){ this._rows.push({fn:fn,group:group||"more"}); },
  onListingClick(fn){ this._clicks.push(fn); },
  setPinColor(id,color){ const p=this.pins[id]; if(p){ this._lk[id]._color=color; p.setIcon(pinIcon(color,this._lk[id].status==="off")); } },
  colorPins(fn){ this.listings.forEach(l=>this.setPinColor(l.id, fn(l)||BASE_PIN)); },
@@ -189,7 +195,8 @@ const BRMap={
  _renderDetail(l){ const host=document.getElementById("info"); if(!host) return;
    host.innerHTML='<button class="info-x" id="infoX" title="Close" aria-label="Close">×</button>'+basePopup(l);
    host.style.display="block"; const x=document.getElementById("infoX"); if(x) x.onclick=()=>this.closeDetail();
-   this._detailRenderFns.forEach(fn=>{ try{fn(l,host);}catch(e){console.warn(e);} }); },
+   this._detailRenderFns.forEach(fn=>{ try{fn(l,host);}catch(e){console.warn(e);} });
+   host.querySelectorAll("details.grp").forEach(d=>{ d.addEventListener("toggle",()=>{ if(!PREF.popGroups)PREF.popGroups={}; PREF.popGroups[d.dataset.g]=d.open; savePref(); }); }); },
  openDetail(l){ this._fireSelect(l); this._renderDetail(l); },
  refreshDetail(){ if(this._selected) this._renderDetail(this._selected); },
  closeDetail(){ const host=document.getElementById("info"); if(host){ host.style.display="none"; host.innerHTML=""; } this._fireClear(); }
@@ -199,12 +206,27 @@ function pinIcon(color,off){const o=off?0.5:1;
  const svg='<svg width="26" height="34" viewBox="0 0 26 34" xmlns="http://www.w3.org/2000/svg" style="opacity:'+o+'"><path d="M13 0C6 0 1 5 1 12c0 8 12 22 12 22s12-14 12-22C25 5 20 0 13 0z" fill="'+color+'" stroke="#fff" stroke-width="2"/><circle cx="13" cy="12" r="6.5" fill="#fff"/><text x="13" y="15.5" font-size="8" text-anchor="middle">🏠</text></svg>';
  return L.divIcon({className:"pin-ico",html:svg,iconSize:[26,34],iconAnchor:[13,34],popupAnchor:[0,-30]});}
 function money(p,t){return p==null?"—":(t==="rent"?("$"+p.toLocaleString()+"/mo"):("$"+p+"k"));}
+// collapsible row groups for the listing detail panel (order = display order)
+const POP_GROUPS=[
+ {id:"amenities",label:"Nearby amenities",icon:"🛒",open:true},
+ {id:"crime",label:"Crime",icon:"🚨",open:true},
+ {id:"env",label:"Environment",icon:"🏭",open:false},
+ {id:"commute",label:"Commute & routes",icon:"🚗",open:true},
+ {id:"more",label:"More",icon:"",open:true}
+];
 function basePopup(l){
  let h='<div class="pop"><b>'+l.address+'</b>'+(l.status==="off"?' <span style="font-size:10px;color:#888">(off-mkt)</span>':"")+
   '<div class="row">'+money(l.price,l.type)+(l.beds?" · "+l.beds+"bd":"")+(l.baths?"/"+l.baths+"ba":"")+(l.size?" · "+l.size.toLocaleString()+"sf":"")+"</div>"+
   '<div class="row">'+(l.neighborhood||"")+" · ZIP "+l.zip+"</div>";
- BRMap._rows.forEach(fn=>{ try{const r=fn(l); if(r) h+=r;}catch(e){} });
- if(l.link) h+='<div class="row"><a href="'+l.link+'" target="_blank" rel="noopener">Listing ↗</a></div>';
+ const saved=PREF.popGroups||{}, known={}; POP_GROUPS.forEach(g=>{known[g.id]=1;});
+ POP_GROUPS.forEach(g=>{ let body="";
+   BRMap._rows.forEach(e=>{ const fn=(typeof e==="function")?e:e.fn; const gid=(typeof e==="function"||!known[e.group])?"more":e.group;
+     if(gid!==g.id) return; try{const r=fn(l); if(r) body+=r;}catch(err){} });
+   if(!body) return;
+   const op=(saved[g.id]!==undefined)?saved[g.id]:g.open;
+   h+='<details class="grp" data-g="'+g.id+'"'+(op?" open":"")+'><summary>'+(g.icon?g.icon+" ":"")+g.label+'<span class="chev">▸</span></summary><div class="grp-body">'+body+'</div></details>';
+ });
+ if(l.link) h+='<div class="row" style="margin-top:7px"><a href="'+l.link+'" target="_blank" rel="noopener">Listing ↗</a></div>';
  return h+"</div>";
 }
 

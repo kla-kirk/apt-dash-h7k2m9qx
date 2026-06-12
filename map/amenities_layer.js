@@ -111,7 +111,7 @@ BRMap.ready(async () => {
       arr.forEach((o, i) => { rows += '<div class="amp-row' + (i ? " alt" : "") + '" data-t="' + t + '" data-i="' + i + '">'
         + '<span class="amp-ic">' + (i ? "" : ICON[t]) + '</span><span class="amp-nm">' + o.a[0] + '</span>'
         + '<span class="amp-d">' + o.d.toFixed(1) + 'mi</span><span class="amp-go">›</span></div>'; }); });
-    return rows ? '<div class="am-pop"><div class="amp-h">Nearby amenities</div>' + rows + '</div>' : ""; });
+    return rows ? '<div class="am-pop"><div class="amp-h">Nearby amenities</div>' + rows + '</div>' : ""; }, "amenities");
 
   // make the listing-panel amenity rows clickable: open card + draw route (migrated from popupopen)
   if (BRMap.onDetailRender) BRMap.onDetailRender((l, root) => { const by = nearestByType(l);

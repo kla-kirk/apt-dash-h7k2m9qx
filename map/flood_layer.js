@@ -22,7 +22,7 @@ BRMap.ready(async () => {
     if (lf && lf[l.address]) { z = lf[l.address].fld_zone; sfha = lf[l.address].sfha; }
     else { const p = pip(l.lat, l.lon); if (p) { z = p.FLD_ZONE; sfha = p.SFHA_TF; } }
     if (!z) return ""; const hi = sfha === "T" || /^A|^V/.test((z || "").toUpperCase());
-    return '<div class="row">Flood zone: <b style="color:' + (hi ? "#B23B3B" : "#1E7A34") + '">' + z + "</b>" + (hi ? " — Special Flood Hazard Area (insurance req.)" : " — minimal risk") + "</div>"; });
+    return '<div class="row">Flood zone: <b style="color:' + (hi ? "#B23B3B" : "#1E7A34") + '">' + z + "</b>" + (hi ? " — Special Flood Hazard Area (insurance req.)" : " — minimal risk") + "</div>"; }, "env");
 
   if (!gj) { return; } // overlay needs the polygons; popup row above still works if pip data exists
 

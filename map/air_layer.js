@@ -64,7 +64,7 @@ BRMap.ready(async () => {
     }
     h += '<div class="row mut" style="font-size:10.5px">' + EJ + '</div>';
     return h;
-  });
+  }, "env");
 
   // ---------- color mode: tint pins by relative TRI-proximity score ----------
   if (typeof BRMap.addColorMode === "function") {
