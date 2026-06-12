@@ -85,6 +85,25 @@ small.muted{color:var(--soft)}
 .mpin:hover circle{stroke:#1A1A1A}
 .mapbanner{background:#EAF1FB;border:1px solid #cdddf5;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .mapbanner .muted{color:var(--soft);font-size:11.5px}.mapbanner code{font-size:11px}
+.rtabs{display:flex;align-items:center;gap:8px;margin:0 0 12px;flex-wrap:wrap}
+.rtab{padding:7px 14px;border-radius:999px;font-weight:600;font-size:13px;color:var(--soft);background:#fff;border:1px solid var(--line);cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.rtab.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.rtab .ct{font-size:11px;background:rgba(0,0,0,.07);border-radius:999px;padding:0 7px;font-weight:700}
+.rtab.on .ct{background:rgba(255,255,255,.25)}
+.rtab.rev.on{background:#9A6A00;border-color:#9A6A00}
+.rtab.rej.on{background:#6b7280;border-color:#6b7280}
+.addrev{margin-left:auto}
+td.racts{white-space:nowrap}
+td.racts button{border:1px solid var(--line);background:#fff;border-radius:7px;font:inherit;font-size:12px;font-weight:600;padding:4px 9px;cursor:pointer;margin-right:4px}
+td.racts .acc{color:#1E7A34;border-color:#bfe3c9}td.racts .acc:hover{background:#E7F6EC}
+td.racts .rej{color:#B23B3B;border-color:#f0c9c9}td.racts .rej:hover{background:#FBE7E7}
+td.racts .res{color:var(--accent);border-color:#cdddf5}td.racts .res:hover{background:#EAF1FB}
+.revstatus{display:flex;gap:6px;margin:2px 0 12px}
+.revstatus button{flex:1;border:1px solid var(--line);background:#fff;border-radius:8px;font:inherit;font-weight:600;font-size:12.5px;padding:8px;cursor:pointer;color:var(--soft)}
+.revstatus button.acc.on{background:#1E7A34;border-color:#1E7A34;color:#fff}
+.revstatus button.rev.on{background:#9A6A00;border-color:#9A6A00;color:#fff}
+.revstatus button.rej.on{background:#B23B3B;border-color:#B23B3B;color:#fff}
+#e_addlinks{width:100%;min-height:120px;font:inherit;font-size:12.5px;border:1px solid var(--line);border-radius:8px;padding:9px;resize:vertical}
 </style></head>
 <body><div class="wrap">
  <div class="top">
@@ -97,6 +116,7 @@ small.muted{color:var(--soft)}
   <button class="btn ghost sm" onclick="exportCSV()">Export CSV</button>
   <button class="btn" onclick="openEdit(null)">+ Add</button>
  </div>
+ <div class="rtabs" id="rtabs"></div>
  <div class="stats" id="stats"></div>
  <div class="filters" id="filters"></div>
  <div class="tablewrap"><table id="tbl"><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
@@ -118,6 +138,16 @@ small.muted{color:var(--soft)}
   <button class="btn ghost sm" onclick="closeModal('editScrim')">Cancel</button>
   <button class="btn sm" onclick="saveListing()">Save</button>
  </div>
+</div></div>
+
+<div class="scrim" id="addRevScrim"><div class="modal">
+ <h3>Add listings to review</h3>
+ <div class="mb">
+  <p class="muted" style="font-size:12.5px;margin:0 0 8px">Paste one or more Zillow links (one per line). I&rsquo;ll pull the address from each link; price, beds &amp; the crime/flood/commute scores fill in once the data pipeline runs.</p>
+  <div class="revstatus" style="margin-bottom:10px"><button type="button" id="ar_rent" class="acc on" onclick="arType('rent')">For Rent</button><button type="button" id="ar_sale" class="rev" onclick="arType('sale')">For Sale</button></div>
+  <textarea id="e_addlinks" placeholder="https://www.zillow.com/homedetails/123-Main-St-Baton-Rouge-LA-70806/12345_zpid/"></textarea>
+ </div>
+ <div class="mf"><button class="btn ghost sm" onclick="closeModal('addRevScrim')">Cancel</button><button class="btn sm" onclick="submitAddReview()">Add to review</button></div>
 </div></div>
 
 <div class="scrim" id="mailScrim"><div class="modal">
@@ -183,10 +213,11 @@ let mode="rent";
 let sortKey="combined", sortDir=1;
 let filt={q:"",nb:"",minBeds:"",maxPrice:"",ranked:false,hideOff:false,safe:""};
 let editingId=null, mailId=null;
+let reviewFilter="accepted"; let arTypeVal="rent";
 const EMAIL={enabled:false, provider:"gmail",
   tools:{search:"mcp__gmail__search_emails", draft:"mcp__gmail__create_draft", send:"mcp__gmail__send_email"}};
 
-function load(){ try{const r=localStorage.getItem(LS_KEY); if(r) return JSON.parse(r);}catch(e){} return JSON.parse(JSON.stringify(SEED)); }
+function load(){ let a; try{const r=localStorage.getItem(LS_KEY); if(r) a=JSON.parse(r);}catch(e){} if(!a) a=JSON.parse(JSON.stringify(SEED)); a.forEach(l=>{ if(!l.reviewState) l.reviewState="accepted"; }); return a; }
 function save(){ try{localStorage.setItem(LS_KEY,JSON.stringify(listings));}catch(e){} }
 function rows(){ return listings.filter(l=>l.type===mode); }
 function byId(id){ return listings.find(l=>l.id===id); }
@@ -273,13 +304,51 @@ function renderMap(){
 }
 function closeAndEdit(id){ openEdit(id); }
 
-function render(){ renderPill(); renderStats(); renderFilters(); renderTable(); }
+function render(){ renderPill(); renderReviewTabs(); renderStats(); renderFilters(); renderTable(); }
+function renderReviewTabs(){
+  const all=rows(); const c=s=>all.filter(l=>(l.reviewState||"accepted")===s).length;
+  const tab=(s,lab,cls)=>'<button class="rtab '+cls+(reviewFilter===s?" on":"")+'" onclick="setReviewFilter(\''+s+'\')">'+lab+' <span class="ct">'+c(s)+'</span></button>';
+  const el=document.getElementById("rtabs"); if(!el) return;
+  el.innerHTML=tab("accepted","Accepted","acc")+tab("review","To review","rev")+tab("rejected","Rejected","rej")
+    +'<button class="btn sm addrev" onclick="openAddReview()">+ Add to review</button>';
+}
+function setReviewFilter(s){ reviewFilter=s; render(); }
+function setReview(id,s){ const l=byId(id); if(!l) return; l.reviewState=s; save(); render();
+  if(document.getElementById("editScrim").classList.contains("show")) openEdit(id);
+  toast(s==="accepted"?"Moved to Accepted":(s==="review"?"Moved to To review":"Rejected")); }
+function reviewActionCell(l){
+  if(reviewFilter==="accepted") return "";
+  if(reviewFilter==="review") return '<td class="racts"><button class="acc" onclick="event.stopPropagation();setReview(\''+l.id+'\',\'accepted\')">✓ Accept</button><button class="rej" onclick="event.stopPropagation();setReview(\''+l.id+'\',\'rejected\')">✗ Reject</button></td>';
+  return '<td class="racts"><button class="res" onclick="event.stopPropagation();setReview(\''+l.id+'\',\'review\')">↩ Restore</button></td>';
+}
+function openAddReview(){ arType("rent"); const t=document.getElementById("e_addlinks"); if(t) t.value=""; openModal("addRevScrim"); }
+function arType(t){ arTypeVal=t; document.getElementById("ar_rent").classList.toggle("on",t==="rent"); document.getElementById("ar_sale").classList.toggle("on",t==="sale"); }
+function parseZillowAddr(url){
+  try{ const m=url.match(/homedetails\/([^\/]+?)\/\d+_zpid/i)||url.match(/homedetails\/([^\/]+)\//i);
+    if(!m) return {address:"",zip:""};
+    let parts=decodeURIComponent(m[1]).split("-"); let zip="";
+    if(/^\d{5}$/.test(parts[parts.length-1])) zip=parts.pop();
+    if(parts.length&&/^[A-Za-z]{2}$/.test(parts[parts.length-1])) parts.pop();
+    return {address:parts.join(" ").replace(/\s+/g," ").trim(),zip:zip};
+  }catch(e){ return {address:"",zip:""}; }
+}
+function submitAddReview(){
+  const t=document.getElementById("e_addlinks"); const raw=(t?t.value:"").split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  if(!raw.length){ toast("Paste at least one link"); return; }
+  let n=0;
+  raw.forEach(line=>{ const um=line.match(/https?:\/\/\S+/); const url=um?um[0]:"";
+    const z=/zillow\.com\/homedetails/i.test(url)?parseZillowAddr(url):{address:"",zip:""};
+    listings.push({ id:arTypeVal[0]+Date.now().toString(36)+(n++), type:arTypeVal, reviewState:"review",
+      address:z.address||line, zip:z.zip||"", link:url||"", enr:[], needsEnrich:true, jamie:null, keegan:null, status:"active" }); });
+  save(); reviewFilter="review"; render(); closeModal("addRevScrim"); toast(n+" added to To review");
+}
 
 function renderPill(){ const p=document.getElementById("pillEmail"); p.classList.toggle("on",EMAIL.enabled);
   p.lastElementChild.textContent=EMAIL.enabled?("Email: "+EMAIL.provider):"Email: not connected"; }
 
 function applyFilters(arr){
   let a=arr.slice();
+  a=a.filter(l=>(l.reviewState||"accepted")===reviewFilter);
   if(filt.q){ const q=filt.q.toLowerCase(); a=a.filter(l=>[l.address,l.neighborhood,l.likes,l.dislikes].some(x=>(x||"").toLowerCase().includes(q))); }
   if(filt.nb) a=a.filter(l=>(l.neighborhood||"")===filt.nb);
   if(filt.minBeds) a=a.filter(l=>num(l.beds)!=null&&num(l.beds)>=+filt.minBeds);
@@ -310,7 +379,7 @@ function sortRows(a){
   return a;
 }
 function renderStats(){
-  const a=rows(); const pr=a.map(l=>num(l.price)).filter(v=>v!=null);
+  const a=rows().filter(l=>(l.reviewState||"accepted")===reviewFilter); const pr=a.map(l=>num(l.price)).filter(v=>v!=null);
   const sz=a.map(l=>num(l.size)).filter(v=>v!=null);
   const ranked=a.filter(l=>combined(l)!=null).length;
   const nbs=new Set(a.map(l=>l.neighborhood).filter(Boolean)).size;
@@ -357,11 +426,11 @@ function renderTable(){
   document.getElementById("thead").innerHTML="<tr>"+cols.map(c=>{
     const ar=sortKey===c.k?('<span class="ar">'+(sortDir>0?"▲":"▼")+"</span>"):"";
     return '<th onclick="setSort(\''+c.k+'\')">'+c.label+ar+"</th>";
-  }).join("")+"</tr>";
+  }).join("")+(reviewFilter!=="accepted"?'<th>Triage</th>':'')+"</tr>";
   let a=sortRows(applyFilters(rows()));
   const tb=document.getElementById("tbody");
-  if(!a.length){ tb.innerHTML='<tr><td colspan="'+cols.length+'" style="color:var(--soft);padding:18px">No matches.</td></tr>'; return; }
-  tb.innerHTML=a.map(l=>"<tr class=\""+(l.status==="off"?"off":"")+"\" onclick=\"openEdit('"+l.id+"')\">"+cols.map(c=>cell(l,c)).join("")+"</tr>").join("");
+  if(!a.length){ tb.innerHTML='<tr><td colspan="'+(cols.length+(reviewFilter!=="accepted"?1:0))+'" style="color:var(--soft);padding:18px">'+(reviewFilter==="review"?"Nothing to review yet — use “+ Add to review”.":(reviewFilter==="rejected"?"No rejected listings.":"No matches."))+'</td></tr>'; return; }
+  tb.innerHTML=a.map(l=>"<tr class=\""+(l.status==="off"?"off":"")+"\" onclick=\"openEdit('"+l.id+"')\">"+cols.map(c=>cell(l,c)).join("")+reviewActionCell(l)+"</tr>").join("");
 }
 function cell(l,c){
   if(c.k==="safety"){ const s=safety(l); const R=RAD[RKEY];
@@ -438,6 +507,8 @@ function openEdit(id){
     h+='<div class="srcbox" style="color:var(--accent);background:#EAF1FB;border-color:#cdddf5">'+body+'<a href="'+url+'" target="_blank" rel="noopener" style="color:var(--accent)">Directions w/ live traffic ↗</a></div>';
   }
   if(l.src) h+='<div class="srcbox"><b>Auto-fill source:</b> '+esc(l.src)+'</div>';
+  if(editingId){ const rs=l.reviewState||"accepted";
+    h='<div class="revstatus"><button type="button" class="acc'+(rs==="accepted"?" on":"")+'" onclick="setReview(\''+editingId+'\',\'accepted\')">✓ Accepted</button><button type="button" class="rev'+(rs==="review"?" on":"")+'" onclick="setReview(\''+editingId+'\',\'review\')">To review</button><button type="button" class="rej'+(rs==="rejected"?" on":"")+'" onclick="setReview(\''+editingId+'\',\'rejected\')">✗ Rejected</button></div>'+h; }
   document.getElementById("editBody").innerHTML=h;
   openModal("editScrim");
 }
@@ -445,7 +516,7 @@ function gv(id){ const el=document.getElementById(id); return el?el.value.trim()
 function saveListing(){
   const addr=gv("e_address"); if(!addr){toast("Address required");return;}
   let l=editingId?byId(editingId):null;
-  if(!l){ l={id:(mode[0]+Date.now()),type:mode,enr:[],src:""}; listings.push(l); }
+  if(!l){ l={id:(mode[0]+Date.now()),type:mode,enr:[],src:"",reviewState:"accepted"}; listings.push(l); }
   const t=l.type;
   const setf=(k,raw)=>{ const v=gv("e_"+k); l[k]=(v===""?"":(["price","beds","baths","size"].includes(k)?+v:v)); };
   l.address=addr; ["zip","price","neighborhood","beds","baths","size","yearBuilt","link"].forEach(k=>setf(k));
@@ -461,13 +532,13 @@ function deleteListing(){ if(editingId&&confirm("Delete this listing?")){ listin
 
 /* ---------- CSV export (their headers) ---------- */
 function exportCSV(){
-  const a=rows();
+  const a=rows().filter(l=>(l.reviewState||"accepted")===reviewFilter);
   const cfg=mode==="rent"
-    ? [["Price (k/mth)","price"],["Pet Fees","petFees"],["# Beds","beds"],["# Baths","baths"],["Size (sqft)","size"],["Neighborhood","neighborhood"],["Year Built","yearBuilt"],["Furnished","furnished"],["Minimum Lease (mths)","minLease"],["Likes","likes"],["Dislikes","dislikes"],["Jamie Ranking","jamie"],["Keegan Ranking","keegan"],["Combined Ranking","__comb"],["Link","link"],["Market Status","__status"]]
-    : [["Price (k)","price"],["# Beds","beds"],["# Baths","baths"],["Size (sqft)","size"],["Neighborhood","neighborhood"],["Year Built","yearBuilt"],["Likes","likes"],["Dislikes","dislikes"],["Jamie Ranking","jamie"],["Keegan Ranking","keegan"],["Combined Ranking","__comb"],["Link","link"],["Market Status","__status"]];
+    ? [["Price (k/mth)","price"],["Pet Fees","petFees"],["# Beds","beds"],["# Baths","baths"],["Size (sqft)","size"],["Neighborhood","neighborhood"],["Year Built","yearBuilt"],["Furnished","furnished"],["Minimum Lease (mths)","minLease"],["Likes","likes"],["Dislikes","dislikes"],["Jamie Ranking","jamie"],["Keegan Ranking","keegan"],["Combined Ranking","__comb"],["Link","link"],["Market Status","__status"],["Review","__review"]]
+    : [["Price (k)","price"],["# Beds","beds"],["# Baths","baths"],["Size (sqft)","size"],["Neighborhood","neighborhood"],["Year Built","yearBuilt"],["Likes","likes"],["Dislikes","dislikes"],["Jamie Ranking","jamie"],["Keegan Ranking","keegan"],["Combined Ranking","__comb"],["Link","link"],["Market Status","__status"],["Review","__review"]];
   const head=cfg.map(c=>c[0]).join(",");
   const lines=[head].concat(a.map(l=>cfg.map(c=>{
-    let v=c[1]==="__comb"?combined(l):(c[1]==="__status"?(l.status||"active"):l[c[1]]);
+    let v=c[1]==="__comb"?combined(l):(c[1]==="__review"?(l.reviewState||"accepted"):(c[1]==="__status"?(l.status||"active"):l[c[1]]));
     v=(v==null?"":String(v)); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;
   }).join(",")));
   const blob=new Blob([lines.join("\n")],{type:"text/csv"});
