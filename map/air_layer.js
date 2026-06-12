@@ -541,10 +541,13 @@ BRMap.ready(async () => {
           + 'padding:3px 9px;font:inherit;font-size:11px;cursor:pointer;background:' + (lv === selCancer ? '#7B3FA0' : '#fff') + ';color:' + (lv === selCancer ? '#fff' : '#444') + '">' + CANCER_LEVEL_LABEL[lv] + '</button>').join("");
         const ncBtns = NONCANCER_LEVELS.map((lv, i) => '<button type="button" data-lv="' + lv + '" style="border:none;' + (i ? 'border-left:1px solid #e4cba6;' : '')
           + 'padding:3px 9px;font:inherit;font-size:11px;cursor:pointer;background:' + (lv === selNoncancer ? '#CC7A1C' : '#fff') + ';color:' + (lv === selNoncancer ? '#fff' : '#444') + '">' + NONCANCER_LEVEL_LABEL[lv] + '</button>').join("");
+        // wind provenance: never surface the local data path; pull the live obs/bin counts from the
+        // data string so this can't drift from the pipeline (e.g. 36 ten-degree bins, non-calm obs).
+        const windDetail = (WIND_SRC.match(/\(([^)]*observation[^)]*)\)/i) || [])[1];
         const windNote = !WIND_SRC ? '' : ('Wind rose: ' + (
           WIND_IS_FALLBACK ? 'documented Baton Rouge fallback (station-specific NOAA KBTR ingest not yet run).'
-          : /noaa/i.test(WIND_SRC) ? 'NOAA ISD-Lite, station KBTR (722320-13970), 2015–2024 (83,720 obs, 16 sectors).'
-          : esc(WIND_SRC.replace(/\s*parsed from\s+\S+/i, ''))));   // never surface a local filesystem path
+          : /noaa/i.test(WIND_SRC) ? ('NOAA ISD-Lite, station KBTR (722320-13970), 2015–2024' + (windDetail ? ' — ' + esc(windDetail) : '.'))
+          : esc(WIND_SRC.replace(/\s*parsed from\s+\S+/i, ''))));
         ctx.controls.innerHTML =
           '<div class="legend"><span class="sw"><i style="background:#7B3FA0"></i>Mainly carcinogens</span>'
             + '<span class="sw"><i style="background:#C0392B"></i>Acute toxic gas</span>'
