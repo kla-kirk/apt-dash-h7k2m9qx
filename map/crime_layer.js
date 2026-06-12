@@ -4,7 +4,7 @@
      • color mode "Crime risk" (DEFAULT) — tints listing pins by the PER-YEAR-AVERAGE violent count
      • map overlay "Crime incidents" — clickable discrete incident dots; on click each fetches its
        exact date + street address from the BR open-data API (matched by block coord + year + offense).
-       Year + category filters, plus an opt-in "Heat density overlay" checkbox
+       Year + category filters, plus an opt-in "Crime heatmap" checkbox (separate from the categories)
      • per-listing popup: violent (¼/½/1mi) + burglary/car-theft (¼mi), toggleable between
        per-year AVERAGE, PAST 12 MONTHS (live API), and ALL-YEARS TOTAL. Risk score = avg/yr.
 */
@@ -221,7 +221,7 @@ BRMap.ready(async () => {
       ctx.controls.innerHTML =
         '<select id="crimeYr"></select><div class="mut" id="crimeCount" style="margin:3px 0"></div>' +
         '<div id="crimeVio"></div><div id="crimePro"></div>' +
-        '<label class="sub"><input type="checkbox" id="crimeHeat"> Heat density overlay</label>';
+        '<div style="margin-top:8px;padding-top:7px;border-top:1px solid #EEF1F5"><label><input type="checkbox" id="crimeHeat"> Crime heatmap</label></div>';
       const ys = document.getElementById("crimeYr");
       ys.innerHTML = '<option value="all">All years</option>' + YEARS.map((y) => '<option value="' + y + '">' + y + "</option>").join("");
       ys.onchange = (e) => { selYear = e.target.value === "all" ? "all" : +e.target.value; draw(); };
