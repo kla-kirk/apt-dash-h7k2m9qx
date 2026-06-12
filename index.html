@@ -121,6 +121,33 @@ td.racts .res{color:var(--accent);border-color:#cdddf5}td.racts .res:hover{backg
 .revstatus button.rev.on{background:var(--auto);border-color:var(--auto);color:#fff}
 .revstatus button.rej.on{background:#B23B3B;border-color:#B23B3B;color:#fff}
 #e_addlinks{width:100%;min-height:120px;font:inherit;font-size:12.5px;border:1px solid var(--line);border-radius:8px;padding:10px;resize:vertical}
+/* shortlist + compare + drawer */
+.star{cursor:pointer;color:var(--g400);font-size:15px;line-height:1;margin:0 1px}
+.star.on,.star:hover{color:#F5A623}
+.cmpbox{accent-color:var(--accent);vertical-align:middle;margin-right:3px;cursor:pointer}
+.tray{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:80;background:var(--ink);color:#fff;border-radius:999px;padding:9px 12px 9px 18px;display:none;align-items:center;gap:14px;box-shadow:var(--shadow-pop)}
+.tray.show{display:flex}
+.tray .tgo{background:var(--accent);border:0;color:#fff;font:inherit;font-weight:700;border-radius:999px;padding:8px 16px;cursor:pointer}
+.tray .tgo:disabled{opacity:.5;cursor:not-allowed}
+.tray .tclear{background:transparent;border:0;color:rgba(255,255,255,.7);font:inherit;cursor:pointer}
+.cmpwrap{overflow:auto;max-height:70vh}
+table.cmp{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+table.cmp th,table.cmp td{padding:10px 13px;border-bottom:1px solid var(--line2);text-align:left;vertical-align:top}
+table.cmp thead th{position:sticky;top:0;background:var(--card);z-index:3;border-bottom:1px solid var(--line)}
+table.cmp .rowlab{position:sticky;left:0;background:#F7F8FA;z-index:2;color:var(--soft);font-weight:600;white-space:nowrap;font-size:12px}
+table.cmp thead .rowlab{z-index:4}
+table.cmp .grp td{background:#F2F5FA;color:var(--g700);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;position:sticky;left:0}
+table.cmp td.win{background:var(--salebg)}table.cmp td.win .v{color:var(--accent2);font-weight:700}
+.wintag{font-size:10px;font-weight:700;color:var(--accent2);margin-left:5px}
+.drawer{position:fixed;top:0;right:0;height:100%;width:440px;max-width:94vw;background:var(--card);z-index:60;box-shadow:var(--shadow-pop);transform:translateX(100%);transition:transform .22s ease;display:flex;flex-direction:column}
+.drawer.show{transform:none}
+.drawer .dh{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.drawer .db{padding:16px 18px;overflow:auto;flex:1}
+.drawer .df{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+.dsec{margin-bottom:16px}.dsec h5{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--soft)}
+.kv{display:grid;grid-template-columns:118px 1fr;gap:5px 10px;font-size:13px}.kv .k{color:var(--soft)}.kv .v{color:var(--ink);font-weight:500}
+.drow{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;gap:10px}
+.closeX{border:0;background:transparent;font-size:22px;line-height:1;color:var(--g400);cursor:pointer}.closeX:hover{color:var(--g700)}
 </style></head>
 <body><div class="wrap">
  <div class="top">
@@ -179,6 +206,21 @@ td.racts .res{color:var(--accent);border-color:#cdddf5}td.racts .res:hover{backg
  <div class="mf"><button class="btn ghost sm" onclick="closeModal('connScrim')">Close</button><button class="btn sm" id="connTg" onclick="toggleEmail()">Simulate connected</button></div>
 </div></div>
 
+<div class="tray" id="cmpTray"><b>Compare</b> <span id="cmpCount" class="muted" style="color:rgba(255,255,255,.8)"></span><button class="tgo" id="cmpGo" onclick="openCompare()">Compare</button><button class="tclear" onclick="clearCompare()">Clear</button></div>
+
+<div class="scrim" id="cmpScrim"><div class="modal" style="max-width:920px">
+ <h3>Compare listings <label class="chk" style="margin-left:auto;font-weight:500;border:0;background:transparent;padding:0"><input type="checkbox" id="cmpDiff" onchange="openCompare()"> Only differences</label></h3>
+ <div class="mb cmpwrap" id="cmpBody"></div>
+ <div class="mf"><button class="btn ghost sm" onclick="closeModal('cmpScrim')">Close</button></div>
+</div></div>
+
+<div class="scrim" id="detailScrim" onclick="closeDetail()"></div>
+<aside class="drawer" id="detailDrawer">
+ <div class="dh" id="detailHead"></div>
+ <div class="db" id="detailBody"></div>
+ <div class="df" id="detailFoot"></div>
+</aside>
+
 <div class="toast" id="toast"></div>
 <script>
 const FILE_ID="1ag9u7KuIXewIK7o9EZIAeMlPc2zDwq6eevBnTjI46no";
@@ -228,7 +270,7 @@ const COLS={
 let listings=load();
 let mode="rent";
 let sortKey="combined", sortDir=1;
-let filt={q:"",nb:"",minBeds:"",maxPrice:"",ranked:false,hideOff:false,safe:""};
+let filt={q:"",nb:"",minBeds:"",maxPrice:"",ranked:false,hideOff:false,safe:"",shortOnly:false};
 let editingId=null, mailId=null;
 let reviewFilter="accepted"; let arTypeVal="rent";
 const EMAIL={enabled:false, provider:"gmail",
@@ -279,14 +321,16 @@ function isAuto(l,k){ return (l.enr||[]).indexOf(k)>=0; }
 
 function statusBadge(l){ return l.status==="off"?' <span class="badge off">OFF-MARKET</span>':(l.status==="unknown"?' <span class="badge unk">STATUS?</span>':''); }
 function addrCell(l){
-  return '<span>'+esc(l.address)+(l.zip?' <span class="zip">'+esc(l.zip)+'</span>':'')+statusBadge(l)+
-    (l.link?'<a class="lk" href="'+esc(l.link)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗</a>':'')+'</span>';
+  return '<input type="checkbox" class="cmpbox" title="Select to compare" onclick="event.stopPropagation();toggleCompare(\''+l.id+'\',this)"'+(selected.has(l.id)?' checked':'')+'>'
+    +'<span class="star'+(l.shortlisted?' on':'')+'" title="Shortlist" onclick="event.stopPropagation();toggleShortlist(\''+l.id+'\')">'+(l.shortlisted?'★':'☆')+'</span> '
+    +'<span class="a">'+esc(l.address)+'</span>'+(l.zip?' <span class="zip">'+esc(l.zip)+'</span>':'')+statusBadge(l)+
+    (l.link?'<a class="lk" href="'+esc(l.link)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗</a>':'');
 }
 
 /* ---------- render ---------- */
 function setMode(m){ mode=m; document.getElementById("tgRent").classList.toggle("on",m==="rent");
   document.getElementById("tgSale").classList.toggle("on",m==="sale");
-  filt={q:"",nb:"",minBeds:"",maxPrice:"",ranked:false,hideOff:false,safe:""}; if(sortKey!=="combined"&&sortKey!=="price"&&!COLS[m].find(c=>c.k===sortKey)) sortKey="combined";
+  filt={q:"",nb:"",minBeds:"",maxPrice:"",ranked:false,hideOff:false,safe:"",shortOnly:false}; if(sortKey!=="combined"&&sortKey!=="price"&&!COLS[m].find(c=>c.k===sortKey)) sortKey="combined";
   render(); }
 
 /* ---- MAP TAB (schematic SVG; no tiles) ---- */
@@ -321,7 +365,94 @@ function renderMap(){
 }
 function closeAndEdit(id){ openEdit(id); }
 
-function render(){ renderPill(); renderReviewTabs(); renderStats(); renderFilters(); renderTable(); }
+function render(){ renderPill(); renderReviewTabs(); renderStats(); renderFilters(); renderTable(); renderTray(); }
+const selected=new Set(); let detailId=null;
+function toggleShortlist(id){ const l=byId(id); if(!l)return; l.shortlisted=!l.shortlisted; save(); renderTable(); renderStats();
+  if(document.getElementById("detailDrawer").classList.contains("show")&&detailId===id) openDetail(id);
+  toast(l.shortlisted?"★ Added to shortlist":"Removed from shortlist"); }
+function toggleCompare(id,el){ if(el.checked){ if(selected.size>=4){ el.checked=false; toast("Compare up to 4 at a time"); return; } selected.add(id);} else selected.delete(id); renderTray(); }
+function renderTray(){ const t=document.getElementById("cmpTray"); if(!t)return; if(!selected.size){ t.classList.remove("show"); return;} t.classList.add("show");
+  document.getElementById("cmpCount").textContent=selected.size+" selected"; document.getElementById("cmpGo").disabled=selected.size<2; }
+function clearCompare(){ selected.clear(); renderTray(); renderTable(); }
+function fmtPriceL(l){ return (l.price==null||l.price==="")?"—":(l.type==="rent"?("$"+(+l.price).toLocaleString()):("$"+l.price+"k")); }
+function ppsfL(l){ const p=num(l.price),s=num(l.size); if(!p||!s)return null; const tot=l.type==="rent"?p:p*1000; return tot/s; }
+const CMPG=[
+ {g:"Cost",rows:[
+   {l:"Price",v:l=>fmtPriceL(l),n:l=>num(l.price),best:"min"},
+   {l:"$ / sqft",v:l=>{const x=ppsfL(l);return x==null?"—":("$"+x.toFixed(l.type==="rent"?2:0));},n:l=>ppsfL(l),best:"min"},
+ ]},
+ {g:"Space",rows:[
+   {l:"Beds",v:l=>l.beds??"—",n:l=>num(l.beds),best:"max"},
+   {l:"Baths",v:l=>l.baths??"—",n:l=>num(l.baths),best:"max"},
+   {l:"Sqft",v:l=>num(l.size)?(+l.size).toLocaleString():"—",n:l=>num(l.size),best:"max"},
+   {l:"Year built",v:l=>l.yearBuilt||"—",n:l=>num(l.yearBuilt),best:"max"},
+ ]},
+ {g:"Location & commute",rows:[
+   {l:"Neighborhood",v:l=>esc(l.neighborhood||"—")},
+   {l:"Commute (AM)",v:l=>{const c=commuteInfo(l);return c?c.am+" min":"—";},n:l=>{const c=commuteInfo(l);return c?c.am:null;},best:"min"},
+   {l:"Distance",v:l=>{const c=commuteInfo(l);return c&&c.mi!=null?c.mi+" mi":"—";},n:l=>{const c=commuteInfo(l);return c?c.mi:null;},best:"min"},
+ ]},
+ {g:"Safety & risk",rows:[
+   {l:"Violent crime",v:l=>safety(l).tier,n:l=>safety(l).rank,best:"min"},
+   {l:"Burglary",v:l=>burgSafety(l).tier,n:l=>burgSafety(l).rank,best:"min"},
+   {l:"Car theft",v:l=>autoSafety(l).tier,n:l=>autoSafety(l).rank,best:"min"},
+   {l:"Flood",v:l=>{const f=floodInfo(l);return f?f.tier:"—";},n:l=>{const f=floodInfo(l);return f?(f.risk==="High"?1:0):null;},best:"min"},
+ ]},
+ {g:"Your rankings",rows:[
+   {l:"Jamie",v:l=>l.jamie??"—",n:l=>num(l.jamie),best:"min"},
+   {l:"Keegan",v:l=>l.keegan??"—",n:l=>num(l.keegan),best:"min"},
+   {l:"Combined",v:l=>{const c=combined(l);return c==null?"—":c;},n:l=>combined(l),best:"min"},
+ ]},
+];
+function openCompare(){
+  const items=[...selected].map(byId).filter(Boolean); if(items.length<2){toast("Pick at least 2 to compare");return;}
+  const diff=document.getElementById("cmpDiff").checked;
+  let h='<table class="cmp"><thead><tr><th class="rowlab"></th>'+items.map(l=>'<th><div style="font-weight:700;color:var(--ink)">'+esc(l.address)+'</div><div class="muted" style="font-size:12px">'+esc(l.neighborhood||"")+' · '+fmtPriceL(l)+'</div></th>').join("")+'</tr></thead><tbody>';
+  CMPG.forEach(grp=>{ let body="";
+    grp.rows.forEach(rw=>{
+      const disp=items.map(rw.v);
+      if(diff){ const set=new Set(disp.map(x=>String(x))); if(set.size<=1) return; }
+      let best=new Set();
+      if(rw.best&&rw.n){ const ns=items.map(rw.n); const valid=ns.filter(x=>x!=null&&!isNaN(x)); if(valid.length){ const tgt=rw.best==="min"?Math.min(...valid):Math.max(...valid); ns.forEach((x,i)=>{ if(x!=null&&!isNaN(x)&&x===tgt) best.add(i); }); } }
+      body+='<tr><td class="rowlab">'+rw.l+'</td>'+items.map((l,i)=>{ const win=best.has(i)&&best.size<items.length; return '<td class="'+(win?'win':'')+'"><span class="v">'+disp[i]+'</span>'+(win?'<span class="wintag">best</span>':'')+'</td>'; }).join("")+'</tr>';
+    });
+    if(body) h+='<tr class="grp"><td colspan="'+(items.length+1)+'">'+grp.g+'</td></tr>'+body;
+  });
+  h+='</tbody></table>';
+  document.getElementById("cmpBody").innerHTML=h; openModal("cmpScrim");
+}
+function openDetail(id){
+  const l=byId(id); if(!l)return; detailId=id;
+  document.getElementById("detailHead").innerHTML='<div><div style="font-size:16px;font-weight:700;color:var(--ink)">'+esc(l.address)+'</div><div class="muted" style="font-size:12.5px;margin-top:2px">'+esc(l.neighborhood||"")+(l.zip?" · "+esc(l.zip):"")+' · '+fmtPriceL(l)+(l.type==="rent"?"/mo":"")+statusBadge(l)+'</div></div><button class="closeX" onclick="closeDetail()">×</button>';
+  const drow=(k,v)=>'<div class="drow"><span class="muted">'+k+'</span><span style="font-weight:500;text-align:right">'+v+'</span></div>';
+  const tierLine=(lab,o)=>'<div class="drow"><span class="muted">'+lab+'</span><span style="font-weight:600;color:'+(o.c||"var(--soft)")+'">'+o.tier+(o.metric!=null?' <span class="muted" style="font-weight:400">('+o.metric+')</span>':'')+'</span></div>';
+  const sf=safety(l),bs=burgSafety(l),au=autoSafety(l),fi=floodInfo(l),ci=commuteInfo(l);
+  let b='<div class="dsec"><h5>Key facts</h5><div class="kv">'
+    +'<span class="k">Price</span><span class="v">'+fmtPriceL(l)+(l.type==="rent"?" / mo":"")+'</span>'
+    +'<span class="k">Beds / Baths</span><span class="v">'+(l.beds??"—")+" / "+(l.baths??"—")+'</span>'
+    +'<span class="k">Size</span><span class="v">'+(num(l.size)?(+l.size).toLocaleString()+" sqft":"—")+'</span>'
+    +'<span class="k">$ / sqft</span><span class="v">'+(ppsfL(l)==null?"—":("$"+ppsfL(l).toFixed(l.type==="rent"?2:0)))+'</span>'
+    +'<span class="k">Year built</span><span class="v">'+esc(l.yearBuilt||"—")+'</span>'
+    +(l.type==="rent"?'<span class="k">Furnished</span><span class="v">'+esc(l.furnished||"—")+'</span><span class="k">Pets</span><span class="v">'+esc(l.petFees||"—")+'</span><span class="k">Min lease</span><span class="v">'+((l.minLease!=null&&l.minLease!=="")?esc(l.minLease)+" mo":"—")+'</span>':'')
+    +'</div></div>';
+  b+='<div class="dsec"><h5>Location &amp; commute</h5>'+drow("Neighborhood",esc(l.neighborhood||"—"))
+    +drow("Drive to LSU", ci?(ci.am+" min AM · "+ci.pm+" PM · "+ci.off+" off-peak"+(ci.mi!=null?" · "+ci.mi+" mi":"")):"—")+'</div>';
+  b+='<div class="dsec"><h5>Safety &amp; environment</h5>'+tierLine("Violent crime ("+RAD[RKEY].lab+")",sf)+tierLine("Burglary (¼ mi)",bs)+tierLine("Car theft (¼ mi)",au)
+    +'<div class="drow"><span class="muted">Flood (FEMA)</span><span style="font-weight:600;color:'+(fi?fi.c:"var(--soft)")+'">'+(fi?fi.risk+" risk · zone "+esc(fi.zone||"—"):"—")+'</span></div></div>';
+  b+='<div class="dsec"><h5>Your rankings</h5><div class="kv">'
+    +'<span class="k">Jamie</span><span class="v">'+(l.jamie??"—")+'</span><span class="k">Keegan</span><span class="v">'+(l.keegan??"—")+'</span><span class="k">Combined</span><span class="v">'+(combined(l)??"—")+'</span></div></div>';
+  if(l.likes||l.dislikes) b+='<div class="dsec"><h5>Notes</h5>'+(l.likes?'<div class="note" style="margin-bottom:8px">＋ '+esc(l.likes)+'</div>':'')+(l.dislikes?'<div class="srcbox" style="color:#B23B3B;background:#FBE7E7;border-color:#f0c9c9">－ '+esc(l.dislikes)+'</div>':'')+'</div>';
+  document.getElementById("detailBody").innerHTML=b;
+  const rs=l.reviewState||"accepted";
+  let f='<button class="btn sm" onclick="closeDetail();openEdit(\''+id+'\')">Edit</button>'
+    +'<button class="btn ghost sm" onclick="toggleShortlist(\''+id+'\')">'+(l.shortlisted?"★ Shortlisted":"☆ Shortlist")+'</button>'
+    +(l.link?'<a class="btn ghost sm" href="'+esc(l.link)+'" target="_blank" rel="noopener">Open ↗</a>':'')
+    +(rs!=="accepted"?'<button class="btn ghost sm" style="color:var(--accent2)" onclick="setReview(\''+id+'\',\'accepted\')">✓ Accept</button>':'')
+    +(rs!=="rejected"?'<button class="btn ghost sm" style="color:#B23B3B" onclick="setReview(\''+id+'\',\'rejected\')">✗ Reject</button>':'');
+  document.getElementById("detailFoot").innerHTML=f;
+  document.getElementById("detailScrim").classList.add("show"); document.getElementById("detailDrawer").classList.add("show");
+}
+function closeDetail(){ detailId=null; document.getElementById("detailScrim").classList.remove("show"); document.getElementById("detailDrawer").classList.remove("show"); }
 function renderReviewTabs(){
   const all=rows(); const c=s=>all.filter(l=>(l.reviewState||"accepted")===s).length;
   const tab=(s,lab,cls)=>'<button class="rtab '+cls+(reviewFilter===s?" on":"")+'" onclick="setReviewFilter(\''+s+'\')">'+lab+' <span class="ct">'+c(s)+'</span></button>';
@@ -332,6 +463,7 @@ function renderReviewTabs(){
 function setReviewFilter(s){ reviewFilter=s; render(); }
 function setReview(id,s){ const l=byId(id); if(!l) return; l.reviewState=s; save(); render();
   if(document.getElementById("editScrim").classList.contains("show")) openEdit(id);
+  if(document.getElementById("detailDrawer").classList.contains("show")&&detailId===id) openDetail(id);
   toast(s==="accepted"?"Moved to Accepted":(s==="review"?"Moved to To review":"Rejected")); }
 function reviewActionCell(l){
   if(reviewFilter==="accepted") return "";
@@ -372,6 +504,7 @@ function applyFilters(arr){
   if(filt.maxPrice) a=a.filter(l=>num(l.price)!=null&&num(l.price)<=+filt.maxPrice);
   if(filt.ranked) a=a.filter(l=>combined(l)!=null);
   if(filt.hideOff) a=a.filter(l=>l.status!=="off");
+  if(filt.shortOnly) a=a.filter(l=>l.shortlisted);
   if(filt.safe==="ok") a=a.filter(l=>safety(l).rank<=1);
   if(filt.safe==="low") a=a.filter(l=>safety(l).tier==="Low");
   return a;
@@ -427,11 +560,13 @@ function renderFilters(){
    '<select id="fsf"><option value="">Risk: any</option><option value="ok"'+(filt.safe==="ok"?" selected":"")+'>hide elevated/high</option><option value="low"'+(filt.safe==="low"?" selected":"")+'>low-risk only</option></select>'+
    '<label class="chk"><input type="checkbox" id="frk"'+(filt.ranked?' checked':'')+'> ranked only</label>'+
    '<label class="chk"><input type="checkbox" id="fho"'+(filt.hideOff?' checked':'')+'> hide off-market</label>'+
-   '<label class="chk" title="Show/hide the crime, commute &amp; flood columns"><input type="checkbox" id="frl"'+(showRL?' checked':'')+'> Risk &amp; location cols</label>';
+   '<label class="chk" title="Show/hide the crime, commute &amp; flood columns"><input type="checkbox" id="frl"'+(showRL?' checked':'')+'> Risk &amp; location cols</label>'+
+   '<label class="chk"><input type="checkbox" id="fsl"'+(filt.shortOnly?' checked':'')+'> ★ Shortlist only</label>';
   document.getElementById("frad").onchange=e=>{RKEY=e.target.value;render();};
   document.getElementById("fsf").onchange=e=>{filt.safe=e.target.value;renderTable();renderStats();};
   document.getElementById("fho").onchange=e=>{filt.hideOff=e.target.checked;renderTable();renderStats();};
   document.getElementById("frl").onchange=e=>{showRL=e.target.checked; try{localStorage.setItem("brdash.showRL",showRL?"1":"0");}catch(_){} renderTable();};
+  document.getElementById("fsl").onchange=e=>{filt.shortOnly=e.target.checked;renderTable();renderStats();};
   document.getElementById("fq").oninput=e=>{filt.q=e.target.value;renderTable();};
   document.getElementById("fnb").onchange=e=>{filt.nb=e.target.value;renderTable();renderStats();};
   document.getElementById("fmb").onchange=e=>{filt.minBeds=e.target.value;renderTable();renderStats();};
@@ -447,7 +582,7 @@ function renderTable(){
   let a=sortRows(applyFilters(rows()));
   const tb=document.getElementById("tbody");
   if(!a.length){ tb.innerHTML='<tr><td colspan="'+(cols.length+(reviewFilter!=="accepted"?1:0))+'" style="color:var(--soft);padding:18px">'+(reviewFilter==="review"?"Nothing to review yet — use “+ Add to review”.":(reviewFilter==="rejected"?"No rejected listings.":"No matches."))+'</td></tr>'; return; }
-  tb.innerHTML=a.map(l=>"<tr class=\""+(l.status==="off"?"off":"")+"\" onclick=\"openEdit('"+l.id+"')\">"+cols.map(c=>cell(l,c)).join("")+reviewActionCell(l)+"</tr>").join("");
+  tb.innerHTML=a.map(l=>"<tr class=\""+(l.status==="off"?"off":"")+"\" onclick=\"openDetail('"+l.id+"')\">"+cols.map(c=>cell(l,c)).join("")+reviewActionCell(l)+"</tr>").join("");
 }
 function cell(l,c){
   if(c.k==="safety"){ const s=safety(l); const R=RAD[RKEY];
