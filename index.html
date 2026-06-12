@@ -178,6 +178,7 @@ table.cmp td.win{background:var(--salebg)}table.cmp td.win .v{color:var(--accent
 .minirow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.minirow .field{margin:0;min-width:118px;flex:1}.minirow .field input,.minirow .field select{padding:7px 8px}
 @media(max-width:820px){.plangrid{grid-template-columns:1fr}.srcrow{grid-template-columns:1fr}.planner-modal .mb{max-height:none}}
 
+
 /* --- redesigned planner --- */
 .plhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
 .plstats{display:flex;gap:6px;flex-wrap:wrap}.plactions{display:flex;gap:6px;flex-wrap:wrap}
@@ -214,7 +215,19 @@ table.cmp td.win{background:var(--salebg)}table.cmp td.win .v{color:var(--accent
 .plpcard:hover{border-color:#3b5bdb}
 .qfill{padding:9px;border:1px solid #e6e9ef;border-radius:9px;margin-bottom:7px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .qfill:hover{border-color:#3b5bdb;background:#f4f7ff}
-@media(max-width:760px){.plmapwrap{grid-template-columns:1fr}.plpipe{grid-template-columns:repeat(2,1fr)}}
+.plgrid{display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start}
+.plrail{border:1px solid #e6e9ef;border-radius:12px;overflow:hidden}
+.plrailhead{display:flex;justify-content:space-between;align-items:center;padding:11px 13px;border-bottom:1px solid #e6e9ef}
+.plrailbody{padding:11px;max-height:58vh;overflow:auto}
+.plqcard{border:1px solid #e6e9ef;border-radius:11px;padding:10px;margin-bottom:10px}
+.plqcard.off{opacity:.65}
+.plqaddr{font-weight:650;font-size:13px}.plqaddr.struck{text-decoration:line-through}
+.plqchips{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.plmini{font-size:10.5px;padding:2px 7px;border-radius:6px;font-weight:600;white-space:nowrap}
+.plqbtns{display:flex;gap:6px;margin-top:9px}.plqbtns button{flex:1}
+.plsched{background:#3b5bdb;color:#fff;border-color:#3b5bdb}.plsched:hover{background:#324dbd;color:#fff}
+@media(max-width:760px){.plmapwrap{grid-template-columns:1fr}.plpipe{grid-template-columns:repeat(2,1fr)}.plgrid{grid-template-columns:1fr}}
+/* --- end planner css --- */
 </style></head>
 <body><div class="wrap">
  <div class="top">
@@ -1006,7 +1019,7 @@ function openTourPlanner(){
 function setPlannerTab(t){plannerTab=t;renderPlannerView();}
 function renderPlannerView(){var v=document.getElementById("plView");if(!v)return;["cal","map","out"].forEach(function(t){var b=document.getElementById("plseg-"+t);if(b)b.classList.toggle("on",t===plannerTab);});v.innerHTML=plannerTab==="cal"?plCalendar():plannerTab==="map"?plMap():plOutreach();}
 function plRiskBadges(l){var out='';try{var s=safety(l);if(s&&s.tier)out+='<span class="plmini" style="background:'+s.bg+';color:'+s.c+'">Crime '+s.tier+'</span>';}catch(e){}try{var f=floodInfo(l);if(f&&f.risk)out+='<span class="plmini" style="background:'+f.bg+';color:'+f.c+'">Flood '+f.risk+'</span>';}catch(e){}if(l.pollLabel){var c=riskColor(l.pollLabel);out+='<span class="plmini" style="background:'+c[0]+';color:'+c[1]+'">Pollution '+l.pollLabel+'</span>';}return out;}
-function plQueueCard(l){return '<div class="plqcard'+(l.status==="off"?' off':'')+'"><div class="plqaddr'+(l.status==="off"?' struck':'')+'">'+esc(l.address)+'</div><div class="zip">'+fmtPriceL(l)+(l.type==="rent"?"/mo":"")+'</div><div class="plqchips">'+sourceChips(l)+'</div><div class="plqchips">'+plRiskBadges(l)+'</div>'+(l.status==="off"?'<div class="note" style="color:#b23b3b;margin:4px 0 0">Off-market — flagged</div>':'')+'<div class="plqbtns"><button class="btn sm plsched" onclick="openScheduleListing(\''+l.id+'\')">Schedule</button><button class="btn ghost sm" onclick="openMessageComposer(\''+l.id+'\',\'initial\')">Message</button></div></div>';}
+function plQueueCard(l){return '<div class="plqcard'+(l.status==="off"?' off':'')+'"><div class="plqaddr'+(l.status==="off"?' struck':'')+'">'+esc(l.address)+'</div><div class="zip">'+fmtPriceL(l)+(l.type==="rent"?"/mo":"")+'</div><div class="plqchips">'+sourceChips(l)+'</div><div class="plqchips">'+plRiskBadges(l)+'</div>'+(l.status==="off"?'<div style="color:#b23b3b;font-size:11px;font-weight:600;margin-top:5px">⚑ Off-market</div>':'')+'<div class="plqbtns"><button class="btn sm plsched" onclick="openScheduleListing(\''+l.id+'\')">Schedule</button><button class="btn ghost sm" onclick="openMessageComposer(\''+l.id+'\',\'initial\')">Message</button></div></div>';}
 function renderPlannerRail(){var el=document.getElementById("plRail");if(!el)return;var q=activeTourListings().filter(function(l){var t=l.tour||{};return !(t.date&&t.start);});el.innerHTML='<div class="plrailhead"><h4 style="font-size:14px;margin:0">Not yet scheduled</h4><span class="zip">'+q.length+' place'+(q.length!=1?'s':'')+'</span></div><div class="plrailbody">'+(q.length?q.map(plQueueCard).join(""):'<div class="zip" style="padding:10px">All approved places have a time 🎉</div>')+'</div>';}
 function plCalendar(){
   var av=loadAvailability(),H0=8,H1=20,PXH=44,BODYH=(H1-H0)*PXH;
