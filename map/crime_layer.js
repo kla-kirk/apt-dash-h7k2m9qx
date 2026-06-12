@@ -134,13 +134,36 @@ BRMap.ready(async () => {
     });
   }
 
-  // crime incident dot popups (these stay as Leaflet popups) → fetch exact date + address
-  map.on("popupopen", (e) => {
-    const m = e.popup && e.popup._source;
-    if (m && m._crime) {
-      if (m._loaded) return; m._loaded = true;
-      fetchDetail(m._crime).then((rows) => { try { m.setPopupContent(detailHtml(m._crime, rows)); } catch (_) {} });
+  // ---- crime dot interaction ----
+  // Dots are non-interactive canvas points; ONE map-level handler opens the nearest incident's
+  // detail. This makes dots under listing pins / amenity markers, or several stacked on the same
+  // block centroid, all reachable — a precise canvas hit is no longer required.
+  let currentFiltered = [], overlayActive = false, dotPop = null;
+  function openDotDetail(p) {
+    dotPop = L.popup({ autoPan: true, autoPanPadding: [28, 28] }).setLatLng([p[0], p[1]])
+      .setContent("<b>" + CATS[p[2]][1] + "</b>" + (p[3] != null ? "<br>" + p[3] : "") + '<br><span style="color:#8a8f98;font-size:11px">loading details…</span>')
+      .openOn(map);
+    const target = dotPop;
+    fetchDetail(p).then((rows) => { try { target.setContent(detailHtml(p, rows)); } catch (_) {} });
+  }
+  const HIT = 14; // px
+  map.on("click", (e) => {
+    if (!overlayActive || !currentFiltered.length) return;
+    const cp = e.containerPoint, ll = e.latlng;
+    // ignore clicks on a listing pin's footprint — let the listing detail handle those
+    for (const id in BRMap.pins) { const m = BRMap.pins[id]; if (!m || !m.getLatLng) continue;
+      const pp = map.latLngToContainerPoint(m.getLatLng());
+      if (Math.abs(cp.x - pp.x) <= 14 && cp.y <= pp.y + 4 && cp.y >= pp.y - 36) return; }
+    const c2 = map.containerPointToLatLng(L.point(cp.x + HIT, cp.y + HIT));
+    const dLat = Math.abs(c2.lat - ll.lat) + 1e-9, dLon = Math.abs(c2.lng - ll.lng) + 1e-9;
+    let best = null, bestPx = Infinity;
+    for (const p of currentFiltered) {
+      if (Math.abs(p[0] - ll.lat) > dLat || Math.abs(p[1] - ll.lng) > dLon) continue;
+      const pp = map.latLngToContainerPoint([p[0], p[1]]);
+      const dx = pp.x - cp.x, dy = pp.y - cp.y, px = Math.sqrt(dx * dx + dy * dy);
+      if (px < bestPx) { bestPx = px; best = p; }
     }
+    if (best && bestPx <= HIT) openDotDetail(best);
   });
 
   // listing detail panel → wire the avg / 12-mo / total toggle (migrated from popupopen)
@@ -172,16 +195,14 @@ BRMap.ready(async () => {
   const removeHeat = () => { if (heat) { map.removeLayer(heat); heat = null; } };
   function draw() {
     const pts = filtered();
+    currentFiltered = pts;
     removePts(); removeHeat();
     if (showHeat && typeof L.heatLayer === "function") {
       heat = L.heatLayer(pts.map((p) => [p[0], p[1], 0.7]), { radius: 20, blur: 18, maxZoom: 16, minOpacity: 0.25 }).addTo(map);
     }
     ptsLayer = L.layerGroup();
     for (const p of pts) {
-      const cm = L.circleMarker([p[0], p[1]], { renderer: cv, pane: BRMap.panes.heat, radius: 4, weight: 0.6, color: "#fff", fillColor: CATS[p[2]][2], fillOpacity: 0.85 });
-      cm._crime = p; cm._loaded = false;
-      cm.bindPopup("<b>" + CATS[p[2]][1] + "</b>" + (p[3] != null ? "<br>" + p[3] : "") + '<br><span style="color:#8a8f98;font-size:11px">loading details…</span>');
-      cm.addTo(ptsLayer);
+      L.circleMarker([p[0], p[1]], { renderer: cv, pane: BRMap.panes.heat, radius: 4, weight: 0.6, color: "#fff", fillColor: CATS[p[2]][2], fillOpacity: 0.85, interactive: false }).addTo(ptsLayer);
     }
     ptsLayer.addTo(map);
     const c = document.getElementById("crimeCount"); if (c) c.textContent = pts.length.toLocaleString() + " incidents";
@@ -210,9 +231,9 @@ BRMap.ready(async () => {
       ctx.controls.querySelectorAll(".ccat").forEach((cb) => (cb.onchange = function () { enabled[+this.dataset.i] = this.checked;
         ["violent", "property"].forEach((g) => { const ix = CATS.map((c, i) => [c, i]).filter((x) => x[0][3] === g);
           const mg = document.getElementById("m_" + g); if (mg) mg.checked = ix.every(([c, i]) => enabled[i]); }); draw(); }));
-      ctx.legend('<span class="sw">Dots = incidents — click one for date &amp; address</span>');
-      draw();
+      ctx.legend('<span class="sw">Dots = incidents — click near one for date &amp; address</span>');
+      overlayActive = true; draw();
     },
-    deactivate() { removePts(); removeHeat(); }
+    deactivate() { overlayActive = false; currentFiltered = []; removePts(); removeHeat(); }
   });
 });
