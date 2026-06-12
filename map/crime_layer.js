@@ -147,7 +147,7 @@ BRMap.ready(async () => {
     fetchDetail(p).then((rows) => { try { target.setContent(detailHtml(p, rows)); } catch (_) {} });
   }
   // dot radius grows as you zoom in (shrinks out), clamped
-  const rZoom = () => { const z = map.getZoom(); return Math.max(3.5, Math.min(15, (z - 10) * 2.4 + 4)); };
+  const rZoom = () => { const z = map.getZoom(); return Math.max(3, Math.min(9, (z - 11) * 1.6 + 4)); };
   map.on("click", (e) => {
     if (!overlayActive || !currentFiltered.length) return;
     const cp = e.containerPoint, ll = e.latlng;
