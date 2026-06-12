@@ -251,8 +251,8 @@ BRMap.ready(async () => {
     if (fpLayer.getLayers().length && !map.hasLayer(fpLayer)) fpLayer.addTo(map);
   }
   let footprintsOn = true;
-  map.on("popupopen", e => { openMarker = (e.popup && e.popup._source) || null; const f = openMarker && openMarker._fac; if (footprintsOn && f) drawFootprints(f); });
-  map.on("popupclose", () => { openMarker = null; clearFootprints(); });
+  // facility footprints are driven by the fixed left panel (openFacPanel / closeFacPanel), not Leaflet popups,
+  // so the popup never covers the plumes it describes.
 
   // footprint detail block for the facility popup (cancer level honors selCancer)
   const thrFmt = v => { const n = Number(v); return n >= 0.01 ? n.toPrecision(3).replace(/\.?0+$/, "") : n.toExponential(2); };
@@ -416,14 +416,61 @@ BRMap.ready(async () => {
     return h + '</div>';
   }
 
+  // ---- fixed left-side facility panel (so the popup never covers the plumes it describes) ----
+  if (!document.getElementById("facInfoCss")) {
+    document.head.insertAdjacentHTML("beforeend", '<style id="facInfoCss">'
+      + '#facInfo{position:absolute;top:54px;left:50px;z-index:1001;background:#fff;border:1px solid #E2E7EF;border-radius:10px;box-shadow:0 2px 12px rgba(16,24,40,.20);font-size:12.5px;width:340px;max-width:calc(100vw - 70px);max-height:calc(100% - 70px);overflow:auto;padding:12px 14px;display:none}'
+      + '#facInfo .facinfo-x{position:absolute;top:5px;right:7px;border:none;background:transparent;font-size:19px;line-height:1;color:#8A93A0;cursor:pointer;padding:2px 5px;border-radius:6px;z-index:2}'
+      + '#facInfo .facinfo-x:hover{background:#F0F2F5;color:#333}'
+      + '#facInfo .pop{padding-right:16px}'
+      + '@media(max-width:640px){#facInfo{left:8px;width:calc(100vw - 16px)}}'
+      + '</style>');
+  }
+  let facInfo = document.getElementById("facInfo");
+  if (!facInfo) { facInfo = document.createElement("div"); facInfo.id = "facInfo"; document.body.appendChild(facInfo); }
+  function renderFacPanel(f) {
+    facInfo.innerHTML = '<button class="facinfo-x" title="Close" aria-label="Close">×</button>' + facPopup(f);
+    const x = facInfo.querySelector(".facinfo-x"); if (x) x.onclick = closeFacPanel;
+  }
+  function openFacPanel(f, m) {
+    openMarker = m;
+    if (typeof BRMap.closeDetail === "function") { try { BRMap.closeDetail(); } catch (e) {} }   // one left panel at a time
+    renderFacPanel(f);
+    facInfo.style.display = "block"; facInfo.scrollTop = 0;
+    if (footprintsOn) drawFootprints(f);
+  }
+  function closeFacPanel() {
+    facInfo.style.display = "none"; facInfo.innerHTML = "";
+    openMarker = null; clearFootprints();
+  }
+  if (typeof BRMap.onListingClick === "function") BRMap.onListingClick(() => closeFacPanel());   // clicking a listing closes the facility panel
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && facInfo.style.display === "block") closeFacPanel(); });
+
+  // air.json geocodes many DISTINCT facilities to one shared coordinate (e.g. Dow + TSRC + Olin all at
+  // the same lat/lon). Fan co-located markers out into a small ring so each is individually clickable
+  // instead of stacking into one un-clickable blob. (Real fix is better geocoding upstream in air.json.)
+  function spreadPositions(list) {
+    const groups = {};
+    list.forEach(f => { const k = f.lat.toFixed(5) + "," + f.lon.toFixed(5); (groups[k] = groups[k] || []).push(f); });
+    const pos = new Map();
+    Object.values(groups).forEach(g => {
+      if (g.length < 2) { pos.set(g[0], [g[0].lat, g[0].lon]); return; }
+      const R = 0.0004;                                 // ~44 m fan radius
+      g.forEach((f, i) => { const a = (2 * Math.PI * i) / g.length; pos.set(f, [f.lat + R * Math.cos(a), f.lon + R * Math.sin(a)]); });
+    });
+    return pos;
+  }
+  const FAC_POS = spreadPositions(FAC_VIS.concat(FAC_HID));
+
   // build marker layers (visible default set + hidden "no emission data" set)
   const facPane = (BRMap.panes && BRMap.panes.facils) || undefined;
   const renderer = L.canvas({ pane: facPane, padding: 0.5 });
   function buildLayer(list) {
     return L.layerGroup(list.map(f => {
       const st = facStyle(f);
-      const m = L.circleMarker([f.lat, f.lon], { renderer, radius: st.r, color: st.color, weight: 1, fillColor: st.fill, fillOpacity: 0.75 }).bindPopup(() => facPopup(f));
+      const m = L.circleMarker(FAC_POS.get(f) || [f.lat, f.lon], { renderer, radius: st.r, color: st.color, weight: 1, fillColor: st.fill, fillOpacity: 0.75 });
       m._fac = f; m._baseR = st.r;
+      m.on("click", () => openFacPanel(f, m));   // opens the fixed left panel (not a Leaflet popup) so plumes stay visible
       return m;
     }));
   }
@@ -482,20 +529,20 @@ BRMap.ready(async () => {
         if (seg) seg.querySelectorAll("button").forEach(btn => btn.onclick = () => {
           selCancer = btn.dataset.lv;
           seg.querySelectorAll("button").forEach(b => { const on = b.dataset.lv === selCancer; b.style.background = on ? "#7B3FA0" : "#fff"; b.style.color = on ? "#fff" : "#444"; });
-          if (openMarker && openMarker._fac) { if (footprintsOn) drawFootprints(openMarker._fac); if (openMarker.setPopupContent) openMarker.setPopupContent(facPopup(openMarker._fac)); }
+          if (openMarker && openMarker._fac) { if (footprintsOn) drawFootprints(openMarker._fac); renderFacPanel(openMarker._fac); }
         });
         const ncSeg = ctx.controls.querySelector("#polNoncancerSeg");
         if (ncSeg) ncSeg.querySelectorAll("button").forEach(btn => btn.onclick = () => {
           selNoncancer = btn.dataset.lv;
           ncSeg.querySelectorAll("button").forEach(b => { const on = b.dataset.lv === selNoncancer; b.style.background = on ? "#CC7A1C" : "#fff"; b.style.color = on ? "#fff" : "#444"; });
-          if (openMarker && openMarker._fac) { if (footprintsOn) drawFootprints(openMarker._fac); if (openMarker.setPopupContent) openMarker.setPopupContent(facPopup(openMarker._fac)); }
+          if (openMarker && openMarker._fac) { if (footprintsOn) drawFootprints(openMarker._fac); renderFacPanel(openMarker._fac); }
         });
       },
       deactivate() {
         pollOn = false;
         map.removeLayer(facLayer); map.removeLayer(facHidLayer);
         if (heat) map.removeLayer(heat);
-        clearFootprints();
+        closeFacPanel();
       }
     });
   }
