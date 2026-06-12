@@ -81,20 +81,25 @@ BRMap.ready(async () => {
   // ---------- heat map: TRI release pounds (map overlay) ----------
   const emitters = FAC.filter(f => f.releases_lbs != null && f.releases_lbs > 0);
   if (typeof BRMap.addArea === "function" && typeof L.heatLayer === "function" && emitters.length) {
-    const maxR = Math.max.apply(null, emitters.map(f => f.releases_lbs));
-    // sqrt-scaled intensity so mid-tier plants register while the mega-emitters still dominate
-    const pts = emitters.map(f => [f.lat, f.lon, Math.max(0.06, Math.sqrt(f.releases_lbs / maxR))]);
-    const grad = { 0.0: "#2c7fb8", 0.3: "#41b6c4", 0.5: "#a1dab4", 0.7: "#fed976", 0.85: "#fd8d3c", 1.0: "#bd0026" };
+    const lmax = Math.log10(Math.max.apply(null, emitters.map(f => f.releases_lbs)) + 1);
+    // LOG-scaled intensity (not sqrt): TRI releases span ~1000x (one plant at 7.1M lb vs a ~19k-lb
+    // median), so normalizing each plant by that single mega-emitter left everything else near zero
+    // — that was the "all blue / low" artifact. Log lifts the mid/low emitters so real industry reads hot.
+    const pts = emitters.map(f => [f.lat, f.lon, Math.max(0.35, Math.log10(f.releases_lbs + 1) / lmax)]);
+    // warm severity ramp only — amber → orange → red → deep maroon. No blue/green (blue reads "safe").
+    const GRAD = { 0.0: "#ffd24d", 0.3: "#ff9100", 0.55: "#f4511e", 0.75: "#d32f2f", 0.9: "#b71c1c", 1.0: "#6d0000" };
+    const GCSS = "linear-gradient(90deg,#ffd24d,#ff9100,#f4511e,#d32f2f,#b71c1c,#6d0000)";
     let heat = null;
     BRMap.addArea({
       id: "pollheat",
       label: "Pollution — TRI release heat",
       activate(ctx) {
-        if (!heat) heat = L.heatLayer(pts, { radius: 30, blur: 22, max: 1.0, minOpacity: 0.3, gradient: grad, pane: BRMap.panes && BRMap.panes.heat });
+        // big radius + low `max` so the field saturates into orange/red, not a faint wash
+        if (!heat) heat = L.heatLayer(pts, { radius: 45, blur: 28, max: 1.1, minOpacity: 0.5, gradient: GRAD, pane: BRMap.panes && BRMap.panes.heat });
         heat.addTo(map);
         if (ctx && ctx.legend) ctx.legend(
-          '<span class="sw">Low</span><span class="bar" style="background:linear-gradient(90deg,#2c7fb8,#41b6c4,#a1dab4,#fed976,#fd8d3c,#bd0026)"></span><span class="sw">High</span>'
-          + '<div class="mut" style="width:100%">2024 TRI air/total release lbs, distance-blurred (sqrt-scaled).</div>');
+          '<span class="sw">less</span><span class="bar" style="background:' + GCSS + '"></span><span class="sw">more</span>'
+          + '<div class="mut" style="width:100%">2024 TRI release lbs near a point, distance-blurred (log-scaled).</div>');
       },
       deactivate() { if (heat) map.removeLayer(heat); }
     });
