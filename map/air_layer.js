@@ -134,7 +134,8 @@ BRMap.ready(async () => {
     if (!a || a.score == null) return '<div class="row mut">Pollution data unavailable.</div>';
     const c = col(a.score);
     let h = '<div class="row"><b style="color:' + c + '">' + esc(a.label) + ' pollution proximity</b>'
-      + ' <span style="color:#566070">· score ' + Math.round(a.score) + '/100</span></div>';
+      + ' <span style="color:#566070">· score ' + Math.round(a.score) + '/100</span></div>'
+      + '<div class="air-gauge" style="margin:4px 0 6px"><i style="width:' + Math.round(a.score) + '%;background:' + c + '"></i></div>';
     if (a.nearest_facility_name) h += '<div class="row" style="font-size:11.5px;color:#566070">Nearest industrial site: <b style="color:#26303B">'
       + prettyFac(a.nearest_facility_name) + '</b>' + (a.nearest_facility_mi != null ? ' · ' + miFmt(a.nearest_facility_mi) + ' mi' : '') + '</div>';
     const nf = (a.nearby_facilities || []).slice(0, 5);
@@ -198,9 +199,26 @@ BRMap.ready(async () => {
   const fpStyle = rt => FP_STYLE[rt] || FP_STYLE.lower;
   const CANCER_LEVELS = ["1e-6", "1e-5", "1e-4"];
   const CANCER_LEVEL_LABEL = { "1e-6": "1 in 1M", "1e-5": "10 in 1M", "1e-4": "100 in 1M" };
-  const CANCER_FILL = { "1e-6": 0.08, "1e-5": 0.16, "1e-4": 0.28 };
+  const NONCANCER_LEVELS = ["HQ1", "HQ10", "HQ100"];
+  const NONCANCER_LEVEL_LABEL = { HQ1: "HQ 1", HQ10: "HQ 10", HQ100: "HQ 100" };
+  // fill intensity by band_index: 0 = outer / least-severe (faint) … 2 = inner / most-severe (strong)
+  const BAND_FILL = { 0: 0.08, 1: 0.16, 2: 0.28 };
+  const HAS_NONCANCER_FP = FAC_ALL.some(f => (f.risk_footprints || []).some(fp => fp.risk_type === "noncancer"));
+  const WIND_SRC = (A.chemical_risk_methodology && A.chemical_risk_methodology.wind_rose_source) || "";
+  const WIND_IS_FALLBACK = /fallback/i.test(WIND_SRC);
   let selCancer = "1e-5";
+  let selNoncancer = "HQ1";
   let openMarker = null;
+  // a footprint is "active" when its level matches the current selection for its risk_type
+  function levelMatch(fp) {
+    if (fp.risk_type === "cancer") return fp.level === selCancer;
+    if (fp.risk_type === "noncancer") return fp.level == null || fp.level === selNoncancer;
+    return true;   // acute / other: no level filter — drawn whenever the band is present
+  }
+  // outer bands (band_index 0) render fainter than inner bands (higher index); never hardcode distance
+  function fillFor(fp, st) {
+    return (fp.band_index != null && BAND_FILL[fp.band_index] != null) ? BAND_FILL[fp.band_index] : st.fillOpacity;
+  }
   const KIND_TO_RISK = { chronic_cancer: "cancer", chronic_noncancer: "noncancer", acute_accident: "acute" };
   function footprintsFor(f) { return Array.isArray(f.risk_footprints) && f.risk_footprints.length ? f.risk_footprints : null; }
   function fallbackRadii(f) {
@@ -214,11 +232,11 @@ BRMap.ready(async () => {
     fpLayer.clearLayers();
     const fps = footprintsFor(f);
     if (fps) {
-      fps.filter(fp => fp.risk_type !== "cancer" || fp.level === selCancer)
+      fps.filter(levelMatch)
         .slice().sort((a, b) => (b.peak_mi || 0) - (a.peak_mi || 0)).forEach(fp => {
         if (!fp.geometry) return;
         const st = fpStyle(fp.risk_type);
-        const fillOpacity = (fp.risk_type === "cancer" && CANCER_FILL[fp.level] != null) ? CANCER_FILL[fp.level] : st.fillOpacity;
+        const fillOpacity = fillFor(fp, st);
         L.geoJSON(fp.geometry, { pane: FP_PANE, interactive: false,
           style: { stroke: true, color: st.color, weight: st.weight, opacity: 0.85, fill: true, fillColor: st.fill, fillOpacity, dashArray: st.dash || null } }).addTo(fpLayer);
       });
@@ -241,13 +259,14 @@ BRMap.ready(async () => {
   function footprintRows(f) {
     const fps = footprintsFor(f);
     if (fps) {
-      const shown = fps.filter(fp => fp.risk_type !== "cancer" || fp.level === selCancer)
+      const shown = fps.filter(levelMatch)
         .slice().sort((a, b) => (b.peak_mi || 0) - (a.peak_mi || 0));
       if (!shown.length) return "";
       return '<div class="row air-fp" style="font-size:11px"><span class="ttl">On the map now:</span><br>'
         + shown.map(fp => {
           const bits = [esc(fp.chemical), esc(fp.risk_type)];
           if (fp.risk_type === "cancer" && CANCER_LEVEL_LABEL[fp.level]) bits.push(CANCER_LEVEL_LABEL[fp.level]);
+          else if (fp.risk_type === "noncancer" && NONCANCER_LEVEL_LABEL[fp.level]) bits.push(NONCANCER_LEVEL_LABEL[fp.level]);
           else if (fp.level) bits.push(esc(fp.level));
           if (fp.peak_mi != null) bits.push("reaches " + Number(fp.peak_mi).toFixed(2) + " mi");
           if (fp.downwind_bearing_deg != null) bits.push("downwind " + Math.round(fp.downwind_bearing_deg) + "°");
@@ -431,6 +450,11 @@ BRMap.ready(async () => {
         if (showHidden) { facHidLayer.addTo(map); sizeFacilities(); }
         const segBtns = CANCER_LEVELS.map((lv, i) => '<button type="button" data-lv="' + lv + '" style="border:none;' + (i ? 'border-left:1px solid #d6cae0;' : '')
           + 'padding:3px 9px;font:inherit;font-size:11px;cursor:pointer;background:' + (lv === selCancer ? '#7B3FA0' : '#fff') + ';color:' + (lv === selCancer ? '#fff' : '#444') + '">' + CANCER_LEVEL_LABEL[lv] + '</button>').join("");
+        const ncBtns = NONCANCER_LEVELS.map((lv, i) => '<button type="button" data-lv="' + lv + '" style="border:none;' + (i ? 'border-left:1px solid #e4cba6;' : '')
+          + 'padding:3px 9px;font:inherit;font-size:11px;cursor:pointer;background:' + (lv === selNoncancer ? '#CC7A1C' : '#fff') + ';color:' + (lv === selNoncancer ? '#fff' : '#444') + '">' + NONCANCER_LEVEL_LABEL[lv] + '</button>').join("");
+        const windNote = WIND_SRC
+          ? ('Wind rose: ' + (WIND_IS_FALLBACK ? 'documented Baton Rouge fallback (station-specific NOAA KBTR ingest not yet run).' : esc(WIND_SRC)))
+          : '';
         ctx.controls.innerHTML =
           '<div class="legend"><span class="sw"><i style="background:#7B3FA0"></i>Mainly carcinogens</span>'
             + '<span class="sw"><i style="background:#C0392B"></i>Acute toxic gas</span>'
@@ -441,7 +465,11 @@ BRMap.ready(async () => {
           + '<label style="margin-top:4px"><input type="checkbox" id="polFp"' + (footprintsOn ? " checked" : "") + '> Dispersion-plume footprints <span class="mut" style="margin:0">(click a plant)</span></label>'
           + '<div class="sub" style="margin-top:3px"><span class="mut" style="font-weight:700;color:#3A434F">Cancer plume level</span>'
             + '<div id="polCancerSeg" style="display:flex;margin-top:3px;border:1px solid #d6cae0;border-radius:7px;overflow:hidden;width:fit-content">' + segBtns + '</div>'
-            + '<div class="mut">Modeled added lifetime cancer risk from long-term exposure at that contour. 1 in 1M = 1 extra case per 1,000,000 people; 10 in 1M and 100 in 1M scale up from there.</div></div>'
+            + '<div class="mut">Modeled added lifetime cancer risk at that contour: 1 in 1M = one extra cancer case per 1,000,000 continuously exposed people; 10 in 1M = ten per 1,000,000; 100 in 1M = one hundred per 1,000,000.</div></div>'
+          + (HAS_NONCANCER_FP ? '<div class="sub" style="margin-top:5px"><span class="mut" style="font-weight:700;color:#3A434F">Chronic / respiratory level</span>'
+            + '<div id="polNoncancerSeg" style="display:flex;margin-top:3px;border:1px solid #e4cba6;border-radius:7px;overflow:hidden;width:fit-content">' + ncBtns + '</div>'
+            + '<div class="mut">Hazard-quotient contours: HQ 1 = modeled concentration at the chronic reference level; HQ 10 and HQ 100 are 10× and 100× that level.</div></div>' : '')
+          + (windNote ? '<div class="mut" style="margin-top:5px">' + windNote + '</div>' : '')
           + '<label style="margin-top:6px"><input type="checkbox" id="polHidden"' + (showHidden ? " checked" : "") + '> Sites with no emission data</label>';
 
         const heatEl = ctx.controls.querySelector("#polHeat");
@@ -454,6 +482,12 @@ BRMap.ready(async () => {
         if (seg) seg.querySelectorAll("button").forEach(btn => btn.onclick = () => {
           selCancer = btn.dataset.lv;
           seg.querySelectorAll("button").forEach(b => { const on = b.dataset.lv === selCancer; b.style.background = on ? "#7B3FA0" : "#fff"; b.style.color = on ? "#fff" : "#444"; });
+          if (openMarker && openMarker._fac) { if (footprintsOn) drawFootprints(openMarker._fac); if (openMarker.setPopupContent) openMarker.setPopupContent(facPopup(openMarker._fac)); }
+        });
+        const ncSeg = ctx.controls.querySelector("#polNoncancerSeg");
+        if (ncSeg) ncSeg.querySelectorAll("button").forEach(btn => btn.onclick = () => {
+          selNoncancer = btn.dataset.lv;
+          ncSeg.querySelectorAll("button").forEach(b => { const on = b.dataset.lv === selNoncancer; b.style.background = on ? "#CC7A1C" : "#fff"; b.style.color = on ? "#fff" : "#444"; });
           if (openMarker && openMarker._fac) { if (footprintsOn) drawFootprints(openMarker._fac); if (openMarker.setPopupContent) openMarker.setPopupContent(facPopup(openMarker._fac)); }
         });
       },
