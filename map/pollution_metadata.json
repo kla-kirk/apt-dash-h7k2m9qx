@@ -1,0 +1,217 @@
+{
+  "generated_at_utc": "2026-06-11T15:19:30Z",
+  "bbox": {
+    "south": 30.1,
+    "west": -91.5,
+    "north": 30.7,
+    "east": -90.8
+  },
+  "counties": [
+    "EAST BATON ROUGE",
+    "WEST BATON ROUGE",
+    "IBERVILLE",
+    "ASCENSION",
+    "LIVINGSTON"
+  ],
+  "tri_reporting_year": 2024,
+  "sources": {
+    "OSM": {
+      "url": "https://overpass-api.de/api/interpreter",
+      "note": "Industrial/works/power/storage-tank features from Overpass API."
+    },
+    "TRI facilities": {
+      "url": "https://data.epa.gov/efservice/tri_facility",
+      "counties": [
+        "EAST BATON ROUGE",
+        "WEST BATON ROUGE",
+        "IBERVILLE",
+        "ASCENSION",
+        "LIVINGSTON"
+      ]
+    },
+    "TRI releases": {
+      "url": "https://data.epa.gov/efservice/downloads/tri/mv_tri_basic_download/2024_LA/csv",
+      "year": 2024
+    },
+    "RMP": {
+      "url": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/FRS_INTERESTS/FeatureServer/0/query",
+      "note": "RMP facilities extracted from EPA FRS program acronym RMP."
+    },
+    "FRS": {
+      "url": "https://services.arcgis.com/cJ9YHowT8TU7DUyn/arcgis/rest/services/FRS_INTERESTS/FeatureServer/0/query",
+      "note": "Broader EPA registry gap-fill for relevant environmental programs."
+    },
+    "EJScreen": {
+      "url": "https://ejscreen.epa.gov/mapper/ejscreenRESTbroker.aspx",
+      "note": "Point query for CANCER and PM25 fields where available."
+    }
+  },
+  "facility_count": 8265,
+  "source_combination_counts": {
+    "TRI": 33,
+    "FRS+RMP+TRI": 15,
+    "FRS+OSM+RMP+TRI": 9,
+    "FRS+TRI": 21,
+    "FRS+OSM+TRI": 5,
+    "OSM+TRI": 2,
+    "FRS": 7733,
+    "FRS+OSM": 40,
+    "FRS+RMP": 59,
+    "OSM": 337,
+    "FRS+OSM+RMP": 11
+  },
+  "envirofacts_tri_preview_count": 1,
+  "top_15_by_releases_lbs": [
+    {
+      "name": "Rubicon Llc",
+      "kind": "Chemicals",
+      "sector": "Chemicals",
+      "releases_lbs": 7136311.75,
+      "sources": [
+        "TRI"
+      ]
+    },
+    {
+      "name": "Flopam Inc - Flopam Facility",
+      "kind": "Chemicals",
+      "sector": "Chemicals",
+      "releases_lbs": 4065599.0,
+      "sources": [
+        "FRS",
+        "RMP",
+        "TRI"
+      ]
+    },
+    {
+      "name": "Syngenta Crop Protection Llc Saint Gabriel Facility",
+      "kind": "Chemicals",
+      "sector": "Chemicals",
+      "releases_lbs": 2379284.717,
+      "sources": [
+        "TRI"
+      ]
+    },
+    {
+      "name": "The Dow Chemical Co - Louisiana Operations",
+      "kind": "Chemicals",
+      "sector": "Chemicals",
+      "releases_lbs": 1993688.69,
+      "sources": [
+        "TRI"
+      ]
+    },
+    {
+      "name": "Exxonmobil Chemicals",
+      "kind": "Chemicals",
+      "sector": "Chemicals",
+      "releases_lbs": 1725618.2,
+      "sources": [
+        "FRS",
+        "RMP",
+        "TRI"
+      ]
+    },
+    {
+      "name": "Basf Corp - Geismar Site",
+      "kind": "Chemicals",
+      "sector": "Chemicals",
+      "releases_lbs": 1625917.0,
+      "sources": [
+        "FRS",
+        "RMP",
+        "TRI"
+      ]
+    },
+    {
+      "name": "Exxonmobil Baton Rouge Refinery",
+      "kind": "Petroleum",
+      "sector": "Petroleum",
+      "releases_lbs": 1621764.241,
+      "sources": [
+        "FRS",
+        "RMP",
+        "TRI"
+      ]
+    },
+    {
+      "name": "Pcs Nitrogen Fertilizer Lp",
+      "kind": "Chemicals",
+      "sector": "Chemicals",
+      "releases_lbs": 1460649.53,
+      "sources": [
+        "TRI"
+      ]
+    },
+    {
+      "name": "Kinder Morgan Liquids Terminals Llc - Geismar Methanol Terminal",
+      "kind": "petroleum_terminal",
+      "sector": "Chemicals",
+      "releases_lbs": 1372273.528,
+      "sources": [
+        "FRS",
+        "OSM",
+        "RMP",
+        "TRI"
+      ]
+    },
+    {
+      "name": "Lion Copolymer Geismar Llc",
+      "kind": "Chemicals",
+      "sector": "Chemicals",
+      "releases_lbs": 1019679.0,
+      "sources": [
+        "TRI"
+      ]
+    },
+    {
+      "name": "St. Gabriel Facility",
+      "kind": "Chemicals",
+      "sector": "Chemicals",
+      "releases_lbs": 730159.59,
+      "sources": [
+        "FRS",
+        "RMP",
+        "TRI"
+      ]
+    },
+    {
+      "name": "Port Allen Refinery",
+      "kind": "Petroleum",
+      "sector": "Petroleum",
+      "releases_lbs": 660771.0,
+      "sources": [
+        "FRS",
+        "RMP",
+        "TRI"
+      ]
+    },
+    {
+      "name": "Westlake Chemicals & Vinyls Llc",
+      "kind": "Chemicals",
+      "sector": "Chemicals",
+      "releases_lbs": 566993.891,
+      "sources": [
+        "TRI"
+      ]
+    },
+    {
+      "name": "Tsrc Specialty Materials Llc",
+      "kind": "Chemicals",
+      "sector": "Chemicals",
+      "releases_lbs": 374980.0,
+      "sources": [
+        "TRI"
+      ]
+    },
+    {
+      "name": "Shintech Plaquemine Plant",
+      "kind": "Chemicals",
+      "sector": "Chemicals",
+      "releases_lbs": 371830.866,
+      "sources": [
+        "TRI"
+      ]
+    }
+  ],
+  "score_note": "Listing score combines 65% TRI release-weighted proximity, 20% nearest-facility proximity, 10% EJScreen air-toxics cancer index, and 5% EJScreen PM2.5 percentile. It is a relative screen, not a medical prediction."
+}
