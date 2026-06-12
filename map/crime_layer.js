@@ -146,7 +146,8 @@ BRMap.ready(async () => {
     const target = dotPop;
     fetchDetail(p).then((rows) => { try { target.setContent(detailHtml(p, rows)); } catch (_) {} });
   }
-  const HIT = 14; // px
+  // dot radius grows as you zoom in (shrinks out), clamped
+  const rZoom = () => { const z = map.getZoom(); return Math.max(3.5, Math.min(15, (z - 10) * 2.4 + 4)); };
   map.on("click", (e) => {
     if (!overlayActive || !currentFiltered.length) return;
     const cp = e.containerPoint, ll = e.latlng;
@@ -154,6 +155,7 @@ BRMap.ready(async () => {
     for (const id in BRMap.pins) { const m = BRMap.pins[id]; if (!m || !m.getLatLng) continue;
       const pp = map.latLngToContainerPoint(m.getLatLng());
       if (Math.abs(cp.x - pp.x) <= 14 && cp.y <= pp.y + 4 && cp.y >= pp.y - 36) return; }
+    const HIT = Math.max(13, rZoom() + 9); // click tolerance tracks the visible dot size
     const c2 = map.containerPointToLatLng(L.point(cp.x + HIT, cp.y + HIT));
     const dLat = Math.abs(c2.lat - ll.lat) + 1e-9, dLon = Math.abs(c2.lng - ll.lng) + 1e-9;
     let best = null, bestPx = Infinity;
@@ -165,6 +167,9 @@ BRMap.ready(async () => {
     }
     if (best && bestPx <= HIT) openDotDetail(best);
   });
+  // resize the dots when the zoom changes so they grow when zoomed in
+  map.on("zoomend", () => { if (!overlayActive || !ptsLayer || currentFiltered.length > 60000) return;
+    const r = rZoom(); ptsLayer.eachLayer((m) => { if (m.setRadius) m.setRadius(r); }); });
 
   // listing detail panel → wire the avg / 12-mo / total toggle (migrated from popupopen)
   if (BRMap.onDetailRender) BRMap.onDetailRender((l, root) => {

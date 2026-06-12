@@ -31,7 +31,8 @@ BRMap.ready(async () => {
   const LI = A.listings;
   let FAC = Array.isArray(A.facilities) ? A.facilities : null;
   if (!FAC || !FAC.length) FAC = (await BRMap.fetchJSON("pollution_facilities.json")) || [];
-  FAC = FAC.filter(f => f && f.lat != null && f.lon != null);
+  const FAC_ALL = FAC.filter(f => f && f.lat != null && f.lon != null);
+  FAC = FAC_ALL.filter(f => f.default_visible !== false);
 
   const esc = s => String(s == null ? "" : s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -39,7 +40,7 @@ BRMap.ready(async () => {
   const col = s => s >= 66 ? "#B23B3B" : s >= 33 ? "#C2691C" : "#1E7A34";
   const miFmt = v => v == null ? "" : (v < 10 ? Number(v).toFixed(1) : String(Math.round(v)));
   const lbs = v => Math.round(v).toLocaleString();
-  const SRC_ORDER = ["TRI", "RMP", "OSM", "FRS"];
+  const SRC_ORDER = ["TRI", "LDEQ", "RMP", "RCRAInfo", "NPDES", "ECHO_CAA", "OSM", "FRS"];
   const srcLabel = s => (s || []).slice().sort((a, b) => SRC_ORDER.indexOf(a) - SRC_ORDER.indexOf(b)).join(" + ");
   const EJ = "cancer_risk &amp; pm25 are null — EJScreen was unreachable at build. Relative TRI-release " +
     "proximity screening signal, not an absolute concentration or a medical estimate.";
@@ -85,7 +86,7 @@ BRMap.ready(async () => {
     // LOG-scaled intensity (not sqrt): TRI releases span ~1000x (one plant at 7.1M lb vs a ~19k-lb
     // median), so normalizing each plant by that single mega-emitter left everything else near zero
     // — that was the "all blue / low" artifact. Log lifts the mid/low emitters so real industry reads hot.
-    const pts = emitters.map(f => [f.lat, f.lon, Math.max(0.35, Math.log10(f.releases_lbs + 1) / lmax)]);
+    const pts = emitters.map(f => [f.lat, f.lon, Math.max(0.1, Math.log10(f.releases_lbs + 1) / lmax)]);
     // warm severity ramp only — amber → orange → red → deep maroon. No blue/green (blue reads "safe").
     const GRAD = { 0.0: "#ffd24d", 0.3: "#ff9100", 0.55: "#f4511e", 0.75: "#d32f2f", 0.9: "#b71c1c", 1.0: "#6d0000" };
     const GCSS = "linear-gradient(90deg,#ffd24d,#ff9100,#f4511e,#d32f2f,#b71c1c,#6d0000)";
@@ -94,12 +95,14 @@ BRMap.ready(async () => {
       id: "pollheat",
       label: "Pollution — TRI release heat",
       activate(ctx) {
-        // big radius + low `max` so the field saturates into orange/red, not a faint wash
-        if (!heat) heat = L.heatLayer(pts, { radius: 45, blur: 28, max: 1.1, minOpacity: 0.5, gradient: GRAD, pane: BRMap.panes && BRMap.panes.heat });
+        // tuned for CONTRAST: tighter radius + higher `max` so dense plant clusters read deep red while
+        // isolated plants stay amber/orange — instead of one saturated blob. (heat radius is in pixels,
+        // so it still spreads at very low zoom.)
+        if (!heat) heat = L.heatLayer(pts, { radius: 26, blur: 16, max: 2.2, minOpacity: 0.28, gradient: GRAD, pane: BRMap.panes && BRMap.panes.heat });
         heat.addTo(map);
         if (ctx && ctx.legend) ctx.legend(
           '<span class="sw">less</span><span class="bar" style="background:' + GCSS + '"></span><span class="sw">more</span>'
-          + '<div class="mut" style="width:100%">2024 TRI release lbs near a point, distance-blurred (log-scaled).</div>');
+          + '<div class="mut" style="width:100%">Density of 2024 TRI emitters, weighted by release lbs (log-scaled) — source density, not measured concentration.</div>');
       },
       deactivate() { if (heat) map.removeLayer(heat); }
     });
@@ -157,12 +160,23 @@ BRMap.ready(async () => {
     const ks = (f.kind && f.sector && f.kind !== f.sector) ? esc(f.kind) + " · " + esc(f.sector) : esc(f.sector || f.kind || "");
     if (ks) h += '<div class="row">' + ks + '</div>';
     if (f.sources && f.sources.length) h += '<div class="row">Sources: ' + esc(srcLabel(f.sources)) + '</div>';
-    if (f.releases_lbs != null) h += '<div class="row"><b>2024 TRI releases: ' + lbs(f.releases_lbs) + ' lb</b></div>';
+    if (f.releases_lbs != null) h += '<div class="row"><b>2024 TRI releases: ' + lbs(f.releases_lbs) + ' lb</b>'
+      + (f.air_lbs != null ? ' <span style="color:#5A6472">(' + lbs(f.air_lbs) + ' lb to air)</span>' : '') + '</div>';
     const wc = worstCase(f);
     if (wc) h += '<div class="row">Worst-case release radius: ~' + wc.mi + ' mi'
       + (wc.exact ? ' <span style="color:#5A6472">(RMP: ' + esc(wc.note) + ')</span>' : ' <span style="color:#5A6472">(corridor reference)</span>') + '</div>';
-    h += '<div class="row mut" style="font-size:10.5px">TRI releases are 2024 reported total releases (lb); '
-      + 'RMP/OSM identify chemical/industrial sites but do not imply measured emissions.</div>';
+    if (Array.isArray(f.chemicals) && f.chemicals.length) {
+      h += '<div class="row" style="font-size:11px;margin-top:3px"><b>Top chemicals (2024 TRI):</b><br>'
+        + f.chemicals.map(c => {
+            const nm = esc(c.name && c.name.length > 30 ? c.name.slice(0, 28) + "…" : c.name);
+            const air = c.air_lbs != null ? ' <span style="color:#5A6472">(' + lbs(c.air_lbs) + ' air)</span>' : '';
+            const carc = c.carcinogen ? ' <b style="color:#B23B3B">⚠ carcinogen</b>' : '';
+            return '· ' + nm + ' — ' + lbs(c.total_lbs) + ' lb' + air + carc;
+          }).join('<br>') + '</div>';
+    }
+    h += '<div class="row mut" style="font-size:10.5px">TRI releases shown here are reported air releases '
+      + '(fugitive + stack, lb); LDEQ emissions are reported annual air-emissions inventory values. '
+      + 'RMP/NPDES/RCRA/ECHO identify hazard, discharge, waste, or compliance context, not measured air concentration.</div>';
     return h + '</div>';
   }
   const facPane = (BRMap.panes && BRMap.panes.facils) || undefined;
@@ -172,11 +186,17 @@ BRMap.ready(async () => {
     const m = L.circleMarker([f.lat, f.lon], { renderer, radius: st.r, color: st.color, weight: 1, fillColor: st.fill, fillOpacity: 0.75 })
       .bindPopup(() => facPopup(f));
     m._fac = f;                                     // lets popupopen draw this plant's exposure rings
+    m._baseR = st.r;                                // base radius; grows with zoom (see sizeFacilities)
     return m;
   }));
+  // facility dots grow as you zoom in so they're easy to see and click
+  const facBonus = () => Math.max(0, Math.min(10, (map.getZoom() - 12) * 1.8));
+  const sizeFacilities = () => facLayer.eachLayer(m => { if (m.setRadius && m._baseR != null) m.setRadius(m._baseR + facBonus()); });
+  map.on("zoomend", () => { if (map.hasLayer(facLayer)) sizeFacilities(); });
   const nTRI = FAC.filter(f => f.releases_lbs != null).length;
   const nRMP = FAC.filter(f => f.releases_lbs == null && (f.sources || []).includes("RMP")).length;
-  const nOSM = FAC.length - nTRI - nRMP;
+  const nOSM = FAC.filter(f => f.releases_lbs == null && !(f.sources || []).includes("RMP") && (f.sources || []).includes("OSM")).length;
+  const nHiddenContext = FAC_ALL.length - FAC.length;
 
   const sec = BRMap.section("air", "Pollution / industrial proximity");
   sec.insertAdjacentHTML("beforeend",
@@ -186,7 +206,7 @@ BRMap.ready(async () => {
       '<span class="sw"><i style="background:#DD6B20"></i>RMP</span>' +
       '<span class="sw"><i style="background:#AEB6BF"></i>industrial (OSM)</span></div>' +
     '<div class="mut">' + nTRI + ' TRI emitters · ' + nRMP + ' RMP · ' + nOSM + ' other industrial. ' +
-      'EPA FRS registry-only points excluded. ' + EJ + '</div>' +
+      'FRS-only / OSM-only context hidden by default (' + nHiddenContext + ' additional context points). ' + EJ + '</div>' +
     '<label style="margin-top:7px"><input type="checkbox" id="polRings" checked> Exposure-risk rings (click a plant)</label>' +
     '<div class="legend" style="margin-top:2px">' +
       '<span class="sw"><i style="background:#e53935"></i>chronic ≤1.6 / 5 / 10 km</span>' +
@@ -197,7 +217,7 @@ BRMap.ready(async () => {
       'Screening reference distances, not a plant-specific dispersion model.</div>');
 
   const facEl = document.getElementById("polFac");
-  if (facEl) facEl.onchange = e => { if (e.target.checked) facLayer.addTo(map); else { map.removeLayer(facLayer); clearRings(); } };
+  if (facEl) facEl.onchange = e => { if (e.target.checked) { facLayer.addTo(map); sizeFacilities(); } else { map.removeLayer(facLayer); clearRings(); } };
   const ringsEl = document.getElementById("polRings");
   if (ringsEl) ringsEl.onchange = e => { ringsOn = e.target.checked; if (!ringsOn) clearRings(); };
 });
