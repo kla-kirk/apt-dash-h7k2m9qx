@@ -177,6 +177,44 @@ table.cmp td.win{background:var(--salebg)}table.cmp td.win .v{color:var(--accent
 .slotlist{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.slotpill{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 8px;font-size:11.5px;color:var(--g600)}
 .minirow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.minirow .field{margin:0;min-width:118px;flex:1}.minirow .field input,.minirow .field select{padding:7px 8px}
 @media(max-width:820px){.plangrid{grid-template-columns:1fr}.srcrow{grid-template-columns:1fr}.planner-modal .mb{max-height:none}}
+
+/* --- redesigned planner --- */
+.plhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.plstats{display:flex;gap:6px;flex-wrap:wrap}.plactions{display:flex;gap:6px;flex-wrap:wrap}
+.plchip{display:inline-flex;align-items:center;font-size:12px;padding:3px 9px;border-radius:999px;background:#eef1f6;color:#3a4658;font-weight:550}
+.plchip.ok{background:#e7f4ea;color:#1e7a34}.plchip.warn{background:#fdf3e0;color:#9a6a00}.plchip.accent{background:#eaf0ff;color:#3b5bdb}
+.plseg{display:inline-flex;background:#eceff4;border-radius:10px;padding:3px;gap:2px;margin-bottom:14px}
+.plseg button{border:0;background:transparent;border-radius:7px;padding:6px 13px;font-weight:600;color:#6b7686;cursor:pointer;font-size:13px}
+.plseg button.on{background:#fff;color:#1c2433;box-shadow:0 1px 2px rgba(20,30,50,.12)}
+.plcal{overflow:auto;max-height:58vh;border:1px solid #e6e9ef;border-radius:12px}
+.plcalhead{display:grid;grid-template-columns:48px repeat(4,1fr);position:sticky;top:0;background:#fff;z-index:2;border-bottom:1px solid #e6e9ef}
+.plcalhead .dh{padding:8px 6px;text-align:center;font-size:12px;font-weight:650;border-left:1px solid #e6e9ef}
+.plcalhead .dh small{display:block;color:#6b7686;font-weight:500;font-size:10.5px}.plcalhead .corner{border:0}
+.plcalbody{display:grid;grid-template-columns:48px repeat(4,1fr)}
+.plgutter .hr{height:44px;font-size:10px;color:#6b7686;text-align:right;padding:1px 5px 0 0;box-sizing:border-box}
+.pldcol{position:relative;border-left:1px solid #e6e9ef;background:repeating-linear-gradient(#fff,#fff 43px,#eef0f5 43px,#eef0f5 44px)}
+.plavail{position:absolute;left:0;right:0;background:#eaf0ff;border-left:2px solid #b9c8f5}
+.plev{position:absolute;left:3px;right:3px;border-radius:6px;padding:3px 5px;font-size:10px;line-height:1.2;overflow:hidden;color:#fff;cursor:pointer;box-shadow:0 1px 2px rgba(20,30,50,.18)}
+.plev b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10.5px}
+.plev.confirmed{background:#1e7a34}.plev.scheduled{background:#3b5bdb}.plev.awaiting{background:#9a6a00}
+.plopen{position:absolute;left:3px;right:3px;border:1px dashed #7b93e8;background:#f4f7ff;color:#3b5bdb;border-radius:6px;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:600;box-sizing:border-box}
+.plopen:hover{background:#e6edff}
+.plmapwrap{display:grid;grid-template-columns:1fr 290px;gap:0;border:1px solid #e6e9ef;border-radius:12px;overflow:hidden}
+.plmapbox{background:linear-gradient(180deg,#eef3f1,#e9eef3);min-height:400px;border-right:1px solid #e6e9ef}
+.plstoplist{padding:12px;max-height:54vh;overflow:auto}
+.plstop{display:flex;gap:9px;align-items:flex-start;padding:8px;border:1px solid #e6e9ef;border-radius:9px;margin-bottom:7px}
+.plpin{flex:none;width:22px;height:22px;border-radius:50%;background:#3b5bdb;color:#fff;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center}
+.pldaytabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.pldaytabs button{padding:5px 11px;font-size:12px;border-radius:999px;border:1px solid #e6e9ef;background:#fff;cursor:pointer}
+.pldaytabs button.on{background:#3b5bdb;color:#fff;border-color:#3b5bdb}
+.plpipe{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.plcol{background:#fbfcfe;border:1px solid #e6e9ef;border-radius:10px;padding:9px;min-height:80px}
+.plcol h5{margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#6b7686;display:flex;justify-content:space-between}
+.plpcard{background:#fff;border:1px solid #e6e9ef;border-radius:9px;padding:8px;margin-top:8px;cursor:pointer}
+.plpcard:hover{border-color:#3b5bdb}
+.qfill{padding:9px;border:1px solid #e6e9ef;border-radius:9px;margin-bottom:7px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.qfill:hover{border-color:#3b5bdb;background:#f4f7ff}
+@media(max-width:760px){.plmapwrap{grid-template-columns:1fr}.plpipe{grid-template-columns:repeat(2,1fr)}}
 </style></head>
 <body><div class="wrap">
  <div class="top">
@@ -950,25 +988,74 @@ function parseSheet(md){
    =========================================================================== */
 let scheduleTargetId=null, messageTargetId=null, messageKind="initial";
 function activeTourListings(){ return listings.filter(activeForTours); }
+/*__PLANNER2_START__*/
+const COORDS={"2115 E Ramsey Dr":[30.429043,-91.146854],"2437 Fiero St":[30.425011,-91.1619],"9003 Magnolia View Dr":[30.377,-91.115],"415 Bedford Dr":[30.444959,-91.157492],"417 Bedford Dr":[30.444939,-91.157492],"9446 High Point Rd":[30.371114,-91.113354],"709 Staring Ln":[30.378812,-91.116969],"The Terraces at Perkins Rowe":[30.378031,-91.095543],"8808 Magnolia Leaf Ave":[30.378515,-91.116876],"4738 Woodlyn Dr":[30.408459,-91.038504],"5416 Heron Nest Dr":[30.4282,-91.0193],"6024 Woodlawn Park Ct":[30.397985,-91.018665],"9314 Fox Run Ave":[30.365465,-91.122714],"10177 Bonnet Cove Ave":[30.356855,-91.114277],"633 Fall Creek Dr":[30.36123,-91.118092],"9412 Windward Rd":[30.369601,-91.114693],"4573 Charleston Villa Dr":[30.410339,-91.009528],"620 Nelson Dr":[30.392817,-91.146962],"734 Caddo St":[30.44217,-91.137536],"2103 Government St":[30.443929,-91.166762],"1525 S Eugene St":[30.434557,-91.159485],"750 Acadia St":[30.442059,-91.135516],"541 Terry Dr":[30.443775,-91.152256],"740 Acadia St":[30.442169,-91.135519],"2102 Sassy Ln":[30.418598,-91.150976],"2340 Government St":[30.443913,-91.162975],"3650 Perkins Rd":[30.420714,-91.152251],"4468 Cypress St":[30.40908,-91.148653],"2326 Terrace Ave":[30.436659,-91.163238],"540 Drehr Ave":[30.443566,-91.163841],"2267 Cedardale Ave":[30.422878,-91.156875],"4268 Arrowhead St":[30.414369,-91.148206],"2750 Millerville Rd   # 148292":[30.434932,-91.024447],"5500 Perkins Rd   # 3131":[30.410303,-91.131069],"11888 Old Hammond Hwy # fa691bb87":[30.438481,-91.051423],"8001 Pine Valley Dr # 102":[30.378966,-91.024201],"11111 N  Harrells Ferry Rd b4fa16f":[30.432883,-91.060309],"417 E  State St # 2":[30.419315,-91.173318],"16333 Columns Way # 6":[30.36551,-91.011987],"10231 The Grove Blvd # 1209":[30.385901,-91.079943],"4850 Rouzan Square Ave # 442":[30.413532,-91.1387],"10245 Airline Hwy":[30.418523,-91.071137],"6810 Jefferson Hwy  # 5208":[30.433854,-91.119697],"8363 Siegen Ln # 69":[30.372954,-91.071478],"10156 Perkins Rowe":[30.378679,-91.093513],"5960 Siegen Ln # 7204":[30.395923,-91.057805],"10231 Bluebonnet Blvd # D":[30.351117,-91.111811],"7248 Perkins Rd":[30.397925,-91.114246],"2040 Gayosa St   cfe2f":[30.454114,-91.167883],"2501 Brightside Dr":[30.38876,-91.18679],"5344 River Meadow Dr":[30.388715,-91.201961],"4284 Oxford Ave":[30.404298,-91.172056],"505 University Walk":[30.454021,-91.185748],"900 Dean Lee Dr":[30.38537,-91.171156],"4264 Oxford Ave":[30.404472,-91.172282],"2534 Oleander St":[30.442289,-91.16189],"4253 Janet Ave":[30.402021,-91.174989],"714 Jennifer Jean Dr":[30.398707,-91.175964],"8155 Jefferson Hwy":[30.42347,-91.103465],"5151 Etta St -G":[30.389766,-91.17014],"1726 Brightside Dr":[30.387851,-91.177669],"4240 Dodson Ave":[30.40261,-91.174689],"644 Highland Park Dr":[30.364779,-91.124823],"1712 Brightside Dr":[30.387781,-91.177028],"1724 Brightside Dr":[30.387812,-91.177306],"1704 Brightside Dr":[30.387768,-91.176912],"1763 Briar Oak Dr":[30.368654,-91.08458],"13543 Honey Dr":[30.365472,-91.069557],"3938 Garden View Dr":[30.411805,-91.072498],"7743 Bles Ave":[30.392208,-91.108665],"1820 Jade Ave":[30.352496,-91.12093],"314 Bedford Dr":[30.44591,-91.157668],"1530 Goldenrod Ave":[30.434633,-91.154181],"162 E State St":[30.418443,-91.175522],"5212 Butter Creek Ln":[30.397355,-91.099088],"4250 Janet Ave":[30.401954,-91.175101],"620 Kenmore Ave":[30.4431,-91.158168],"4441 Burbank Dr":[30.399823,-91.173877],"2094 Elissalde St":[30.422498,-91.162518],"7950 Jefferson Hwy":[30.425339,-91.105664],"1478 Sharlo Ave":[30.390003,-91.184749],"17247 Tidewater Ln":[30.320507,-91.129888],"3101 Highland Rd":[30.420466,-91.177509],"5236 Brightside Dr":[30.386494,-91.181331],"5131 Butter Creek Ln":[30.397922,-91.098888],"5110 Butter Creek Ln":[30.397993,-91.098694],"8506 Leake Ave":[30.348963,-91.135291],"8240 Rocky Trail Ave":[30.36266,-91.142006],"2509 Olive St":[30.439669,-91.162055],"879 S Eugene St":[30.440697,-91.159831],"4326 Highland Rd":[30.403365,-91.172106],"7183 Chandler Dr":[30.391915,-91.133684],"7855 Clover Ridge Ave":[30.368873,-91.12748],"115 S Leo St":[30.448293,-91.146253],"7646 Antebellum Ave":[30.362858,-91.140757],"3202 Ivanhoe St":[30.418788,-91.174287],"14014 Azalea Park Ave":[30.4496,-91.030298],"3262 Wyoming St":[30.419169,-91.1885],"229 E State St":[30.418718,-91.174923],"1564 Belmont Ave":[30.43534,-91.165276],"5141 Brightside View Dr":[30.387389,-91.181069],"322 Flicker St":[30.533574,-91.197431],"14555 Old Hammond Hwy":[30.452017,-91.024034],"3645 Gladiola St":[30.415834,-91.155512],"205 E State St":[30.418651,-91.175166],"5137 Nicholson Dr":[30.389443,-91.172553],"2403 Brightside Dr":[30.388575,-91.185029],"2293 Hollydale Ave":[30.424586,-91.158223],"5213 Butter Creek Ln":[30.397409,-91.099206],"10428 Jefferson Hwy":[30.408628,-91.067079],"115 Clara Dr":[30.400035,-91.16735],"1226 Stoneliegh Dr":[30.38852,-91.127869],"3625 Partridge Ln":[30.416182,-91.08289],"10600 Lakes Blvd":[30.356346,-91.108955],"18548 Lake Camellia Ave":[30.356091,-90.98443],"10655 Woodland Oaks Dr":[30.40087,-91.062684],"5050 Stumberg Ln":[30.405548,-91.037084],"402 Lee Dr":[30.397222,-91.156604],"710 Park Blvd":[30.441929,-91.169138],"6765 Corporate Blvd":[30.425072,-91.123118],"1939 Terrace Ave":[30.436699,-91.168328],"814 Lonita St":[30.446648,-91.073473],"8732 Jefferson Hwy":[30.418335,-91.091812],"2001 Red Stick Dr":[30.432124,-91.078717],"8212 Argosy Ct":[30.428279,-91.101003],"1046 Sedona Pines Dr":[30.455793,-91.009553],"2122 Stonehenge Ave":[30.387172,-91.183663],"8246 Ned Ave":[30.35486,-91.134604],"350 E State St":[30.419078,-91.173725],"4009 Victory Dr":[30.492591,-91.130654],"1977 Cherrydale Ave":[30.418101,-91.156054],"1781 Province Pl":[30.43779,-91.046171],"8028 Valley St":[30.425807,-91.145274],"10057 Jefferson Hwy":[30.4097,-91.071526]};
+let plannerTab="cal", plMapDay=TOUR_DAYS[0].date, plOpt=false;
+function shortAddr(a){return (a||"").split(" ").slice(0,3).join(" ");}
+function plHaversine(a,b){var r=Math.PI/180,la1=a[0]*r,la2=b[0]*r,dla=(b[0]-a[0])*r,dlo=(b[1]-a[1])*r;var x=Math.sin(dla/2)*Math.sin(dla/2)+Math.cos(la1)*Math.cos(la2)*Math.sin(dlo/2)*Math.sin(dlo/2);return 7917.5*Math.asin(Math.sqrt(x));}
+function optimizeRoute(stops){var pts=stops.filter(function(l){return COORDS[l.address];});if(pts.length<3)return stops;var rem=pts.slice(),route=[rem.shift()];while(rem.length){var last=COORDS[route[route.length-1].address],bi=0,bd=1e9;rem.forEach(function(l,i){var d=plHaversine(last,COORDS[l.address]);if(d<bd){bd=d;bi=i;}});route.push(rem.splice(bi,1)[0]);}return route;}
+function planStats(){var a=activeTourListings();var sched=a.filter(function(l){var t=l.tour||{};return t.date&&t.start&&t.state!=="cancelled"&&t.state!=="unavailable";}).length;var conf=a.filter(function(l){return tourState(l)==="confirmed";}).length;var awa=a.filter(function(l){return tourState(l)==="awaiting_reply";}).length;return {n:a.length,sched:sched,conf:conf,awa:awa};}
 function openTourPlanner(){
-  const av=loadAvailability(), hasAvail=TOUR_DAYS.some(d=>(av.windows&&av.windows[d.date]||[]).length);
-  const active=activeTourListings(), queue=active.filter(l=>!["confirmed","visited","cancelled","unavailable"].includes(tourState(l)));
-  const planbar='<div class="planbar"><button class="btn sm" onclick="openAvailabilitySetup()">Set availability</button><button class="btn ghost sm" onclick="clearAvailability()">Clear availability</button><button class="btn ghost sm" onclick="downloadIcs()">Download confirmed .ics</button><button class="btn ghost sm" onclick="exportPlannerState()">Export planner state</button><button class="btn ghost sm" onclick="importPlannerState()">Import planner state</button><span class="zip">'+active.length+' active listings · '+queue.length+' still actionable · duration '+(av.duration||45)+'m · buffer '+(av.buffer||30)+'m</span></div>';
-  const note=hasAvail?"":'<div class="note">Add your exact June 19-22 availability before using suggested slots. You can still draft messages and log contact attempts now.</div>';
-  const days='<div class="plangrid">'+TOUR_DAYS.map(d=>{
-    const items=active.filter(l=>{const t=l.tour||{}; return t.date===d.date&&t.start&&t.state!=="cancelled";}).sort((a,b)=>mins((a.tour||{}).start)-mins((b.tour||{}).start));
-    const slots=hasAvail?slotsForDate(d.date,av.duration,av.buffer).slice(0,10):[];
-    return '<div class="daycol"><div class="dayhead"><span>'+d.label+'</span><span class="zip">'+items.length+' tours</span></div><div class="daybody">'+
-      (items.length?items.map(l=>{const t=tourOf(l); return '<div class="tourcard"><div class="addr">'+esc(l.address)+'</div><div class="meta">'+fmtTime(t.start)+' · '+stateBadge(t.state)+' · '+fmtPriceL(l)+'</div><div class="qactions"><button class="btn ghost sm" onclick="openScheduleListing(\''+l.id+'\')">Edit</button><button class="btn ghost sm" onclick="openMessageComposer(\''+l.id+'\',\'confirm\')">Confirm</button></div></div>';}).join(""):'<div class="zip">No appointments yet</div>')+
-      (slots.length?'<div class="slotlist">'+slots.map(s=>'<span class="slotpill">'+fmtTime(s)+'</span>').join("")+'</div>':"")+
-      '</div></div>';
-  }).join("")+'</div>';
-  const q='<h4 style="margin:16px 0 8px">Action Queue</h4><div class="queuegrid">'+queue.map(l=>{
-    const t=tourOf(l), ms=marketSummary(l);
-    return '<div class="qcard"><div class="qa">'+esc(l.address)+(l.status==="off"?' <span class="sourcechip warn">Off-market</span>':'')+'</div><div class="zip">'+fmtPriceL(l)+(l.type==="rent"?"/mo":"")+' · '+sourceChips(l)+'</div><div>'+stateBadge(t.state)+(ms.statusConflict?' <span class="sourcechip warn">Status conflict</span>':"")+'</div><div class="qactions"><button class="btn ghost sm" onclick="openMessageComposer(\''+l.id+'\',\'initial\')">Draft</button><button class="btn ghost sm" onclick="openScheduleListing(\''+l.id+'\')">Schedule</button><button class="btn ghost sm" onclick="openDetail(\''+l.id+'\')">Details</button></div></div>';
-  }).join("")+'</div>';
-  openDynamicModal("plannerScrim","Tour Planner · June 19-22, 2026",planbar+note+days+q,'<button class="btn ghost sm" onclick="closeDynamic(\'plannerScrim\')">Close</button>',1180);
+  var s=planStats();
+  var head='<div class="plhead"><div class="plstats"><span class="plchip accent">'+s.n+' approved</span><span class="plchip">'+s.sched+' scheduled</span><span class="plchip ok">'+s.conf+' confirmed</span><span class="plchip warn">'+s.awa+' awaiting</span></div>'+
+    '<div class="plactions"><button class="btn sm" onclick="openAvailabilitySetup()">Set availability</button><button class="btn ghost sm" onclick="downloadIcs()">Export .ics</button><button class="btn ghost sm" onclick="exportPlannerState()">Export</button><button class="btn ghost sm" onclick="importPlannerState()">Import</button></div></div>';
+  var seg='<div class="plseg"><button id="plseg-cal" onclick="setPlannerTab(\'cal\')">📅 Calendar</button><button id="plseg-map" onclick="setPlannerTab(\'map\')">🗺 Map &amp; route</button><button id="plseg-out" onclick="setPlannerTab(\'out\')">✉ Outreach</button></div>';
+  openDynamicModal("plannerScrim","Tour Planner · June 19-22, 2026",head+seg+'<div id="plView"></div>','<button class="btn ghost sm" onclick="closeDynamic(\'plannerScrim\')">Close</button>',1280);
+  renderPlannerView();
 }
+function setPlannerTab(t){plannerTab=t;renderPlannerView();}
+function renderPlannerView(){var v=document.getElementById("plView");if(!v)return;["cal","map","out"].forEach(function(t){var b=document.getElementById("plseg-"+t);if(b)b.classList.toggle("on",t===plannerTab);});v.innerHTML=plannerTab==="cal"?plCalendar():plannerTab==="map"?plMap():plOutreach();}
+function plCalendar(){
+  var av=loadAvailability(),H0=8,H1=20,PXH=44,BODYH=(H1-H0)*PXH;
+  var hm2=function(t){var p=(t||"0:0").split(":").map(Number);return p[0]+(p[1]||0)/60;};
+  var head='<div class="plcalhead"><div class="dh corner"></div>'+TOUR_DAYS.map(function(d){var p=d.label.split(" ");return '<div class="dh">'+p[0]+'<small>'+p.slice(1).join(" ")+'</small></div>';}).join("")+'</div>';
+  var gut='<div class="plgutter">';for(var h=H0;h<H1;h++){var ap=h>=12?"p":"a",hh=h%12||12;gut+='<div class="hr">'+hh+ap+'</div>';}gut+='</div>';
+  var cols='';
+  TOUR_DAYS.forEach(function(d){
+    var c='<div class="pldcol" style="height:'+BODYH+'px">';
+    ((av.windows&&av.windows[d.date])||[]).forEach(function(w){var a=hm2(w.start),b=hm2(w.end);c+='<div class="plavail" style="top:'+((a-H0)*PXH)+'px;height:'+((b-a)*PXH)+'px"></div>';});
+    slotsForDate(d.date,av.duration,av.buffer).slice(0,12).forEach(function(sl){c+='<div class="plopen" style="top:'+((hm2(sl)-H0)*PXH)+'px;height:'+(((av.duration||45)/60*PXH)-2)+'px" onclick="quickFill(\''+d.date+'\',\''+sl+'\')">+ '+fmtTime(sl)+'</div>';});
+    activeTourListings().filter(function(l){var t=l.tour||{};return t.date===d.date&&t.start&&t.state!=="cancelled";}).forEach(function(l){var t=tourOf(l);var top=(hm2(t.start)-H0)*PXH;var dur=Math.max((t.duration||45)/60*PXH,26);var st=t.state==="confirmed"?"confirmed":t.state==="awaiting_reply"?"awaiting":"scheduled";c+='<div class="plev '+st+'" style="top:'+top+'px;height:'+dur+'px" onclick="openScheduleListing(\''+l.id+'\')" title="'+esc(l.address)+'"><b>'+fmtTime(t.start)+' '+esc(shortAddr(l.address))+'</b>'+fmtPriceL(l)+(l.status==="off"?" · off-mkt":"")+'</div>';});
+    c+='</div>';cols+=c;
+  });
+  var hasAv=av.windows&&Object.keys(av.windows).length;
+  var note=hasAv?"":'<div class="note">No availability set yet — click <b>Set availability</b> to add your June 19-22 time windows; open slots will appear here.</div>';
+  return note+'<div class="plcal">'+head+'<div class="plcalbody">'+gut+cols+'</div></div>';
+}
+function quickFill(date,slot){
+  var cand=activeTourListings().filter(function(l){var t=l.tour||{};return !(t.date&&t.start);});
+  var body='<div class="note">Book '+dateLabel(date)+' at '+fmtTime(slot)+' with one of your approved places:</div>'+(cand.length?cand.map(function(l){return '<div class="qfill" onclick="assignSlot(\''+l.id+'\',\''+date+'\',\''+slot+'\')"><b>'+esc(l.address)+(l.status==="off"?' <span class="sourcechip warn">Off-market</span>':'')+'</b><span class="zip">'+fmtPriceL(l)+(l.type==="rent"?"/mo":"")+'</span></div>';}).join(""):'<div class="zip">All approved places already have a time. Edit one from the calendar.</div>');
+  openDynamicModal("qfillScrim","Book "+fmtTime(slot),body,'<button class="btn ghost sm" onclick="closeDynamic(\'qfillScrim\')">Cancel</button>');
+}
+function assignSlot(id,date,slot){var l=byId(id);if(!l)return;var t=tourOf(l);t.date=date;t.start=slot;if(t.state==="to_contact")t.state="tentative";save();render();closeDynamic("qfillScrim");renderPlannerView();toast("Tour added to "+dateLabel(date));}
+function setPlMapDay(d){plMapDay=d;plOpt=false;renderPlannerView();}
+function togglePlOpt(){plOpt=!plOpt;renderPlannerView();}
+function plMap(){
+  var stops=activeTourListings().filter(function(l){var t=l.tour||{};return t.date===plMapDay&&t.start&&COORDS[l.address];}).sort(function(a,b){return mins(tourOf(a).start)-mins(tourOf(b).start);});
+  var order=plOpt?optimizeRoute(stops):stops;
+  var tabs='<div class="pldaytabs">'+TOUR_DAYS.map(function(d){return '<button class="'+(d.date===plMapDay?"on":"")+'" onclick="setPlMapDay(\''+d.date+'\')">'+d.label+'</button>';}).join("")+'<button class="'+(plOpt?"on":"")+'" style="margin-left:auto" onclick="togglePlOpt()">⚡ Optimize order</button></div>';
+  var svg,pts=order.map(function(l){return COORDS[l.address];});
+  if(pts.length){
+    var lats=pts.map(function(p){return p[0];}),lons=pts.map(function(p){return p[1];});
+    var minLa=Math.min.apply(0,lats),maxLa=Math.max.apply(0,lats),minLo=Math.min.apply(0,lons),maxLo=Math.max.apply(0,lons);
+    if(maxLa-minLa<0.012){minLa-=0.012;maxLa+=0.012;} if(maxLo-minLo<0.012){minLo-=0.012;maxLo+=0.012;}
+    var X=function(lo){return 40+(lo-minLo)/(maxLo-minLo)*520;},Y=function(la){return 360-(la-minLa)/(maxLa-minLa)*320;};
+    var g='<rect width="600" height="400" fill="#e9eef3"/>';
+    for(var i=1;i<7;i++)g+='<line x1="'+(i*85)+'" y1="0" x2="'+(i*85)+'" y2="400" stroke="#dde3ea"/><line x1="0" y1="'+(i*57)+'" x2="600" y2="'+(i*57)+'" stroke="#dde3ea"/>';
+    if(pts.length>1){var d="M";order.forEach(function(l,i){var p=COORDS[l.address];d+=(i?"L":"")+X(p[1]).toFixed(0)+","+Y(p[0]).toFixed(0)+" ";});g+='<path d="'+d+'" fill="none" stroke="#3b5bdb" stroke-width="3" stroke-dasharray="2 6"/>';}
+    order.forEach(function(l,i){var p=COORDS[l.address];g+='<circle cx="'+X(p[1])+'" cy="'+Y(p[0])+'" r="13" fill="#3b5bdb"/><text x="'+X(p[1])+'" y="'+(Y(p[0])+4)+'" text-anchor="middle" fill="#fff" font-size="12" font-weight="700">'+(i+1)+'</text>';});
+    svg='<svg viewBox="0 0 600 400" style="width:100%;height:100%;min-height:400px;display:block">'+g+'</svg>';
+  } else svg='<div style="padding:46px 20px;text-align:center;color:#6b7686">No scheduled tours for this day yet. Add some on the Calendar tab.</div>';
+  var total=0;
+  var list=order.length?order.map(function(l,i){var leg=0;if(i){leg=Math.round(plHaversine(COORDS[order[i-1].address],COORDS[l.address])*2.2)+3;total+=leg;}return '<div class="plstop"><div class="plpin">'+(i+1)+'</div><div><b style="font-size:12px">'+esc(l.address)+'</b><div class="zip">'+fmtTime(tourOf(l).start)+' · '+fmtPriceL(l)+(i?' · 🚗 ~'+leg+' min':'')+'</div></div></div>';}).join(""):'<div class="zip">Schedule tours on the Calendar tab to see a route.</div>';
+  return tabs+'<div class="plmapwrap"><div class="plmapbox">'+svg+'</div><div class="plstoplist"><h4 style="font-size:13px;margin:0 0 10px">'+dateLabel(plMapDay)+' route'+(order.length>1?' · ~'+total+' min driving':'')+'</h4>'+list+'<div class="note" style="margin-top:10px">Drive times are straight-line estimates. <a href="map/" target="_blank" rel="noopener">Open full map ↗</a></div></div></div>';
+}
+function plOutreach(){
+  var cols=[["to_contact","To contact"],["drafted","Drafted"],["awaiting_reply","Awaiting reply"],["confirmed","Confirmed"]];
+  var a=activeTourListings();
+  return '<div class="plpipe">'+cols.map(function(pair){var s=pair[0],lab=pair[1];var items=a.filter(function(x){return tourState(x)===s;});return '<div class="plcol"><h5>'+lab+'<span>'+items.length+'</span></h5>'+items.map(function(x){var kind=s==="confirmed"?"confirm":s==="awaiting_reply"?"followup":"initial";return '<div class="plpcard" onclick="openMessageComposer(\''+x.id+'\',\''+kind+'\')"><b style="font-size:12px">'+esc(x.address)+'</b><div class="zip">'+fmtPriceL(x)+(x.type==="rent"?"/mo":"")+(x.status==="off"?' · <span style="color:#b23b3b">off-market</span>':'')+'</div></div>';}).join("")+'</div>';}).join("")+'</div>';
+}
+/*__PLANNER2_END__*/
 function openAvailabilitySetup(){
   const av=loadAvailability(), wins=av.windows||{};
   const rows=TOUR_DAYS.map(d=>'<div class="field"><label>'+d.label+' windows</label><input id="av_'+d.date+'" placeholder="10:00-12:00, 14:00-17:30" value="'+esc((wins[d.date]||[]).map(w=>w.start+"-"+w.end).join(", "))+'"></div>').join("");
