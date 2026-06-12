@@ -132,9 +132,10 @@ BRMap.ready(async () => {
   const TMETA = { am: "AM rush", pm: "PM rush", off: "off-peak" };
   BRMap.addPopupRow((l) => { const c = C[l.address]; if (!c) return "";
     const v = c[timeMode], mi = c.miles && (c.miles[timeMode] != null ? c.miles[timeMode] : c.miles.off);
-    return '<div class="row">→ LSU (' + TMETA[timeMode] + '): ' + (v != null ? "<b>" + Math.round(v) + " min</b>" : "—") +
-      (mi != null ? ' <span class="mut">· ' + (+mi).toFixed(1) + " mi</span>" : "") + "</div>" +
-      '<div class="row mut">AM ' + c.am + " · PM " + c.pm + " · off " + c.off + " min</div>"; }, "commute");
+    const cell = (lab, val) => '<div class="cm-cell"><b>' + (val != null ? Math.round(val) + " min" : "—") + '</b><span>' + lab + '</span></div>';
+    return '<div class="row" style="display:flex;align-items:baseline;gap:7px"><span style="color:#566070">→ LSU campus:</span> <b style="font-size:14px">' + (v != null ? Math.round(v) + " min" : "—") + '</b>' +
+      (mi != null ? '<span class="mut">· ' + (+mi).toFixed(1) + " mi drive</span>" : "") + "</div>" +
+      '<div class="cm-cells">' + cell("AM rush", c.am) + cell("PM rush", c.pm) + cell("off-peak", c.off) + "</div>"; }, "commute");
 
   // at-a-glance summary chip (listing panel)
   if (typeof BRMap.addSummaryChip === "function") BRMap.addSummaryChip((l) => { const c = C[l.address]; if (!c) return null;
@@ -155,6 +156,10 @@ BRMap.ready(async () => {
   // chip styles + delegated click
   document.head.insertAdjacentHTML("beforeend",
     "<style>.cm-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}" +
+    ".cm-cells{display:flex;gap:6px;margin-top:6px}" +
+    ".cm-cell{flex:1;text-align:center;background:#F6F8FB;border:1px solid #EEF1F5;border-radius:7px;padding:5px 2px}" +
+    ".cm-cell b{display:block;font-size:13px;color:#26303B}" +
+    ".cm-cell span{font-size:9.5px;color:#46505E;text-transform:uppercase;letter-spacing:.3px;font-weight:600}" +
     ".cm-chip{font:inherit;font-size:11px;line-height:1;padding:3px 7px;border:1px solid #C7CDD6;border-radius:12px;background:#fff;color:#2B5797;cursor:pointer}" +
     ".cm-chip:hover{background:#EEF3FB;border-color:#2B5797}" +
     ".leaflet-tooltip.lsu-lbl{background:#1A73E8;color:#fff;border:1px solid #fff;border-radius:6px;font-size:11px;font-weight:700;padding:1px 7px;box-shadow:0 1px 3px rgba(0,0,0,.4)}.leaflet-tooltip.lsu-lbl:before{display:none}</style>");
