@@ -33,6 +33,9 @@ BRMap.ready(async () => {
   if (!FAC || !FAC.length) FAC = (await BRMap.fetchJSON("pollution_facilities.json")) || [];
   const FAC_ALL = FAC.filter(f => f && f.lat != null && f.lon != null);
   FAC = FAC_ALL.filter(f => f.default_visible !== false);
+  const normName = s => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const FACBYNAME = {};
+  FAC_ALL.forEach(f => { const k = normName(f.name); if (k && !(k in FACBYNAME)) FACBYNAME[k] = f; });
 
   const esc = s => String(s == null ? "" : s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -63,10 +66,16 @@ BRMap.ready(async () => {
         if (f.releases_lbs != null) bits.push("TRI air " + lbs(f.releases_lbs) + " lb");
         if (f.ldeq_air_emissions_tpy != null) bits.push("LDEQ " + Number(f.ldeq_air_emissions_tpy).toLocaleString() + " tpy");
         if (f.npdes_dmr_pounds != null) bits.push("DMR " + lbs(f.npdes_dmr_pounds) + " lb");
+        const full = FACBYNAME[normName(f.name)];                              // match to full facility record
+        if (full && (full.dominant_risk_type || full.dominant_chemical)) {
+          let dx = full.dominant_chemical ? esc(full.dominant_chemical) : "";
+          if (full.dominant_risk_type) dx += " (" + esc(full.dominant_risk_type) + ")";
+          if (full.facility_toxicity_score != null) dx += " · tox " + Math.round(full.facility_toxicity_score);
+          bits.push(dx.trim());
+        }
         return "· " + bits.join(" · ");
       }).join("<br>") + '</div>';
     }
-    h += '<div class="row mut" style="font-size:10.5px">' + SCREEN_NOTE + '</div>';
     return h;
   }, "env");
 
@@ -111,27 +120,30 @@ BRMap.ready(async () => {
     });
   }
 
-  // ---------- chemical-typed screening rings (from chemical_summary.screening_radii) ----------
-  // NOT a dispersion model. Purple = chronic cancer-toxicity screen, amber = chronic noncancer
-  // toxic-air screen, dashed dark-red = acute emergency-planning reference (RMP worst-case where the
-  // plant supplies rmp_worstcase_mi, else an AEGL acute-gas reference). Radii + confidence come from
-  // enrich_chemicals.py (EPA IRIS/RSL/AEGL screening values × reported TRI air mass).
+  // ---------- screening-radius rings (Codex facility.risk_radii[]; chemical_summary fallback) ----------
+  // NOT a dispersion model. Colored by risk_type: purple = cancer-potency weighted, amber = chronic
+  // noncancer inhalation, dashed red = acute hazard, gray = lower/unclassified. Radii come straight
+  // from air.json — never invented client-side.
   const RING_PANE = (BRMap.panes && BRMap.panes.areas) || undefined, MI_M = 1609.344;
-  const RING_STYLE = {
-    chronic_cancer:    { color: "#6a1b9a", fill: "#ab47bc", fillOpacity: 0.15, weight: 2, dash: null },
-    chronic_noncancer: { color: "#e65100", fill: "#fb8c00", fillOpacity: 0.10, weight: 1.5, dash: null },
-    acute_accident:    { color: "#7f0000", fill: null, fillOpacity: 0, weight: 2, dash: "7,5" }
+  const RISK_RING = {
+    cancer:    { color: "#6a1b9a", fill: "#ab47bc", fillOpacity: 0.15, weight: 2, dash: null },
+    noncancer: { color: "#e65100", fill: "#fb8c00", fillOpacity: 0.10, weight: 1.5, dash: null },
+    acute:     { color: "#b71c1c", fill: null, fillOpacity: 0, weight: 2, dash: "7,5" },
+    lower:     { color: "#9aa3ad", fill: "#cfd5dc", fillOpacity: 0.06, weight: 1, dash: "2,6" }
   };
-  function screeningRadii(f) {
-    return (f.chemical_summary && Array.isArray(f.chemical_summary.screening_radii)) ? f.chemical_summary.screening_radii : [];
+  const KIND_TO_RISK = { chronic_cancer: "cancer", chronic_noncancer: "noncancer", acute_accident: "acute" };
+  function riskRadii(f) {
+    if (Array.isArray(f.risk_radii) && f.risk_radii.length) return f.risk_radii;
+    const sr = f.chemical_summary && f.chemical_summary.screening_radii;       // fallback to older schema
+    return Array.isArray(sr) ? sr.map(r => ({ chemical: r.chemical, radius_mi: r.radius_mi, risk_type: KIND_TO_RISK[r.kind] || "lower" })) : [];
   }
   const ringsLayer = L.layerGroup();
   function clearRings() { ringsLayer.clearLayers(); if (map.hasLayer(ringsLayer)) map.removeLayer(ringsLayer); }
   function drawRings(f) {
     ringsLayer.clearLayers();
-    const radii = screeningRadii(f).slice().sort((a, b) => (b.radius_mi || 0) - (a.radius_mi || 0)); // largest first
+    const radii = riskRadii(f).slice().sort((a, b) => (b.radius_mi || 0) - (a.radius_mi || 0)); // largest first
     radii.forEach(rd => {
-      const st = RING_STYLE[rd.kind]; if (!st || !rd.radius_mi) return;
+      const st = RISK_RING[rd.risk_type] || RISK_RING.lower; if (!rd.radius_mi) return;
       L.circle([f.lat, f.lon], { radius: rd.radius_mi * MI_M, pane: RING_PANE, interactive: false,
         stroke: true, color: st.color, weight: st.weight, opacity: 0.85,
         fill: !!st.fill, fillColor: st.fill || st.color, fillOpacity: st.fillOpacity, dashArray: st.dash || null }).addTo(ringsLayer);
@@ -142,31 +154,40 @@ BRMap.ready(async () => {
   map.on("popupopen", e => { const f = e.popup && e.popup._source && e.popup._source._fac; if (ringsOn && f) drawRings(f); });
   map.on("popupclose", clearRings);
 
-  // ---------- facility markers (industrial only) ----------
-  function facStyle(f) {
-    if (f.releases_lbs != null) {                  // TRI reporter — red, sized by 2024 release pounds
-      const big = f.releases_lbs >= 1e6;
-      const r = 4 + 8 * Math.sqrt(Math.min(f.releases_lbs, 7.2e6) / 7.2e6);
-      return { color: big ? "#7B1E1E" : "#9B2C2C", fill: big ? "#C0392B" : "#E05353", r: Math.max(4, r) };
-    }
-    if ((f.sources || []).includes("RMP")) return { color: "#B45309", fill: "#DD6B20", r: 4.5 };  // RMP chemical-accident
-    return { color: "#6B7280", fill: "#AEB6BF", r: 3 };                                           // OSM / other industrial
-  }
-  const CAT_LABEL = {
-    carcinogenic_voc: "carcinogenic VOC", acute_toxic_gas: "acute toxic gas",
-    particulate_or_metal: "metal / particulate", acid_gas_or_irritant: "respiratory irritant",
-    noncancer_voc: "noncancer VOC", lower_direct_toxicity: "low direct toxicity"
+  // ---------- facility markers: size by air pounds, color by dominant toxic-air risk type ----------
+  const RISK_MARK = {
+    cancer:    { color: "#6a1b9a", fill: "#ab47bc" },
+    acute:     { color: "#b71c1c", fill: "#ef5350" },
+    noncancer: { color: "#e65100", fill: "#fb8c00" },
+    lower:     { color: "#6B7280", fill: "#AEB6BF" }
   };
-  const RADIUS_LABEL = { chronic_cancer: "Cancer-toxicity screen", chronic_noncancer: "Chronic toxic-air", acute_accident: "Acute emergency reference" };
-  const chip = (txt, bg) => '<span class="badge" style="background:' + bg + ';color:#fff;margin:1px 4px 1px 0">' + esc(txt) + '</span>';
-  function chemBadges(s) {
-    const cats = s.categories || {}, out = [];
-    const cls = s.top_cancer_drivers && s.top_cancer_drivers[0] && s.top_cancer_drivers[0].carc_class;
-    if (s.cancer_weighted_index > 0 && cls) out.push(chip((cls === "known" ? "known" : "suspected") + " carcinogen", "#8e1230"));
-    if ((cats.acute_toxic_gas || 0) > 0) out.push(chip("acute toxic gas", "#b45309"));
-    if ((cats.acid_gas_or_irritant || 0) > 0) out.push(chip("respiratory irritant", "#9a6a00"));
-    if ((cats.particulate_or_metal || 0) > 0) out.push(chip("metal / particulate", "#5b6470"));
-    return out.join("");
+  function facStyle(f) {
+    let r;
+    if (f.releases_lbs != null) r = Math.max(4, 4 + 8 * Math.sqrt(Math.min(f.releases_lbs, 7.2e6) / 7.2e6));
+    else r = (f.sources || []).includes("RMP") ? 4.5 : 3;
+    const rm = f.dominant_risk_type && RISK_MARK[f.dominant_risk_type];        // chemical-classified TRI plants
+    if (rm) return { color: rm.color, fill: rm.fill, r };
+    if (f.releases_lbs != null) { const big = f.releases_lbs >= 1e6; return { color: big ? "#7B1E1E" : "#9B2C2C", fill: big ? "#C0392B" : "#E05353", r }; }
+    if ((f.sources || []).includes("RMP")) return { color: "#B45309", fill: "#DD6B20", r };       // RMP context
+    return { color: "#6B7280", fill: "#AEB6BF", r };                                              // OSM / other context
+  }
+  const RISK_LABEL = { cancer: "cancer-potency weighted", acute: "acute hazard", noncancer: "chronic noncancer", lower: "lower / unclassified" };
+  const RISK_BG = { cancer: "#6a1b9a", acute: "#b71c1c", noncancer: "#e65100", lower: "#6B7280" };
+  const riskBadge = rt => rt ? '<span class="badge" style="background:' + (RISK_BG[rt] || "#6B7280") + ';color:#fff;margin-left:4px">' + esc(RISK_LABEL[rt] || rt) + '</span>' : "";
+  const brkLine = c => '· ' + esc(c.name) + ' <span style="color:#5A6472">— ' + (c.air_lbs != null ? lbs(c.air_lbs) + ' lb air' : '')
+    + (c.score != null ? ' · score ' + c.score : '') + '</span>';
+  function chemLine(c) {
+    const parts = [];
+    if (c.air_lbs != null) parts.push(lbs(c.air_lbs) + " lb air");
+    if (c.total_lbs != null && c.air_lbs != null && c.total_lbs > c.air_lbs) parts.push(lbs(c.total_lbs) + " total");
+    if (c.risk_family) parts.push(esc(c.risk_family));
+    const sc = [];                                   // compact cancer / noncancer / acute scores
+    if (c.cancer_potency_score != null) sc.push("C" + c.cancer_potency_score);
+    if (c.noncancer_inhalation_score != null) sc.push("N" + c.noncancer_inhalation_score);
+    if (c.acute_hazard_score != null) sc.push("A" + c.acute_hazard_score);
+    let s = '· ' + esc(c.name) + ' <span style="color:#5A6472">— ' + parts.join(" · ") + (sc.length ? " · " + sc.join(" ") : "") + '</span>';
+    if (c.risk_notes) s += '<br><span class="mut" style="font-size:10px;margin-left:8px">' + esc(c.risk_notes) + '</span>';
+    return s;
   }
   function facPopup(f) {
     let h = '<div class="pop"><b>⚠ ' + esc(f.name || "Facility") + '</b>';
@@ -179,25 +200,34 @@ BRMap.ready(async () => {
     if (f.ldeq_air_emissions_tpy != null) h += '<div class="row">LDEQ ERIC air emissions: ' + Number(f.ldeq_air_emissions_tpy).toLocaleString() + ' tpy</div>';
     if (f.npdes_dmr_pounds != null) h += '<div class="row">NPDES/DMR discharge context: ' + lbs(f.npdes_dmr_pounds) + ' lb</div>';
 
-    const s = f.chemical_summary;
-    if (s) {
-      h += '<div class="row" style="margin-top:4px"><b>Chemical burden</b> ' + chemBadges(s) + '</div>';
+    const brk = f.chemical_risk_breakdown;
+    if (f.facility_toxicity_score != null || brk) {
+      h += '<div class="row" style="margin-top:4px"><b>Toxic-air screening:</b> '
+        + (f.facility_toxicity_score != null ? '<b>' + Math.round(f.facility_toxicity_score) + '</b>/100' : '')
+        + riskBadge(f.dominant_risk_type) + '</div>';
+      if (f.dominant_chemical) h += '<div class="row" style="font-size:11px;color:#5A6472">dominant: ' + esc(f.dominant_chemical) + '</div>';
+      const tc = (brk && brk.top_cancer_chemicals) || [];
+      if (tc.length) h += '<div class="row" style="font-size:11px"><span style="color:#6a1b9a;font-weight:700">Cancer-potency weighted:</span><br>'
+        + tc.slice(0, 4).map(brkLine).join('<br>') + '</div>';
+      const ta = (brk && brk.top_acute_chemicals) || [];
+      if (ta.length) h += '<div class="row" style="font-size:11px"><span style="color:#b71c1c;font-weight:700">Acute / respiratory hazards:</span><br>'
+        + ta.slice(0, 4).map(brkLine).join('<br>') + '</div>';
+      const byAir = (f.chemicals || []).slice().sort((a, b) => (b.air_lbs || 0) - (a.air_lbs || 0)).slice(0, 4);
+      if (byAir.length) h += '<div class="row" style="font-size:11px"><span style="color:#5A6472;font-weight:700">Largest air releases:</span><br>'
+        + byAir.map(chemLine).join('<br>') + '</div>';
+    } else if (f.chemical_summary) {
+      const s = f.chemical_summary;
       const cd = (s.top_cancer_drivers || []).filter(d => (d.cancer_weight || 0) > 0);
-      if (cd.length) h += '<div class="row" style="font-size:11px"><span style="color:#6a1b9a;font-weight:700">Cancer-relevant (toxicity-weighted):</span><br>'
-        + cd.map(d => '· ' + esc(d.name) + ' <span style="color:#5A6472">— ' + lbs(d.air_lbs) + ' lb air · ' + esc(d.carc_class || "carcinogen") + ' · conf ' + esc(d.confidence) + '</span>').join('<br>') + '</div>';
-      else h += '<div class="row mut" style="font-size:11px">No quantified cancer-potency drivers in air releases.</div>';
+      h += '<div class="row" style="margin-top:4px"><b>Chemical burden</b></div>';
+      if (cd.length) h += '<div class="row" style="font-size:11px"><span style="color:#6a1b9a;font-weight:700">Cancer-relevant:</span><br>'
+        + cd.map(d => '· ' + esc(d.name) + ' <span style="color:#5A6472">— ' + lbs(d.air_lbs) + ' lb air</span>').join('<br>') + '</div>';
       const am = s.top_air_mass_drivers || [];
       if (am.length) h += '<div class="row" style="font-size:11px"><span style="color:#5A6472;font-weight:700">Top by air mass:</span><br>'
-        + am.map(d => '· ' + esc(d.name) + ' <span style="color:#5A6472">— ' + lbs(d.air_lbs) + ' lb · ' + esc(CAT_LABEL[d.category] || d.category) + '</span>').join('<br>') + '</div>';
-      const radii = s.screening_radii || [];
-      if (radii.length) h += '<div class="row" style="font-size:10.5px;color:#5A6472">Screening radii: '
-        + radii.map(rd => esc(RADIUS_LABEL[rd.kind] || rd.kind) + ' ' + rd.radius_mi + ' mi (' + esc(rd.confidence) + ')').join(' · ') + '</div>';
+        + am.map(d => '· ' + esc(d.name) + ' <span style="color:#5A6472">— ' + lbs(d.air_lbs) + ' lb</span>').join('<br>') + '</div>';
     } else if (Array.isArray(f.chemicals) && f.chemicals.length) {
       h += '<div class="row" style="font-size:11px"><b>Top chemicals (2024 TRI):</b><br>'
-        + f.chemicals.slice(0, 5).map(c => '· ' + esc(c.name) + ' — ' + lbs(c.total_lbs) + ' lb' + (c.carcinogen ? ' <b style="color:#B23B3B">⚠</b>' : '')).join('<br>') + '</div>';
+        + f.chemicals.slice(0, 5).map(c => '· ' + esc(c.name) + ' — ' + lbs(c.total_lbs) + ' lb').join('<br>') + '</div>';
     }
-    h += '<div class="row mut" style="font-size:10px">Cancer-toxicity weighted screen = EPA IRIS/RSL inhalation values × reported TRI air mass; '
-      + 'acute rings use RMP worst-case or AEGL references. Screening reference, not a dispersion model or a medical-risk estimate.</div>';
     return h + '</div>';
   }
   const facPane = (BRMap.panes && BRMap.panes.facils) || undefined;
@@ -224,24 +254,15 @@ BRMap.ready(async () => {
   const sec = BRMap.section("air", "Pollution / industrial proximity");
   sec.insertAdjacentHTML("beforeend",
     '<label><input type="checkbox" id="polFac"> Industrial / chemical / petroleum sites</label>' +
-    '<div class="legend" style="margin-top:3px">' +
-      '<span class="sw"><i style="background:#C0392B"></i>TRI (2024 releases, sized)</span>' +
-      '<span class="sw"><i style="background:#DD6B20"></i>RMP</span>' +
-      '<span class="sw"><i style="background:#AEB6BF"></i>LDEQ / NPDES / OSM-matched</span></div>' +
+    '<div class="legend" style="margin-top:3px"><span class="sw" style="width:100%;color:#333;font-weight:700">Toxic-air screening type (sized by air lbs)</span>' +
+      '<span class="sw"><i style="background:#ab47bc"></i>cancer-potency</span>' +
+      '<span class="sw"><i style="background:#ef5350"></i>acute hazard</span>' +
+      '<span class="sw"><i style="background:#fb8c00"></i>noncancer</span>' +
+      '<span class="sw"><i style="background:#AEB6BF"></i>lower / context</span></div>' +
     '<div class="mut">' + nTRI + ' TRI · ' + nLDEQ + ' LDEQ · ' + nRMP + ' RMP · ' + nNPDES + ' NPDES · '
-      + nOSM + ' OSM-matched. FRS-only / OSM-only context hidden by default (' + nHiddenContext
-      + ' additional context points). ' + SCREEN_NOTE + '</div>' +
-    '<label style="margin-top:7px"><input type="checkbox" id="polRings" checked> Exposure-risk rings (click a plant)</label>' +
-    '<div class="mut" style="margin-left:18px;margin-top:1px;font-weight:700">Routine toxic-air screening</div>' +
-    '<div class="legend" style="margin-left:18px">' +
-      '<span class="sw"><i style="background:#ab47bc"></i>cancer-toxicity weighted</span>' +
-      '<span class="sw"><i style="background:#fb8c00"></i>noncancer toxic-air</span></div>' +
-    '<div class="mut" style="margin-left:18px;margin-top:2px;font-weight:700">Acute accident planning</div>' +
-    '<div class="legend" style="margin-left:18px">' +
-      '<span class="sw"><i class="sq" style="background:transparent;border:1px dashed #7f0000"></i>RMP / AEGL reference</span></div>' +
-    '<div class="mut" style="margin-left:18px">Click a plant to shade its screening radii. Purple = cancer-toxicity weighted ' +
-      '(EPA IRIS/RSL inhalation potency × air mass), amber = noncancer toxic-air; dashed = acute emergency-planning radius ' +
-      '(RMP worst-case where filed, else an AEGL reference). Each radius carries a confidence label — not plant-specific dispersion modeling.</div>');
+      + nOSM + ' OSM-matched (' + nHiddenContext + ' more hidden by default).</div>' +
+    '<label style="margin-top:7px"><input type="checkbox" id="polRings" checked> Screening-radius rings (click a plant)</label>' +
+    '<div class="mut" style="margin-left:18px">From each plant\'s reported chemicals: purple = cancer-potency · amber = chronic noncancer · dashed red = acute hazard.</div>');
 
   const facEl = document.getElementById("polFac");
   if (facEl) facEl.onchange = e => { if (e.target.checked) { facLayer.addTo(map); sizeFacilities(); } else { map.removeLayer(facLayer); clearRings(); } };
