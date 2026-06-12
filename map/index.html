@@ -244,14 +244,29 @@ document.getElementById("panelHead").onclick=()=>{ const b=document.getElementBy
  b.classList.toggle("collapsed"); const c=b.classList.contains("collapsed");
  document.getElementById("panelTg").textContent=c?"+":"–"; PREF.collapsed=c; savePref(); };
 
-// ---- load shared listings + draw pins ----
-BRMap.fetchJSON("listings.json").then(ls=>{
- BRMap.listings=ls||[]; const b=[];
+// ---- normalize a review.json row into a first-class shell listing ----
+//   review.json = [{id:"nr..",address,lat,lon,price,beds,baths,sqft,url}] (Zillow imports).
+//   We map them into the same shape as listings.json so every per-listing layer
+//   (crime/flood/commute/amenities/air) attaches to them exactly as it does for the
+//   vetted set. Review STATE (accepted/needs/rejected) is owned by review_layer.js.
+function normRev(r){
+  const num=v=>{ if(v==null) return null; const n=parseFloat(String(v).replace(/[^0-9.]/g,"")); return isFinite(n)?n:null; };
+  return { id:r.id, type:"rent", address:r.address, zip:r.zip||"",
+    lat:r.lat, lon:r.lon, price:num(r.price), beds:num(r.beds), baths:num(r.baths),
+    size:num(r.sqft), neighborhood:r.neighborhood||"", status:"active",
+    link:r.url||null, _review:true };
+}
+
+// ---- load shared listings (+ review imports) and draw pins ----
+Promise.all([BRMap.fetchJSON("listings.json"), BRMap.fetchJSON("review.json")]).then(([ls,rev])=>{
+ BRMap.listings=ls||[];
+ (rev||[]).forEach(r=>{ if(r&&r.lat!=null&&r.lon!=null) BRMap.listings.push(normRev(r)); });
+ const b=[];
  BRMap.listings.forEach(l=>{ BRMap._lk[l.id]=l; l._color=BASE_PIN;
    const m=L.marker([l.lat,l.lon],{icon:pinIcon(BASE_PIN,l.status==="off"),zIndexOffset:1000});
    m.on("click",()=>BRMap.openDetail(l));
-   m.addTo(map); BRMap.pins[l.id]=m; b.push([l.lat,l.lon]); });
- if(b.length) map.fitBounds(b,{padding:[40,40]});
+   m.addTo(map); BRMap.pins[l.id]=m; if(!l._review) b.push([l.lat,l.lon]); });
+ if(b.length) map.fitBounds(b,{padding:[40,40]});   // frame on the vetted set, unchanged
  document.addEventListener("keydown",ev=>{ if(ev.key==="Escape"&&BRMap._selected) BRMap.closeDetail(); });
  BRMap._ready.forEach(fn=>{try{fn();}catch(e){console.warn(e);}}); BRMap._ready=[];
 });

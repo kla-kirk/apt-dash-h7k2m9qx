@@ -1,258 +1,1074 @@
 {
-  "2115 E Ramsey Dr": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA OF MINIMAL FLOOD HAZARD",
-    "risk": "Low",
-    "score": 15
-  },
-  "2437 Fiero St": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "9003 Magnolia View Dr": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "415 Bedford Dr": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "417 Bedford Dr": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "9446 High Point Rd": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "709 Staring Ln": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "The Terraces at Perkins Rowe": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "8808 Magnolia Leaf Ave": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "4738 Woodlyn Dr": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "5416 Heron Nest Dr": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "6024 Woodlawn Park Ct": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "9314 Fox Run Ave": {
-    "fld_zone": "AE",
-    "sfha": true,
-    "static_bfe": null,
-    "subtype": "",
-    "risk": "High",
-    "score": 80
-  },
-  "10177 Bonnet Cove Ave": {
-    "fld_zone": "AE",
-    "sfha": true,
-    "static_bfe": null,
-    "subtype": "",
-    "risk": "High",
-    "score": 80
-  },
-  "633 Fall Creek Dr": {
-    "fld_zone": "AE",
-    "sfha": true,
-    "static_bfe": null,
-    "subtype": "",
-    "risk": "High",
-    "score": 80
-  },
-  "9412 Windward Rd": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "4573 Charleston Villa Dr": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "620 Nelson Dr": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "734 Caddo St": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "2103 Government St": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA OF MINIMAL FLOOD HAZARD",
-    "risk": "Low",
-    "score": 15
-  },
-  "1525 S Eugene St": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA OF MINIMAL FLOOD HAZARD",
-    "risk": "Low",
-    "score": 15
-  },
-  "750 Acadia St": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA OF MINIMAL FLOOD HAZARD",
-    "risk": "Low",
-    "score": 15
-  },
-  "541 Terry Dr": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "740 Acadia St": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA OF MINIMAL FLOOD HAZARD",
-    "risk": "Low",
-    "score": 15
-  },
-  "2102 Sassy Ln": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "2340 Government St": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "3650 Perkins Rd": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "4468 Cypress St": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "2326 Terrace Ave": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA OF MINIMAL FLOOD HAZARD",
-    "risk": "Low",
-    "score": 15
-  },
-  "540 Drehr Ave": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA OF MINIMAL FLOOD HAZARD",
-    "risk": "Low",
-    "score": 15
-  },
-  "2267 Cedardale Ave": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  },
-  "4268 Arrowhead St": {
-    "fld_zone": "X",
-    "sfha": false,
-    "static_bfe": null,
-    "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
-    "risk": "Low",
-    "score": 15
-  }
+ "2115 E Ramsey Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "2437 Fiero St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "9003 Magnolia View Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "415 Bedford Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "417 Bedford Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "9446 High Point Rd": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "709 Staring Ln": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "The Terraces at Perkins Rowe": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "8808 Magnolia Leaf Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "4738 Woodlyn Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "5416 Heron Nest Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "6024 Woodlawn Park Ct": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "9314 Fox Run Ave": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "10177 Bonnet Cove Ave": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "633 Fall Creek Dr": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "9412 Windward Rd": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "4573 Charleston Villa Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "620 Nelson Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "734 Caddo St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "2103 Government St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "1525 S Eugene St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "750 Acadia St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "541 Terry Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "740 Acadia St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "2102 Sassy Ln": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "2340 Government St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "3650 Perkins Rd": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "4468 Cypress St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "2326 Terrace Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "540 Drehr Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "2267 Cedardale Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "4268 Arrowhead St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "2750 Millerville Rd   # 148292": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "5500 Perkins Rd   # 3131": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "11888 Old Hammond Hwy # fa691bb87": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "8001 Pine Valley Dr # 102": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "11111 N  Harrells Ferry Rd b4fa16f": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "417 E  State St # 2": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "16333 Columns Way # 6": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "10231 The Grove Blvd # 1209": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "4850 Rouzan Square Ave # 442": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "10245 Airline Hwy": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "6810 Jefferson Hwy  # 5208": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "8363 Siegen Ln # 69": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "10156 Perkins Rowe": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "5960 Siegen Ln # 7204": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "10231 Bluebonnet Blvd # D": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "7248 Perkins Rd": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "2040 Gayosa St   cfe2f": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "2501 Brightside Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "5344 River Meadow Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "4284 Oxford Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "505 University Walk": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "900 Dean Lee Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "4264 Oxford Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "2534 Oleander St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "4253 Janet Ave": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "714 Jennifer Jean Dr": {
+  "fld_zone": "A",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "8155 Jefferson Hwy": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "5151 Etta St -G": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "1726 Brightside Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "4240 Dodson Ave": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "644 Highland Park Dr": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "1712 Brightside Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "1724 Brightside Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "1704 Brightside Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "1763 Briar Oak Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "13543 Honey Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "3938 Garden View Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "7743 Bles Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "1820 Jade Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "314 Bedford Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "1530 Goldenrod Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "162 E State St": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "5212 Butter Creek Ln": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "4250 Janet Ave": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "620 Kenmore Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "4441 Burbank Dr": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "2094 Elissalde St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "7950 Jefferson Hwy": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "1478 Sharlo Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "17247 Tidewater Ln": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "3101 Highland Rd": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "5236 Brightside Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "5131 Butter Creek Ln": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "5110 Butter Creek Ln": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "8506 Leake Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "8240 Rocky Trail Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "2509 Olive St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "879 S Eugene St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "4326 Highland Rd": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "7183 Chandler Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "7855 Clover Ridge Ave": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "115 S Leo St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "7646 Antebellum Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "3202 Ivanhoe St": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "14014 Azalea Park Ave": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "3262 Wyoming St": {
+  "fld_zone": "A",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "229 E State St": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "1564 Belmont Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "5141 Brightside View Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "322 Flicker St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "14555 Old Hammond Hwy": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "3645 Gladiola St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "205 E State St": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "5137 Nicholson Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "2403 Brightside Dr": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "2293 Hollydale Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "5213 Butter Creek Ln": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "10428 Jefferson Hwy": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "115 Clara Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "1226 Stoneliegh Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "3625 Partridge Ln": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "10600 Lakes Blvd": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "18548 Lake Camellia Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "10655 Woodland Oaks Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "5050 Stumberg Ln": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "402 Lee Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "710 Park Blvd": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "6765 Corporate Blvd": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "1939 Terrace Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "814 Lonita St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "8732 Jefferson Hwy": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "2001 Red Stick Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "8212 Argosy Ct": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "1046 Sedona Pines Dr": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "2122 Stonehenge Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "8246 Ned Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "350 E State St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "4009 Victory Dr": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA OF MINIMAL FLOOD HAZARD",
+  "risk": "Low",
+  "score": 15
+ },
+ "1977 Cherrydale Ave": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "1781 Province Pl": {
+  "fld_zone": "AE",
+  "sfha": true,
+  "static_bfe": null,
+  "subtype": "",
+  "risk": "High",
+  "score": 80
+ },
+ "8028 Valley St": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ },
+ "10057 Jefferson Hwy": {
+  "fld_zone": "X",
+  "sfha": false,
+  "static_bfe": null,
+  "subtype": "AREA WITH REDUCED FLOOD RISK DUE TO LEVEE",
+  "risk": "Low",
+  "score": 15
+ }
 }

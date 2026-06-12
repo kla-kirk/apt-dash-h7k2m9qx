@@ -1,322 +1,1342 @@
 {
-  "2115 E Ramsey Dr": {
-    "am": 10,
-    "pm": 11,
-    "off": 11,
-    "miles": {
-      "am": 3.6,
-      "pm": 3.6,
-      "off": 3.6
-    }
-  },
-  "2437 Fiero St": {
-    "am": 9,
-    "pm": 10,
-    "off": 9,
-    "miles": {
-      "am": 2.9,
-      "pm": 3.2,
-      "off": 3.2
-    }
-  },
-  "9003 Magnolia View Dr": {
-    "am": 15,
-    "pm": 16,
-    "off": 15,
-    "miles": {
-      "am": 5.6,
-      "pm": 5.6,
-      "off": 6.5
-    }
-  },
-  "415 Bedford Dr": {
-    "am": 11,
-    "pm": 11,
-    "off": 11,
-    "miles": {
-      "am": 3.3,
-      "pm": 3.3,
-      "off": 3.3
-    }
-  },
-  "417 Bedford Dr": {
-    "am": 11,
-    "pm": 11,
-    "off": 11,
-    "miles": {
-      "am": 3.3,
-      "pm": 3.3,
-      "off": 3.3
-    }
-  },
-  "9446 High Point Rd": {
-    "am": 14,
-    "pm": 15,
-    "off": 14,
-    "miles": {
-      "am": 5.4,
-      "pm": 5.4,
-      "off": 6.4
-    }
-  },
-  "709 Staring Ln": {
-    "am": 13,
-    "pm": 14,
-    "off": 13,
-    "miles": {
-      "am": 5.3,
-      "pm": 5.3,
-      "off": 6.3
-    }
-  },
-  "The Terraces at Perkins Rowe": {
-    "am": 17,
-    "pm": 19,
-    "off": 18,
-    "miles": {
-      "am": 8.2,
-      "pm": 7.3,
-      "off": 7.3
-    }
-  },
-  "8808 Magnolia Leaf Ave": {
-    "am": 13,
-    "pm": 14,
-    "off": 13,
-    "miles": {
-      "am": 5.3,
-      "pm": 5.3,
-      "off": 6.3
-    }
-  },
-  "4738 Woodlyn Dr": {
-    "am": 24,
-    "pm": 25,
-    "off": 23,
-    "miles": {
-      "am": 11.1,
-      "pm": 11.1,
-      "off": 11.1
-    }
-  },
-  "5416 Heron Nest Dr": {
-    "am": 23,
-    "pm": 22,
-    "off": 20,
-    "miles": {
-      "am": 12.0,
-      "pm": 12.0,
-      "off": 12.0
-    }
-  },
-  "6024 Woodlawn Park Ct": {
-    "am": 27,
-    "pm": 27,
-    "off": 26,
-    "miles": {
-      "am": 12.9,
-      "pm": 12.9,
-      "off": 12.9
-    }
-  },
-  "9314 Fox Run Ave": {
-    "am": 12,
-    "pm": 13,
-    "off": 12,
-    "miles": {
-      "am": 5.5,
-      "pm": 5.5,
-      "off": 5.5
-    }
-  },
-  "10177 Bonnet Cove Ave": {
-    "am": 14,
-    "pm": 15,
-    "off": 14,
-    "miles": {
-      "am": 6.1,
-      "pm": 6.1,
-      "off": 6.1
-    }
-  },
-  "633 Fall Creek Dr": {
-    "am": 13,
-    "pm": 15,
-    "off": 13,
-    "miles": {
-      "am": 5.8,
-      "pm": 5.8,
-      "off": 5.8
-    }
-  },
-  "9412 Windward Rd": {
-    "am": 15,
-    "pm": 16,
-    "off": 15,
-    "miles": {
-      "am": 5.5,
-      "pm": 5.5,
-      "off": 6.5
-    }
-  },
-  "4573 Charleston Villa Dr": {
-    "am": 28,
-    "pm": 26,
-    "off": 24,
-    "miles": {
-      "am": 14.1,
-      "pm": 13.8,
-      "off": 13.8
-    }
-  },
-  "620 Nelson Dr": {
-    "am": 10,
-    "pm": 10,
-    "off": 9,
-    "miles": {
-      "am": 2.9,
-      "pm": 2.9,
-      "off": 2.9
-    }
-  },
-  "734 Caddo St": {
-    "am": 13,
-    "pm": 13,
-    "off": 14,
-    "miles": {
-      "am": 4.2,
-      "pm": 4.2,
-      "off": 4.9
-    }
-  },
-  "2103 Government St": {
-    "am": 9,
-    "pm": 9,
-    "off": 9,
-    "miles": {
-      "am": 2.7,
-      "pm": 2.7,
-      "off": 2.7
-    }
-  },
-  "1525 S Eugene St": {
-    "am": 8,
-    "pm": 9,
-    "off": 8,
-    "miles": {
-      "am": 2.6,
-      "pm": 2.6,
-      "off": 2.6
-    }
-  },
-  "750 Acadia St": {
-    "am": 14,
-    "pm": 14,
-    "off": 14,
-    "miles": {
-      "am": 4.3,
-      "pm": 4.3,
-      "off": 5.0
-    }
-  },
-  "541 Terry Dr": {
-    "am": 12,
-    "pm": 12,
-    "off": 12,
-    "miles": {
-      "am": 4.2,
-      "pm": 4.2,
-      "off": 4.2
-    }
-  },
-  "740 Acadia St": {
-    "am": 14,
-    "pm": 14,
-    "off": 14,
-    "miles": {
-      "am": 4.3,
-      "pm": 4.3,
-      "off": 5.0
-    }
-  },
-  "2102 Sassy Ln": {
-    "am": 8,
-    "pm": 9,
-    "off": 8,
-    "miles": {
-      "am": 2.5,
-      "pm": 2.5,
-      "off": 2.5
-    }
-  },
-  "2340 Government St": {
-    "am": 10,
-    "pm": 10,
-    "off": 10,
-    "miles": {
-      "am": 2.9,
-      "pm": 2.9,
-      "off": 2.9
-    }
-  },
-  "3650 Perkins Rd": {
-    "am": 7,
-    "pm": 8,
-    "off": 7,
-    "miles": {
-      "am": 2.4,
-      "pm": 2.4,
-      "off": 2.4
-    }
-  },
-  "4468 Cypress St": {
-    "am": 8,
-    "pm": 8,
-    "off": 8,
-    "miles": {
-      "am": 2.4,
-      "pm": 2.4,
-      "off": 2.4
-    }
-  },
-  "2326 Terrace Ave": {
-    "am": 8,
-    "pm": 9,
-    "off": 8,
-    "miles": {
-      "am": 2.5,
-      "pm": 2.5,
-      "off": 2.5
-    }
-  },
-  "540 Drehr Ave": {
-    "am": 10,
-    "pm": 10,
-    "off": 10,
-    "miles": {
-      "am": 2.9,
-      "pm": 2.9,
-      "off": 2.9
-    }
-  },
-  "2267 Cedardale Ave": {
-    "am": 8,
-    "pm": 8,
-    "off": 8,
-    "miles": {
-      "am": 2.5,
-      "pm": 2.8,
-      "off": 2.8
-    }
-  },
-  "4268 Arrowhead St": {
-    "am": 8,
-    "pm": 9,
-    "off": 8,
-    "miles": {
-      "am": 2.6,
-      "pm": 2.6,
-      "off": 2.6
-    }
+ "2115 E Ramsey Dr": {
+  "am": 10,
+  "pm": 11,
+  "off": 11,
+  "miles": {
+   "am": 3.6,
+   "pm": 3.6,
+   "off": 3.6
   }
+ },
+ "2437 Fiero St": {
+  "am": 9,
+  "pm": 10,
+  "off": 9,
+  "miles": {
+   "am": 2.9,
+   "pm": 3.2,
+   "off": 3.2
+  }
+ },
+ "9003 Magnolia View Dr": {
+  "am": 15,
+  "pm": 16,
+  "off": 15,
+  "miles": {
+   "am": 5.6,
+   "pm": 5.6,
+   "off": 6.5
+  }
+ },
+ "415 Bedford Dr": {
+  "am": 11,
+  "pm": 11,
+  "off": 11,
+  "miles": {
+   "am": 3.3,
+   "pm": 3.3,
+   "off": 3.3
+  }
+ },
+ "417 Bedford Dr": {
+  "am": 11,
+  "pm": 11,
+  "off": 11,
+  "miles": {
+   "am": 3.3,
+   "pm": 3.3,
+   "off": 3.3
+  }
+ },
+ "9446 High Point Rd": {
+  "am": 14,
+  "pm": 15,
+  "off": 14,
+  "miles": {
+   "am": 5.4,
+   "pm": 5.4,
+   "off": 6.4
+  }
+ },
+ "709 Staring Ln": {
+  "am": 13,
+  "pm": 14,
+  "off": 13,
+  "miles": {
+   "am": 5.3,
+   "pm": 5.3,
+   "off": 6.3
+  }
+ },
+ "The Terraces at Perkins Rowe": {
+  "am": 17,
+  "pm": 19,
+  "off": 18,
+  "miles": {
+   "am": 8.2,
+   "pm": 7.3,
+   "off": 7.3
+  }
+ },
+ "8808 Magnolia Leaf Ave": {
+  "am": 13,
+  "pm": 14,
+  "off": 13,
+  "miles": {
+   "am": 5.3,
+   "pm": 5.3,
+   "off": 6.3
+  }
+ },
+ "4738 Woodlyn Dr": {
+  "am": 24,
+  "pm": 25,
+  "off": 23,
+  "miles": {
+   "am": 11.1,
+   "pm": 11.1,
+   "off": 11.1
+  }
+ },
+ "5416 Heron Nest Dr": {
+  "am": 23,
+  "pm": 22,
+  "off": 20,
+  "miles": {
+   "am": 12.0,
+   "pm": 12.0,
+   "off": 12.0
+  }
+ },
+ "6024 Woodlawn Park Ct": {
+  "am": 27,
+  "pm": 27,
+  "off": 26,
+  "miles": {
+   "am": 12.9,
+   "pm": 12.9,
+   "off": 12.9
+  }
+ },
+ "9314 Fox Run Ave": {
+  "am": 12,
+  "pm": 13,
+  "off": 12,
+  "miles": {
+   "am": 5.5,
+   "pm": 5.5,
+   "off": 5.5
+  }
+ },
+ "10177 Bonnet Cove Ave": {
+  "am": 14,
+  "pm": 15,
+  "off": 14,
+  "miles": {
+   "am": 6.1,
+   "pm": 6.1,
+   "off": 6.1
+  }
+ },
+ "633 Fall Creek Dr": {
+  "am": 13,
+  "pm": 15,
+  "off": 13,
+  "miles": {
+   "am": 5.8,
+   "pm": 5.8,
+   "off": 5.8
+  }
+ },
+ "9412 Windward Rd": {
+  "am": 15,
+  "pm": 16,
+  "off": 15,
+  "miles": {
+   "am": 5.5,
+   "pm": 5.5,
+   "off": 6.5
+  }
+ },
+ "4573 Charleston Villa Dr": {
+  "am": 28,
+  "pm": 26,
+  "off": 24,
+  "miles": {
+   "am": 14.1,
+   "pm": 13.8,
+   "off": 13.8
+  }
+ },
+ "620 Nelson Dr": {
+  "am": 10,
+  "pm": 10,
+  "off": 9,
+  "miles": {
+   "am": 2.9,
+   "pm": 2.9,
+   "off": 2.9
+  }
+ },
+ "734 Caddo St": {
+  "am": 13,
+  "pm": 13,
+  "off": 14,
+  "miles": {
+   "am": 4.2,
+   "pm": 4.2,
+   "off": 4.9
+  }
+ },
+ "2103 Government St": {
+  "am": 9,
+  "pm": 9,
+  "off": 9,
+  "miles": {
+   "am": 2.7,
+   "pm": 2.7,
+   "off": 2.7
+  }
+ },
+ "1525 S Eugene St": {
+  "am": 8,
+  "pm": 9,
+  "off": 8,
+  "miles": {
+   "am": 2.6,
+   "pm": 2.6,
+   "off": 2.6
+  }
+ },
+ "750 Acadia St": {
+  "am": 14,
+  "pm": 14,
+  "off": 14,
+  "miles": {
+   "am": 4.3,
+   "pm": 4.3,
+   "off": 5.0
+  }
+ },
+ "541 Terry Dr": {
+  "am": 12,
+  "pm": 12,
+  "off": 12,
+  "miles": {
+   "am": 4.2,
+   "pm": 4.2,
+   "off": 4.2
+  }
+ },
+ "740 Acadia St": {
+  "am": 14,
+  "pm": 14,
+  "off": 14,
+  "miles": {
+   "am": 4.3,
+   "pm": 4.3,
+   "off": 5.0
+  }
+ },
+ "2102 Sassy Ln": {
+  "am": 8,
+  "pm": 9,
+  "off": 8,
+  "miles": {
+   "am": 2.5,
+   "pm": 2.5,
+   "off": 2.5
+  }
+ },
+ "2340 Government St": {
+  "am": 10,
+  "pm": 10,
+  "off": 10,
+  "miles": {
+   "am": 2.9,
+   "pm": 2.9,
+   "off": 2.9
+  }
+ },
+ "3650 Perkins Rd": {
+  "am": 7,
+  "pm": 8,
+  "off": 7,
+  "miles": {
+   "am": 2.4,
+   "pm": 2.4,
+   "off": 2.4
+  }
+ },
+ "4468 Cypress St": {
+  "am": 8,
+  "pm": 8,
+  "off": 8,
+  "miles": {
+   "am": 2.4,
+   "pm": 2.4,
+   "off": 2.4
+  }
+ },
+ "2326 Terrace Ave": {
+  "am": 8,
+  "pm": 9,
+  "off": 8,
+  "miles": {
+   "am": 2.5,
+   "pm": 2.5,
+   "off": 2.5
+  }
+ },
+ "540 Drehr Ave": {
+  "am": 10,
+  "pm": 10,
+  "off": 10,
+  "miles": {
+   "am": 2.9,
+   "pm": 2.9,
+   "off": 2.9
+  }
+ },
+ "2267 Cedardale Ave": {
+  "am": 8,
+  "pm": 8,
+  "off": 8,
+  "miles": {
+   "am": 2.5,
+   "pm": 2.8,
+   "off": 2.8
+  }
+ },
+ "4268 Arrowhead St": {
+  "am": 8,
+  "pm": 9,
+  "off": 8,
+  "miles": {
+   "am": 2.6,
+   "pm": 2.6,
+   "off": 2.6
+  }
+ },
+ "2750 Millerville Rd   # 148292": {
+  "am": 21,
+  "pm": 20,
+  "off": 19,
+  "miles": {
+   "am": 11.2,
+   "pm": 11.2,
+   "off": 11.2
+  }
+ },
+ "5500 Perkins Rd   # 3131": {
+  "am": 12,
+  "pm": 15,
+  "off": 13,
+  "miles": {
+   "am": 3.7,
+   "pm": 3.7,
+   "off": 3.7
+  }
+ },
+ "11888 Old Hammond Hwy # fa691bb87": {
+  "am": 21,
+  "pm": 20,
+  "off": 19,
+  "miles": {
+   "am": 9.4,
+   "pm": 9.4,
+   "off": 9.4
+  }
+ },
+ "8001 Pine Valley Dr # 102": {
+  "am": 27,
+  "pm": 26,
+  "off": 25,
+  "miles": {
+   "am": 12.6,
+   "pm": 12.6,
+   "off": 12.6
+  }
+ },
+ "11111 N  Harrells Ferry Rd b4fa16f": {
+  "am": 19,
+  "pm": 19,
+  "off": 17,
+  "miles": {
+   "am": 8.9,
+   "pm": 8.9,
+   "off": 8.9
+  }
+ },
+ "417 E  State St # 2": {
+  "am": 3,
+  "pm": 4,
+  "off": 4,
+  "miles": {
+   "am": 0.6,
+   "pm": 0.6,
+   "off": 0.6
+  }
+ },
+ "16333 Columns Way # 6": {
+  "am": 25,
+  "pm": 25,
+  "off": 23,
+  "miles": {
+   "am": 13.7,
+   "pm": 13.7,
+   "off": 13.7
+  }
+ },
+ "10231 The Grove Blvd # 1209": {
+  "am": 19,
+  "pm": 19,
+  "off": 18,
+  "miles": {
+   "am": 8.6,
+   "pm": 8.6,
+   "off": 8.6
+  }
+ },
+ "4850 Rouzan Square Ave # 442": {
+  "am": 11,
+  "pm": 13,
+  "off": 12,
+  "miles": {
+   "am": 3.3,
+   "pm": 3.3,
+   "off": 3.3
+  }
+ },
+ "10245 Airline Hwy": {
+  "am": 18,
+  "pm": 17,
+  "off": 16,
+  "miles": {
+   "am": 8.2,
+   "pm": 8.2,
+   "off": 8.2
+  }
+ },
+ "6810 Jefferson Hwy  # 5208": {
+  "am": 15,
+  "pm": 16,
+  "off": 15,
+  "miles": {
+   "am": 5.6,
+   "pm": 5.6,
+   "off": 5.6
+  }
+ },
+ "8363 Siegen Ln # 69": {
+  "am": 19,
+  "pm": 19,
+  "off": 18,
+  "miles": {
+   "am": 9.7,
+   "pm": 9.6,
+   "off": 9.6
+  }
+ },
+ "10156 Perkins Rowe": {
+  "am": 19,
+  "pm": 20,
+  "off": 19,
+  "miles": {
+   "am": 8.4,
+   "pm": 7.5,
+   "off": 7.5
+  }
+ },
+ "5960 Siegen Ln # 7204": {
+  "am": 20,
+  "pm": 20,
+  "off": 18,
+  "miles": {
+   "am": 9.8,
+   "pm": 9.8,
+   "off": 9.8
+  }
+ },
+ "10231 Bluebonnet Blvd # D": {
+  "am": 14,
+  "pm": 15,
+  "off": 14,
+  "miles": {
+   "am": 6.4,
+   "pm": 6.4,
+   "off": 6.4
+  }
+ },
+ "7248 Perkins Rd": {
+  "am": 14,
+  "pm": 15,
+  "off": 14,
+  "miles": {
+   "am": 5.7,
+   "pm": 5.7,
+   "off": 5.7
+  }
+ },
+ "2040 Gayosa St   cfe2f": {
+  "am": 11,
+  "pm": 12,
+  "off": 11,
+  "miles": {
+   "am": 4.8,
+   "pm": 3.3,
+   "off": 4.8
+  }
+ },
+ "2501 Brightside Dr": {
+  "am": 10,
+  "pm": 11,
+  "off": 9,
+  "miles": {
+   "am": 3.0,
+   "pm": 3.0,
+   "off": 3.0
+  }
+ },
+ "5344 River Meadow Dr": {
+  "am": 12,
+  "pm": 13,
+  "off": 12,
+  "miles": {
+   "am": 4.2,
+   "pm": 4.2,
+   "off": 4.2
+  }
+ },
+ "4284 Oxford Ave": {
+  "am": 4,
+  "pm": 4,
+  "off": 3,
+  "miles": {
+   "am": 0.8,
+   "pm": 0.8,
+   "off": 0.8
+  }
+ },
+ "505 University Walk": {
+  "am": 10,
+  "pm": 12,
+  "off": 10,
+  "miles": {
+   "am": 3.7,
+   "pm": 3.7,
+   "off": 3.7
+  }
+ },
+ "900 Dean Lee Dr": {
+  "am": 9,
+  "pm": 9,
+  "off": 8,
+  "miles": {
+   "am": 2.3,
+   "pm": 2.3,
+   "off": 2.3
+  }
+ },
+ "4264 Oxford Ave": {
+  "am": 3,
+  "pm": 3,
+  "off": 3,
+  "miles": {
+   "am": 0.8,
+   "pm": 0.8,
+   "off": 0.8
+  }
+ },
+ "2534 Oleander St": {
+  "am": 10,
+  "pm": 10,
+  "off": 10,
+  "miles": {
+   "am": 3.1,
+   "pm": 3.1,
+   "off": 3.1
+  }
+ },
+ "4253 Janet Ave": {
+  "am": 4,
+  "pm": 5,
+  "off": 4,
+  "miles": {
+   "am": 0.9,
+   "pm": 0.9,
+   "off": 0.9
+  }
+ },
+ "714 Jennifer Jean Dr": {
+  "am": 5,
+  "pm": 6,
+  "off": 5,
+  "miles": {
+   "am": 1.2,
+   "pm": 1.2,
+   "off": 1.2
+  }
+ },
+ "8155 Jefferson Hwy": {
+  "am": 16,
+  "pm": 16,
+  "off": 15,
+  "miles": {
+   "am": 6.6,
+   "pm": 6.6,
+   "off": 6.6
+  }
+ },
+ "5151 Etta St -G": {
+  "am": 9,
+  "pm": 10,
+  "off": 9,
+  "miles": {
+   "am": 2.6,
+   "pm": 2.6,
+   "off": 2.6
+  }
+ },
+ "1726 Brightside Dr": {
+  "am": 9,
+  "pm": 10,
+  "off": 8,
+  "miles": {
+   "am": 2.4,
+   "pm": 2.4,
+   "off": 2.4
+  }
+ },
+ "4240 Dodson Ave": {
+  "am": 4,
+  "pm": 4,
+  "off": 4,
+  "miles": {
+   "am": 0.8,
+   "pm": 0.8,
+   "off": 0.8
+  }
+ },
+ "644 Highland Park Dr": {
+  "am": 11,
+  "pm": 13,
+  "off": 12,
+  "miles": {
+   "am": 5.3,
+   "pm": 5.3,
+   "off": 5.3
+  }
+ },
+ "1712 Brightside Dr": {
+  "am": 9,
+  "pm": 9,
+  "off": 8,
+  "miles": {
+   "am": 2.4,
+   "pm": 2.4,
+   "off": 2.4
+  }
+ },
+ "1724 Brightside Dr": {
+  "am": 9,
+  "pm": 9,
+  "off": 8,
+  "miles": {
+   "am": 2.4,
+   "pm": 2.4,
+   "off": 2.4
+  }
+ },
+ "1704 Brightside Dr": {
+  "am": 9,
+  "pm": 9,
+  "off": 8,
+  "miles": {
+   "am": 2.4,
+   "pm": 2.4,
+   "off": 2.4
+  }
+ },
+ "1763 Briar Oak Dr": {
+  "am": 20,
+  "pm": 22,
+  "off": 20,
+  "miles": {
+   "am": 9.7,
+   "pm": 8.0,
+   "off": 9.7
+  }
+ },
+ "13543 Honey Dr": {
+  "am": 19,
+  "pm": 22,
+  "off": 20,
+  "miles": {
+   "am": 9.8,
+   "pm": 9.8,
+   "off": 9.8
+  }
+ },
+ "3938 Garden View Dr": {
+  "am": 19,
+  "pm": 20,
+  "off": 18,
+  "miles": {
+   "am": 7.9,
+   "pm": 7.9,
+   "off": 7.9
+  }
+ },
+ "7743 Bles Ave": {
+  "am": 17,
+  "pm": 18,
+  "off": 17,
+  "miles": {
+   "am": 6.5,
+   "pm": 6.5,
+   "off": 6.5
+  }
+ },
+ "1820 Jade Ave": {
+  "am": 14,
+  "pm": 15,
+  "off": 14,
+  "miles": {
+   "am": 6.1,
+   "pm": 6.1,
+   "off": 6.1
+  }
+ },
+ "314 Bedford Dr": {
+  "am": 11,
+  "pm": 11,
+  "off": 11,
+  "miles": {
+   "am": 3.3,
+   "pm": 3.3,
+   "off": 3.3
+  }
+ },
+ "1530 Goldenrod Ave": {
+  "am": 10,
+  "pm": 11,
+  "off": 10,
+  "miles": {
+   "am": 3.6,
+   "pm": 3.6,
+   "off": 3.6
+  }
+ },
+ "162 E State St": {
+  "am": 3,
+  "pm": 3,
+  "off": 3,
+  "miles": {
+   "am": 0.5,
+   "pm": 0.5,
+   "off": 0.5
+  }
+ },
+ "5212 Butter Creek Ln": {
+  "am": 18,
+  "pm": 19,
+  "off": 18,
+  "miles": {
+   "am": 7.1,
+   "pm": 7.1,
+   "off": 7.1
+  }
+ },
+ "4250 Janet Ave": {
+  "am": 4,
+  "pm": 5,
+  "off": 4,
+  "miles": {
+   "am": 0.9,
+   "pm": 0.9,
+   "off": 0.9
+  }
+ },
+ "620 Kenmore Ave": {
+  "am": 10,
+  "pm": 10,
+  "off": 10,
+  "miles": {
+   "am": 3.1,
+   "pm": 3.1,
+   "off": 3.1
+  }
+ },
+ "4441 Burbank Dr": {
+  "am": 5,
+  "pm": 6,
+  "off": 5,
+  "miles": {
+   "am": 1.1,
+   "pm": 1.1,
+   "off": 1.1
+  }
+ },
+ "2094 Elissalde St": {
+  "am": 8,
+  "pm": 9,
+  "off": 9,
+  "miles": {
+   "am": 2.6,
+   "pm": 2.6,
+   "off": 2.6
+  }
+ },
+ "7950 Jefferson Hwy": {
+  "am": 16,
+  "pm": 17,
+  "off": 15,
+  "miles": {
+   "am": 6.8,
+   "pm": 6.8,
+   "off": 6.8
+  }
+ },
+ "1478 Sharlo Ave": {
+  "am": 9,
+  "pm": 11,
+  "off": 10,
+  "miles": {
+   "am": 2.2,
+   "pm": 2.2,
+   "off": 2.2
+  }
+ },
+ "17247 Tidewater Ln": {
+  "am": 18,
+  "pm": 19,
+  "off": 19,
+  "miles": {
+   "am": 7.9,
+   "pm": 7.9,
+   "off": 7.9
+  }
+ },
+ "3101 Highland Rd": {
+  "am": 3,
+  "pm": 4,
+  "off": 4,
+  "miles": {
+   "am": 0.6,
+   "pm": 0.6,
+   "off": 0.6
+  }
+ },
+ "5236 Brightside Dr": {
+  "am": 10,
+  "pm": 11,
+  "off": 9,
+  "miles": {
+   "am": 2.8,
+   "pm": 2.8,
+   "off": 2.8
+  }
+ },
+ "5131 Butter Creek Ln": {
+  "am": 18,
+  "pm": 19,
+  "off": 17,
+  "miles": {
+   "am": 7.0,
+   "pm": 7.0,
+   "off": 7.0
+  }
+ },
+ "5110 Butter Creek Ln": {
+  "am": 18,
+  "pm": 19,
+  "off": 17,
+  "miles": {
+   "am": 7.0,
+   "pm": 7.0,
+   "off": 7.0
+  }
+ },
+ "8506 Leake Ave": {
+  "am": 14,
+  "pm": 14,
+  "off": 13,
+  "miles": {
+   "am": 6.3,
+   "pm": 6.0,
+   "off": 6.0
+  }
+ },
+ "8240 Rocky Trail Ave": {
+  "am": 13,
+  "pm": 14,
+  "off": 13,
+  "miles": {
+   "am": 5.3,
+   "pm": 5.3,
+   "off": 5.3
+  }
+ },
+ "2509 Olive St": {
+  "am": 9,
+  "pm": 9,
+  "off": 9,
+  "miles": {
+   "am": 2.6,
+   "pm": 2.6,
+   "off": 2.6
+  }
+ },
+ "879 S Eugene St": {
+  "am": 9,
+  "pm": 9,
+  "off": 9,
+  "miles": {
+   "am": 2.8,
+   "pm": 2.8,
+   "off": 2.8
+  }
+ },
+ "4326 Highland Rd": {
+  "am": 3,
+  "pm": 4,
+  "off": 3,
+  "miles": {
+   "am": 0.8,
+   "pm": 0.8,
+   "off": 0.8
+  }
+ },
+ "7183 Chandler Dr": {
+  "am": 12,
+  "pm": 13,
+  "off": 12,
+  "miles": {
+   "am": 4.2,
+   "pm": 4.2,
+   "off": 4.2
+  }
+ },
+ "7855 Clover Ridge Ave": {
+  "am": 12,
+  "pm": 13,
+  "off": 12,
+  "miles": {
+   "am": 5.2,
+   "pm": 5.2,
+   "off": 5.2
+  }
+ },
+ "115 S Leo St": {
+  "am": 13,
+  "pm": 14,
+  "off": 14,
+  "miles": {
+   "am": 4.2,
+   "pm": 4.2,
+   "off": 5.0
+  }
+ },
+ "7646 Antebellum Ave": {
+  "am": 12,
+  "pm": 14,
+  "off": 13,
+  "miles": {
+   "am": 5.2,
+   "pm": 5.2,
+   "off": 5.2
+  }
+ },
+ "3202 Ivanhoe St": {
+  "am": 3,
+  "pm": 4,
+  "off": 3,
+  "miles": {
+   "am": 0.6,
+   "pm": 0.6,
+   "off": 0.6
+  }
+ },
+ "14014 Azalea Park Ave": {
+  "am": 23,
+  "pm": 22,
+  "off": 20,
+  "miles": {
+   "am": 12.0,
+   "pm": 12.0,
+   "off": 12.0
+  }
+ },
+ "3262 Wyoming St": {
+  "am": 6,
+  "pm": 7,
+  "off": 6,
+  "miles": {
+   "am": 1.2,
+   "pm": 1.2,
+   "off": 1.2
+  }
+ },
+ "229 E State St": {
+  "am": 3,
+  "pm": 4,
+  "off": 3,
+  "miles": {
+   "am": 0.5,
+   "pm": 0.5,
+   "off": 0.5
+  }
+ },
+ "1564 Belmont Ave": {
+  "am": 7,
+  "pm": 8,
+  "off": 7,
+  "miles": {
+   "am": 2.2,
+   "pm": 2.2,
+   "off": 2.2
+  }
+ },
+ "5141 Brightside View Dr": {
+  "am": 10,
+  "pm": 10,
+  "off": 9,
+  "miles": {
+   "am": 2.7,
+   "pm": 2.7,
+   "off": 2.7
+  }
+ },
+ "322 Flicker St": {
+  "am": 18,
+  "pm": 21,
+  "off": 18,
+  "miles": {
+   "am": 11.9,
+   "pm": 11.9,
+   "off": 11.9
+  }
+ },
+ "14555 Old Hammond Hwy": {
+  "am": 22,
+  "pm": 21,
+  "off": 20,
+  "miles": {
+   "am": 11.6,
+   "pm": 11.6,
+   "off": 11.6
+  }
+ },
+ "3645 Gladiola St": {
+  "am": 6,
+  "pm": 6,
+  "off": 6,
+  "miles": {
+   "am": 1.9,
+   "pm": 1.9,
+   "off": 1.9
+  }
+ },
+ "205 E State St": {
+  "am": 3,
+  "pm": 4,
+  "off": 3,
+  "miles": {
+   "am": 0.5,
+   "pm": 0.5,
+   "off": 0.5
+  }
+ },
+ "5137 Nicholson Dr": {
+  "am": 8,
+  "pm": 8,
+  "off": 7,
+  "miles": {
+   "am": 2.0,
+   "pm": 2.0,
+   "off": 2.0
+  }
+ },
+ "2403 Brightside Dr": {
+  "am": 10,
+  "pm": 11,
+  "off": 9,
+  "miles": {
+   "am": 2.9,
+   "pm": 2.9,
+   "off": 2.9
+  }
+ },
+ "2293 Hollydale Ave": {
+  "am": 8,
+  "pm": 9,
+  "off": 8,
+  "miles": {
+   "am": 2.6,
+   "pm": 2.9,
+   "off": 2.9
+  }
+ },
+ "5213 Butter Creek Ln": {
+  "am": 18,
+  "pm": 19,
+  "off": 18,
+  "miles": {
+   "am": 7.1,
+   "pm": 7.1,
+   "off": 7.1
+  }
+ },
+ "10428 Jefferson Hwy": {
+  "am": 19,
+  "pm": 20,
+  "off": 18,
+  "miles": {
+   "am": 8.1,
+   "pm": 8.1,
+   "off": 8.1
+  }
+ },
+ "115 Clara Dr": {
+  "am": 5,
+  "pm": 5,
+  "off": 4,
+  "miles": {
+   "am": 1.2,
+   "pm": 1.2,
+   "off": 1.2
+  }
+ },
+ "1226 Stoneliegh Dr": {
+  "am": 12,
+  "pm": 13,
+  "off": 12,
+  "miles": {
+   "am": 4.6,
+   "pm": 4.6,
+   "off": 4.6
+  }
+ },
+ "3625 Partridge Ln": {
+  "am": 18,
+  "pm": 18,
+  "off": 17,
+  "miles": {
+   "am": 7.1,
+   "pm": 7.1,
+   "off": 7.1
+  }
+ },
+ "10600 Lakes Blvd": {
+  "am": 15,
+  "pm": 17,
+  "off": 15,
+  "miles": {
+   "am": 6.4,
+   "pm": 6.4,
+   "off": 6.4
+  }
+ },
+ "18548 Lake Camellia Ave": {
+  "am": 29,
+  "pm": 28,
+  "off": 26,
+  "miles": {
+   "am": 15.5,
+   "pm": 15.5,
+   "off": 15.5
+  }
+ },
+ "10655 Woodland Oaks Dr": {
+  "am": 23,
+  "pm": 23,
+  "off": 22,
+  "miles": {
+   "am": 9.0,
+   "pm": 9.0,
+   "off": 9.0
+  }
+ },
+ "5050 Stumberg Ln": {
+  "am": 25,
+  "pm": 26,
+  "off": 23,
+  "miles": {
+   "am": 11.4,
+   "pm": 11.4,
+   "off": 11.4
+  }
+ },
+ "402 Lee Dr": {
+  "am": 7,
+  "pm": 8,
+  "off": 7,
+  "miles": {
+   "am": 2.1,
+   "pm": 2.1,
+   "off": 2.1
+  }
+ },
+ "710 Park Blvd": {
+  "am": 8,
+  "pm": 8,
+  "off": 8,
+  "miles": {
+   "am": 2.4,
+   "pm": 2.4,
+   "off": 2.4
+  }
+ },
+ "6765 Corporate Blvd": {
+  "am": 12,
+  "pm": 13,
+  "off": 12,
+  "miles": {
+   "am": 4.7,
+   "pm": 4.7,
+   "off": 4.7
+  }
+ },
+ "1939 Terrace Ave": {
+  "am": 7,
+  "pm": 7,
+  "off": 7,
+  "miles": {
+   "am": 2.1,
+   "pm": 2.1,
+   "off": 2.1
+  }
+ },
+ "814 Lonita St": {
+  "am": 23,
+  "pm": 23,
+  "off": 22,
+  "miles": {
+   "am": 10.1,
+   "pm": 10.1,
+   "off": 10.1
+  }
+ },
+ "8732 Jefferson Hwy": {
+  "am": 16,
+  "pm": 16,
+  "off": 15,
+  "miles": {
+   "am": 6.4,
+   "pm": 6.4,
+   "off": 6.4
+  }
+ },
+ "2001 Red Stick Dr": {
+  "am": 18,
+  "pm": 18,
+  "off": 17,
+  "miles": {
+   "am": 8.1,
+   "pm": 8.1,
+   "off": 8.1
+  }
+ },
+ "8212 Argosy Ct": {
+  "am": 18,
+  "pm": 18,
+  "off": 17,
+  "miles": {
+   "am": 7.2,
+   "pm": 7.2,
+   "off": 7.2
+  }
+ },
+ "1046 Sedona Pines Dr": {
+  "am": 26,
+  "pm": 24,
+  "off": 23,
+  "miles": {
+   "am": 13.2,
+   "pm": 13.2,
+   "off": 13.2
+  }
+ },
+ "2122 Stonehenge Ave": {
+  "am": 11,
+  "pm": 11,
+  "off": 10,
+  "miles": {
+   "am": 3.6,
+   "pm": 3.0,
+   "off": 3.0
+  }
+ },
+ "8246 Ned Ave": {
+  "am": 14,
+  "pm": 16,
+  "off": 14,
+  "miles": {
+   "am": 6.2,
+   "pm": 6.2,
+   "off": 6.2
+  }
+ },
+ "350 E State St": {
+  "am": 3,
+  "pm": 4,
+  "off": 3,
+  "miles": {
+   "am": 0.6,
+   "pm": 0.6,
+   "off": 0.6
+  }
+ },
+ "4009 Victory Dr": {
+  "am": 17,
+  "pm": 21,
+  "off": 18,
+  "miles": {
+   "am": 8.9,
+   "pm": 8.9,
+   "off": 8.9
+  }
+ },
+ "1977 Cherrydale Ave": {
+  "am": 6,
+  "pm": 7,
+  "off": 6,
+  "miles": {
+   "am": 2.0,
+   "pm": 2.0,
+   "off": 2.0
+  }
+ },
+ "1781 Province Pl": {
+  "am": 21,
+  "pm": 21,
+  "off": 20,
+  "miles": {
+   "am": 9.8,
+   "pm": 9.8,
+   "off": 9.8
+  }
+ },
+ "8028 Valley St": {
+  "am": 10,
+  "pm": 11,
+  "off": 10,
+  "miles": {
+   "am": 3.5,
+   "pm": 3.5,
+   "off": 3.5
+  }
+ },
+ "10057 Jefferson Hwy": {
+  "am": 19,
+  "pm": 19,
+  "off": 18,
+  "miles": {
+   "am": 7.8,
+   "pm": 7.8,
+   "off": 7.8
+  }
+ }
 }
