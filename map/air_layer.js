@@ -233,9 +233,10 @@ BRMap.ready(async () => {
   const KIND_TO_RISK = { chronic_cancer: "cancer", chronic_noncancer: "noncancer", acute_accident: "acute" };
   function footprintsFor(f) { return Array.isArray(f.risk_footprints) && f.risk_footprints.length ? f.risk_footprints : null; }
   function fallbackRadii(f) {
-    if (Array.isArray(f.risk_radii) && f.risk_radii.length) return f.risk_radii;
-    const sr = f.chemical_summary && f.chemical_summary.screening_radii;
-    return Array.isArray(sr) ? sr.map(r => ({ chemical: r.chemical, radius_mi: r.radius_mi, risk_type: KIND_TO_RISK[r.kind] || "lower" })) : [];
+    // Only modeled / RMP risk_radii[] are a legitimate circular fallback. The legacy
+    // chemical_summary.screening_radii heuristic is no longer drawn — when a TRI plant has no
+    // modeled contour, its plume_status explains why (absence ≠ "no emissions").
+    return (Array.isArray(f.risk_radii) && f.risk_radii.length) ? f.risk_radii : [];
   }
   const fpLayer = L.layerGroup();
   function clearFootprints() { fpLayer.clearLayers(); if (map.hasLayer(fpLayer)) map.removeLayer(fpLayer); }
@@ -416,6 +417,13 @@ BRMap.ready(async () => {
       h += grp("Chemicals reported", "From the 2024 TRI filing.", "#566070",
         byAir.slice(0, 6).map(c => chemRowOf({ name: c.name, air_lbs: c.air_lbs != null ? c.air_lbs : c.total_lbs }, "air", chemByName(f), maxAir)).join(""), byAir.length);
     }
+
+    // No modeled plume → explain why (a plume's absence is not "no emissions"); flag shared map coordinates
+    const ps = f.plume_status, cq = f.coordinate_quality;
+    if (!footprintsFor(f) && !fallbackRadii(f).length && ps && ps.summary)
+      h += '<div class="air-rel" style="margin-top:7px"><b>No modeled plume:</b> ' + esc(ps.summary) + '</div>';
+    if (cq && cq.status === "shared_source_coordinate" && cq.note)
+      h += '<div class="air-src" style="margin-top:3px">Shared map coordinate' + (cq.cluster_size ? ' (' + cq.cluster_size + ' records)' : '') + ': ' + esc(cq.note) + '</div>';
 
     // About this score — methodology + the modeled-plume footprint detail (honors cancer level) + calm note
     const fpRows = footprintRows(f);
