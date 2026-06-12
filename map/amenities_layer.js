@@ -95,7 +95,7 @@ BRMap.ready(async () => {
       ORDER.forEach((t) => { const arr = by[t]; if (!arr) return;
         arr.forEach((o, i) => { const a = o.a, alt = i > 0;
           marks.push(L.polyline([[l.lat, l.lon], [a[2], a[3]]],
-            { pane: BRMap.panes.connect, interactive: false, color: COLOR[t], weight: alt ? 2 : 3, opacity: alt ? 0.5 : 0.85, dashArray: alt ? "4,5" : null }).addTo(map));
+            { pane: BRMap.panes.connect, interactive: false, color: COLOR[t], weight: alt ? 2 : 3, opacity: alt ? 0.55 : 0.85, dashArray: "2,5" }).addTo(map));
           const html = '<div class="am-mk"><div class="am-circle' + (alt ? " s2" : "") + '" style="background:' + COLOR[t] + '">' + ICON[t]
             + '</div><div class="am-name' + (alt ? " s2" : "") + '" style="color:' + COLOR[t] + '">' + a[0] + '</div></div>';
           const mk = L.marker([a[2], a[3]], { pane: BRMap.panes.labels, interactive: false,
