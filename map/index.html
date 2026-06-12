@@ -29,6 +29,11 @@ html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Seg
 .pin-ico svg{display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
 .pin-ico.dim{opacity:.4;transition:opacity .15s}
 .pop b{font-size:13px}.pop .row{color:#5A6472;font-size:12px;margin-top:2px}.pop a{color:#2B5797}
+.pop .chips{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:11px 0 5px}
+.pop .chip{border:1px solid #E6EAF0;border-radius:9px;padding:6px 9px;min-width:0}
+.pop .chip .cl{display:block;font-size:10px;color:#8A93A0;text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+.pop .chip .cv{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:#26303B}
+.pop .chip .cv i{width:8px;height:8px;border-radius:50%;flex:none;display:inline-block}
 #info{position:absolute;top:54px;left:50px;z-index:1000;background:#fff;border:1px solid #E2E7EF;border-radius:10px;box-shadow:0 2px 12px rgba(16,24,40,.20);font-size:12.5px;width:300px;max-height:calc(100% - 70px);overflow:auto;padding:12px 14px;display:none}
 #info .info-x{position:absolute;top:5px;right:7px;border:none;background:transparent;font-size:19px;line-height:1;color:#8A93A0;cursor:pointer;padding:2px 5px;border-radius:6px}
 #info .info-x:hover{background:#F0F2F5;color:#333}
@@ -102,13 +107,14 @@ base["Standard"].addTo(map);
 
 const BASE_PIN="#2B5797";
 const BRMap={
- map, listings:[], pins:{}, _rows:[], _clicks:[], _ready:[], _sections:{}, _lk:{}, _detailRenderFns:[],
+ map, listings:[], pins:{}, _rows:[], _clicks:[], _ready:[], _sections:{}, _lk:{}, _detailRenderFns:[], _chips:[],
  _areas:[], _colors:[], _details:[], _activeArea:null, _activeColor:null, _selected:null,
  panes:{areas:"pane-areas",heat:"pane-heat",routes:"pane-routes",facils:"pane-facils",connect:"pane-connect",labels:"pane-labels"},
  fetchJSON(u){return fetch(u,{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);},
  fetchText(u){return fetch(u,{cache:"no-store"}).then(r=>r.ok?r.text():null).catch(()=>null);},
  ready(fn){ if(this.listings.length) fn(); else this._ready.push(fn); },
  addPopupRow(fn,group){ this._rows.push({fn:fn,group:group||"more"}); },
+ addSummaryChip(fn){ this._chips.push(fn); },
  onListingClick(fn){ this._clicks.push(fn); },
  setPinColor(id,color){ const p=this.pins[id]; if(p){ this._lk[id]._color=color; p.setIcon(pinIcon(color,this._lk[id].status==="off")); } },
  colorPins(fn){ this.listings.forEach(l=>this.setPinColor(l.id, fn(l)||BASE_PIN)); },
@@ -217,6 +223,9 @@ function basePopup(l){
  let h='<div class="pop"><b>'+l.address+'</b>'+(l.status==="off"?' <span style="font-size:10px;color:#888">(off-mkt)</span>':"")+
   '<div class="row">'+money(l.price,l.type)+(l.beds?" · "+l.beds+"bd":"")+(l.baths?"/"+l.baths+"ba":"")+(l.size?" · "+l.size.toLocaleString()+"sf":"")+"</div>"+
   '<div class="row">'+(l.neighborhood||"")+" · ZIP "+l.zip+"</div>";
+ let chips=""; BRMap._chips.forEach(fn=>{ try{ const c=fn(l); if(c&&c.value!=null)
+   chips+='<div class="chip"><span class="cl">'+c.label+'</span><span class="cv">'+(c.color?'<i style="background:'+c.color+'"></i>':"")+c.value+'</span></div>'; }catch(e){} });
+ if(chips) h+='<div class="chips">'+chips+'</div>';
  const saved=PREF.popGroups||{}, known={}; POP_GROUPS.forEach(g=>{known[g.id]=1;});
  POP_GROUPS.forEach(g=>{ let body="";
    BRMap._rows.forEach(e=>{ const fn=(typeof e==="function")?e:e.fn; const gid=(typeof e==="function"||!known[e.group])?"more":e.group;

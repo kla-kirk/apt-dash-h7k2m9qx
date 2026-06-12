@@ -136,6 +136,10 @@ BRMap.ready(async () => {
       (mi != null ? ' <span class="mut">· ' + (+mi).toFixed(1) + " mi</span>" : "") + "</div>" +
       '<div class="row mut">AM ' + c.am + " · PM " + c.pm + " · off " + c.off + " min</div>"; }, "commute");
 
+  // at-a-glance summary chip (listing panel)
+  if (typeof BRMap.addSummaryChip === "function") BRMap.addSummaryChip((l) => { const c = C[l.address]; if (!c) return null;
+    const v = c[timeMode]; return v != null ? { label: "LSU commute", value: Math.round(v) + " min", color: "#2B5797" } : null; });
+
   // amenity route chips (only when we actually have route data for this listing)
   const REG = {};
   BRMap.addPopupRow((l) => { const recs = AR[l.address]; if (!recs) return "";

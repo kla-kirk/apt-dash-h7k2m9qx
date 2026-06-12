@@ -24,6 +24,13 @@ BRMap.ready(async () => {
     if (!z) return ""; const hi = sfha === "T" || /^A|^V/.test((z || "").toUpperCase());
     return '<div class="row">Flood zone: <b style="color:' + (hi ? "#B23B3B" : "#1E7A34") + '">' + z + "</b>" + (hi ? " — Special Flood Hazard Area (insurance req.)" : " — minimal risk") + "</div>"; }, "env");
 
+  // at-a-glance summary chip (listing panel)
+  if (typeof BRMap.addSummaryChip === "function") BRMap.addSummaryChip((l) => { let z = null, sfha = null;
+    if (lf && lf[l.address]) { z = lf[l.address].fld_zone; sfha = lf[l.address].sfha; }
+    else { const p = pip(l.lat, l.lon); if (p) { z = p.FLD_ZONE; sfha = p.SFHA_TF; } }
+    if (!z) return null; const hi = sfha === "T" || /^A|^V/.test((z || "").toUpperCase());
+    return { label: "Flood", value: "Zone " + z, color: hi ? "#B23B3B" : "#1E7A34" }; });
+
   if (!gj) { return; } // overlay needs the polygons; popup row above still works if pip data exists
 
   let layer = null;

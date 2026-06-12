@@ -81,6 +81,9 @@ BRMap.ready(async () => {
     colorFor: (l) => { const s = SC[l.id]; return s ? vt(s.avg.v[1]).c : undefined; },
     legend: VT.map((s) => '<span class="sw"><i style="background:' + s.c + '"></i>' + s.t + "</span>").join("") });
 
+  // at-a-glance summary chip (listing panel)
+  if (typeof BRMap.addSummaryChip === "function") BRMap.addSummaryChip((l) => { const s = SC[l.id]; if (!s) return null; const t = vt(s.avg.v[1]); return { label: "Crime", value: t.t, color: t.c }; });
+
   // ---- live incident detail + past-12-months counts (BR open-data API) ----
   const NIBRS = { hom: ["09A", "09B", "09C"], agg: ["13A"], rob: ["120"], rape: ["11A", "11B", "11C", "11D"],
     burg: ["220"], theft: ["23A", "23B", "23C", "23D", "23E", "23F", "23G", "23H"], auto: ["240"],

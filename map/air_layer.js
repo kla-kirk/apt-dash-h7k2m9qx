@@ -157,6 +157,11 @@ BRMap.ready(async () => {
     return h;
   }, "env");
 
+  // ---------- at-a-glance summary chip (listing panel) ----------
+  if (typeof BRMap.addSummaryChip === "function") {
+    BRMap.addSummaryChip(l => { const a = LI[l.address]; return (a && a.score != null) ? { label: "Pollution", value: a.label, color: col(a.score) } : null; });
+  }
+
   // ---------- color mode: tint pins by relative proximity score ----------
   if (typeof BRMap.addColorMode === "function") {
     BRMap.addColorMode({
