@@ -239,7 +239,7 @@ table.cmp td.win{background:var(--salebg)}table.cmp td.win .v{color:var(--accent
   <button class="btn ghost sm" id="colsBtn" onclick="toggleColsMenu(this)">⊞ Columns</button>
   <button class="btn ghost sm" id="densBtn" onclick="toggleDensity()">≡ Comfortable</button>
   <button class="btn ghost sm" onclick="openTourPlanner()">Tour Planner</button>
-  <button class="btn ghost sm" id="refreshBtn" onclick="refreshFromSheet()">↻ Refresh from Sheet</button>
+  <button class="btn ghost sm" id="refreshBtn" onclick="refreshFromSheet()">↻ Refresh from Sheet</button><span id="bkStatus" class="zip" style="margin-left:8px"></span>
   <button class="btn ghost sm" onclick="exportCSV()">Export CSV</button>
   <button class="btn" onclick="openEdit(null)">+ Add</button>
  </div>
@@ -367,7 +367,19 @@ const EMAIL={enabled:false, provider:"gmail",
   tools:{search:"mcp__gmail__search_emails", draft:"mcp__gmail__create_draft", send:"mcp__gmail__send_email"}};
 
 function load(){ let a; try{const r=localStorage.getItem(LS_KEY); if(r) a=JSON.parse(r);}catch(e){} if(!a) a=JSON.parse(JSON.stringify(SEED)); a.forEach(l=>{ if(!l.reviewState) l.reviewState="accepted"; }); try{ if(localStorage.getItem("br_review_imported_v1")!=="1"){ const have=new Set(a.map(x=>x.id)); (typeof REVIEW_SEED!=="undefined"?REVIEW_SEED:[]).forEach(r=>{ if(!have.has(r.id)) a.push(JSON.parse(JSON.stringify(r))); }); localStorage.setItem("br_review_imported_v1","1"); localStorage.setItem(LS_KEY,JSON.stringify(a)); } }catch(e){} try{ if(localStorage.getItem("br_status_refresh_v1")!=="1"){ a.forEach(l=>{ if(STATUS_REFRESH[l.id]) l.status=STATUS_REFRESH[l.id]; }); localStorage.setItem("br_status_refresh_v1","1"); localStorage.setItem(LS_KEY,JSON.stringify(a)); } }catch(e){} return a; }
-function save(){ try{localStorage.setItem(LS_KEY,JSON.stringify(listings));}catch(e){} }
+function save(){ try{localStorage.setItem(LS_KEY,JSON.stringify(listings));}catch(e){} scheduleBackup(); }
+/* ---- auto-backup full snapshot to the Google Sheet (Backup tab) on every change ---- */
+let _bkTimer=null;
+function setBkStatus(t){ const el=document.getElementById("bkStatus"); if(el) el.textContent=t; }
+function scheduleBackup(){ if(!PROXY_URL) return; clearTimeout(_bkTimer); _bkTimer=setTimeout(backupToSheet,2500); }
+function backupToSheet(){
+  if(!PROXY_URL) return;
+  setBkStatus("☁ backing up…");
+  const payload={action:"backup",savedAt:new Date().toISOString(),listings:listings};
+  fetch(PROXY_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)})
+    .then(()=>setBkStatus("☁ Backed up "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})))
+    .catch(()=>setBkStatus("⚠ Backup failed — is the Apps Script deployed?"));
+}
 function rows(){ return listings.filter(l=>l.type===mode); }
 function byId(id){ return listings.find(l=>l.id===id); }
 function num(v){ return (v===0||v)&&!isNaN(parseFloat(v))?parseFloat(v):null; }
