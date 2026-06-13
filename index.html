@@ -663,8 +663,20 @@ function renderReviewTabs(){
   el.innerHTML=tab("accepted","Accepted","acc")+tab("review","To review","rev")+tab("rejected","Rejected","rej")
     +'<button class="btn sm addrev" onclick="openAddReview()">+ Add to review</button>';
 }
+/* ---- shared accept/reject state with the map (localStorage "nr_status_v1", same origin) ----
+   map uses {id:"accepted"|"needs"|"rejected"}; dashboard uses reviewState accepted|review|rejected. */
+const STATUS_LS="nr_status_v1";
+const _m2d={accepted:"accepted",needs:"review",rejected:"rejected"};
+const _d2m={accepted:"accepted",review:"needs",rejected:"rejected"};
+function loadSharedStatus(){ try{return JSON.parse(localStorage.getItem(STATUS_LS))||{};}catch(_){return{};} }
+function saveSharedStatus(m){ try{localStorage.setItem(STATUS_LS,JSON.stringify(m));}catch(_){ } }
+function syncStatusFromShared(){ const m=loadSharedStatus(); let ch=false;
+  listings.forEach(l=>{ const v=m[l.id]; if(v&&_m2d[v]&&l.reviewState!==_m2d[v]){ l.reviewState=_m2d[v]; ch=true; } }); return ch; }
+function pushStatusToShared(){ const m=loadSharedStatus(); let ch=false;
+  listings.forEach(l=>{ const w=_d2m[l.reviewState||"accepted"]||"accepted"; if(m[l.id]!==w){ m[l.id]=w; ch=true; } }); if(ch) saveSharedStatus(m); }
+function setSharedStatusFor(id,reviewState){ const m=loadSharedStatus(); m[id]=_d2m[reviewState]||"accepted"; saveSharedStatus(m); }
 function setReviewFilter(s){ reviewFilter=s; render(); }
-function setReview(id,s){ const l=byId(id); if(!l) return; l.reviewState=s; save(); render();
+function setReview(id,s){ const l=byId(id); if(!l) return; l.reviewState=s; setSharedStatusFor(id,s); save(); render();
   if(document.getElementById("editScrim").classList.contains("show")) openEdit(id);
   if(document.getElementById("detailDrawer").classList.contains("show")&&detailId===id) openDetail(id);
   toast(s==="accepted"?"Moved to Accepted":(s==="review"?"Moved to To review":"Rejected")); }
@@ -1228,6 +1240,10 @@ const CANCER={"2115 E Ramsey Dr":{"b":49.7,"t":"Moderate","d":4.7},"2437 Fiero S
 listings.forEach(function(l){var p=POLL[l.address]; if(p){l.pollScore=p.p;l.pollLabel=p.pl;} var c=CANCER[l.address]; if(c){l.cancerBurden=c.b;l.cancerTier=c.t;l.cancerMi=c.d;}});
 render();
 /*__POLLCANCER_END__*/
+/* link accept/reject with the map: apply shared status on load, seed it from the dashboard,
+   and live-update when the map (another tab) changes it. */
+syncStatusFromShared(); pushStatusToShared(); render();
+window.addEventListener("storage",e=>{ if(e.key===STATUS_LS){ if(syncStatusFromShared()){ render(); try{renderStats();}catch(_){ } } } });
 refreshFromSheet(true);
 
 </script></body></html>
