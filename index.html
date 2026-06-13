@@ -44,6 +44,38 @@ h1{font-size:20px;margin:0;font-weight:700;letter-spacing:-.01em;color:var(--ink
 .filters input,.filters select{padding:8px 11px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--card);color:var(--ink)}
 .filters input::placeholder{color:var(--g400)}
 .filters input[type=search]{min-width:210px}
+.filters{flex-direction:column;align-items:stretch}
+.frow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.frow.fmore{padding:8px 0 2px;border-top:1px dashed var(--line);margin-top:2px}
+.fnum{width:124px}
+.fmoreBtn{cursor:pointer;background:var(--card);color:var(--g700);border:1px solid var(--line);border-radius:8px;padding:8px 11px;font:inherit;font-size:12.5px;font-weight:600}
+.fmoreBtn:hover{background:var(--bg);border-color:var(--g400)}
+.fsep{width:1px;align-self:stretch;background:var(--line);margin:0 3px}
+.fmeta{margin-top:4px}
+.fcount{color:var(--g600);font-size:12.5px}
+.fcount b{color:var(--ink)}
+.hidlink{color:var(--accent);font-weight:600;cursor:pointer;text-decoration:none}
+.hidlink:hover{text-decoration:underline}
+.fchips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;min-height:4px}
+.fchip{display:inline-flex;align-items:center;gap:6px;background:var(--accent-l);color:var(--accent-d);border:1px solid #D6E2FB;border-radius:999px;padding:3px 6px 3px 11px;font-size:12px;font-weight:600}
+.fchip button{border:none;background:rgba(37,99,235,.16);color:var(--accent-d);width:16px;height:16px;border-radius:50%;cursor:pointer;font-size:11px;line-height:1;padding:0}
+.fchip button:hover{background:rgba(37,99,235,.34)}
+.fclear{cursor:pointer;color:var(--accent);font-weight:600;font-size:12px;background:none;border:none;padding:3px 6px}
+.fclear:hover{text-decoration:underline}
+.nbwrap{position:relative}
+.nbbtn{cursor:pointer;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 11px;font:inherit;font-size:12.5px}
+.nbbtn:hover{border-color:var(--g400)}
+.nbpop{position:absolute;z-index:60;top:calc(100% + 4px);left:0;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px rgba(16,24,40,.18);padding:8px;max-height:280px;overflow:auto;width:244px;display:none}
+.nbpop.show{display:block}
+.nbpop label{display:flex;gap:7px;align-items:center;padding:4px 6px;border-radius:6px;font-size:12.5px;cursor:pointer;margin:0}
+.nbpop label:hover{background:var(--bg)}
+.nbpop .nbhd-act{display:flex;justify-content:space-between;padding:2px 6px 6px;border-bottom:1px solid var(--line2);margin-bottom:4px}
+.nbpop .nbhd-act a{color:var(--accent);font-weight:600;cursor:pointer;font-size:12px}
+.rtab.hid.on{background:#6B7686;border-color:#6B7686;color:#fff}
+.rtab.hid .ct{background:rgba(107,118,134,.18)}
+.rsbadge{display:inline-block;font-size:10.5px;font-weight:700;border-radius:5px;padding:1px 7px;background:#EEF1F5;color:#4B5563}
+.rsbadge.accepted{background:#E7F6EC;color:#1E7A34}.rsbadge.review{background:#FFF4E0;color:#9A6A00}.rsbadge.rejected{background:#FBE7E7;color:#B23B3B}
+.whyhid{font-size:10.5px;color:var(--g400);margin-top:3px;max-width:220px;white-space:normal;line-height:1.3}
 .chk{display:inline-flex;align-items:center;gap:7px;color:var(--g600);font-size:12.5px;font-weight:500;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 11px}
 .chk input{accent-color:var(--accent)}
 /* table */
@@ -239,7 +271,7 @@ table.cmp td.win{background:var(--salebg)}table.cmp td.win .v{color:var(--accent
   <button class="btn ghost sm" id="colsBtn" onclick="toggleColsMenu(this)">⊞ Columns</button>
   <button class="btn ghost sm" id="densBtn" onclick="toggleDensity()">≡ Comfortable</button>
   <button class="btn ghost sm" onclick="openTourPlanner()">Tour Planner</button>
-  <button class="btn ghost sm" id="refreshBtn" onclick="refreshFromSheet()">↻ Refresh from Sheet</button><span id="bkStatus" class="zip" style="margin-left:8px"></span>
+  <button class="btn ghost sm" id="refreshBtn" onclick="refreshFromSheet()">↻ Refresh from Sheet</button><button class="btn ghost sm" onclick="openTemplateManager()">✉ Templates</button><span id="bkStatus" class="zip" style="margin-left:8px"></span>
   <button class="btn ghost sm" onclick="exportCSV()">Export CSV</button>
   <button class="btn" onclick="openEdit(null)">+ Add</button>
  </div>
@@ -306,6 +338,240 @@ table.cmp td.win{background:var(--salebg)}table.cmp td.win .v{color:var(--accent
 
 <div class="toast" id="toast"></div>
 <script src="market_links.js"></script>
+<script id="brfilters-lib">
+/*__BRFILTERS_START__*/
+/* ============================================================================
+   SHARED LISTING-FILTER PREDICATE LIBRARY  —  BRFilters
+   ----------------------------------------------------------------------------
+   ONE source of truth for "does this listing match the active filters?", used
+   IDENTICALLY by the dashboard table and the Leaflet map so the two surfaces
+   can never disagree. Pure: no DOM, no fetch, no globals beyond `BRFilters`.
+   Loads in the browser (window.BRFilters) and in Node (module.exports).
+
+   PRIME DIRECTIVE — never hide a good listing:
+     * Default = everything passes (EMPTY criteria below).
+     * A listing is hidden ONLY when it DEFINITELY fails an active criterion.
+     * Missing / blank / unparseable data for a filtered field => that filter
+       PASSES the listing (we never drop a winner on unknown data).
+     * Ranges are inclusive at both ends (>= min, <= max).
+
+   The filter set is single-threshold by design (per Keegan): every numeric
+   filter is a single MIN except commute, which is a single MAX. Price is a
+   MIN. Listing TYPE (rent/sale) and REVIEW STATUS (accepted/needs/rejected)
+   are intentionally NOT handled here — each surface already owns those
+   (dashboard: mode + reviewFilter; map: review_layer.js "status" predicate) —
+   so this library composes with them via AND instead of fighting them.
+   ============================================================================ */
+(function (root) {
+  "use strict";
+
+  // ---- low-level parsing (the SINGLE definition both surfaces share) --------
+  function n(v) {                                  // tolerant number parse -> number | null
+    if (v === 0) return 0;
+    if (v == null || v === "") return null;
+    if (typeof v === "number") return isFinite(v) ? v : null;
+    var f = parseFloat(String(v).replace(/[^0-9.\-]/g, ""));
+    return isFinite(f) ? f : null;
+  }
+  function posNum(v) {                             // min/threshold inputs: only > 0 is "active"
+    var f = n(v);
+    return (f != null && f > 0) ? f : null;
+  }
+  function parseYear(v) {                          // "1950" | "2025" | "<1925" | "" -> number | null
+    if (v == null) return null;
+    var m = String(v).match(/(\d{4})/);
+    return m ? parseInt(m[1], 10) : null;
+  }
+  function parseFurnished(v) {                     // -> true (furnished) | false (definitely not) | null (unknown)
+    if (v == null) return null;
+    var s = String(v).trim().toLowerCase();
+    if (!s) return null;
+    if (/^(no|none|unfurnished|not furnished)$/.test(s)) return false;
+    if (/(furnish|fully|yes|some)/.test(s)) return true;
+    return null;
+  }
+  function parsePets(v) {                          // petFees string -> true | false (definitely no pets) | null
+    if (v == null) return null;
+    var s = String(v).trim().toLowerCase();
+    if (!s || /none listed|not listed|unknown|n\/a/.test(s)) return null;
+    if (/(no pets|pets? not allowed|no animals|not pet[- ]?friendly)/.test(s)) return false;
+    if (/(pet|dog|cat|friendly|deposit|allowed)/.test(s)) return true;
+    return null;
+  }
+  function parseLease(v) {                         // 12 | "6 (or 12+)" | null -> number | null (months)
+    return n(v);                                   // first number = the minimum commitment
+  }
+  function numHi(v) {                              // beds/baths/sqft: range "1–2"/"736–1,212" -> HIGH end
+    if (v == null || v === "") return null;        //   (max a community offers; min-filter-safe: no false negatives)
+    if (typeof v === "number") return isFinite(v) ? v : null;
+    var parts = String(v).split(/\s*(?:[‒-―−\-]|to)\s*/i);
+    var nums = []; for (var i = 0; i < parts.length; i++) { var x = n(parts[i]); if (x != null) nums.push(x); }
+    return nums.length ? Math.max.apply(null, nums) : null;
+  }
+
+  // ---- normalize a raw listing (dashboard SEED row OR map listing) ----------
+  //   Both surfaces call THIS, so identical fields -> identical normalized view.
+  //   `commuteAm` is supplied separately (it's keyed externally by address).
+  function normListing(raw, commuteAm) {
+    raw = raw || {};
+    var sizeRaw = (raw.size != null && raw.size !== "") ? raw.size : raw.sqft;
+    var text = [raw.address, raw.neighborhood, raw.likes, raw.dislikes]
+      .filter(function (x) { return x; }).join(" || ").toLowerCase();
+    return {
+      id: raw.id,
+      type: (raw.type === "sale") ? "sale" : "rent",
+      status: raw.status || "active",
+      price: n(raw.price),
+      beds: numHi(raw.beds),
+      baths: numHi(raw.baths),
+      size: numHi(sizeRaw),
+      year: parseYear(raw.yearBuilt),
+      furnished: parseFurnished(raw.furnished),
+      pets: parsePets(raw.petFees),
+      lease: parseLease(raw.minLease),
+      neighborhood: String(raw.neighborhood || ""),
+      commuteAm: (commuteAm != null ? n(commuteAm) : null),
+      text: text
+    };
+  }
+
+  // ---- default criteria: EVERYTHING passes ---------------------------------
+  var EMPTY = {
+    minPriceRent: null, minPriceSale: null,
+    minBeds: null, minBaths: null, minSize: null, minYear: null,
+    furnishedOnly: false, petsOnly: false, maxLease: null,
+    neighborhoods: [], keyword: "", maxCommute: null, excludeOff: false
+  };
+
+  // ---- normalize raw UI criteria into clean typed criteria -----------------
+  function clean(raw) {
+    raw = raw || {};
+    return {
+      minPriceRent: posNum(raw.minPriceRent),
+      minPriceSale: posNum(raw.minPriceSale),
+      minBeds: posNum(raw.minBeds),
+      minBaths: posNum(raw.minBaths),
+      minSize: posNum(raw.minSize),
+      minYear: posNum(raw.minYear),
+      furnishedOnly: !!raw.furnishedOnly,
+      petsOnly: !!raw.petsOnly,
+      maxLease: posNum(raw.maxLease),
+      neighborhoods: Array.isArray(raw.neighborhoods)
+        ? raw.neighborhoods.filter(function (x) { return x != null && x !== ""; }) : [],
+      keyword: String(raw.keyword == null ? "" : raw.keyword).trim().toLowerCase(),
+      maxCommute: posNum(raw.maxCommute),
+      excludeOff: !!raw.excludeOff
+    };
+  }
+
+  function isActive(raw) {                          // any filter engaged?
+    var c = clean(raw);
+    return c.minPriceRent != null || c.minPriceSale != null || c.minBeds != null ||
+      c.minBaths != null || c.minSize != null || c.minYear != null || c.furnishedOnly ||
+      c.petsOnly || c.maxLease != null || (c.neighborhoods && c.neighborhoods.length > 0) ||
+      !!c.keyword || c.maxCommute != null || c.excludeOff;
+  }
+
+  // ---- THE predicate. L = normListing(...) output; raw = UI criteria -------
+  function passes(L, raw) {
+    var c = clean(raw);
+    // Price — MIN, in the listing's own units (rent $/mo vs sale $k tracked separately)
+    var minP = (L.type === "sale") ? c.minPriceSale : c.minPriceRent;
+    if (minP != null && L.price != null && L.price < minP) return false;
+    // Beds / Baths / Sqft / Year — MIN, inclusive; unknown passes
+    if (c.minBeds != null && L.beds != null && L.beds < c.minBeds) return false;
+    if (c.minBaths != null && L.baths != null && L.baths < c.minBaths) return false;
+    if (c.minSize != null && L.size != null && L.size < c.minSize) return false;
+    if (c.minYear != null && L.year != null && L.year < c.minYear) return false;
+    // Rental toggles — hide ONLY when the field is DEFINITELY adverse
+    if (c.furnishedOnly && L.furnished === false) return false;
+    if (c.petsOnly && L.pets === false) return false;
+    // Max lease length willing to accept — listing's min commitment must be <= cap
+    if (c.maxLease != null && L.lease != null && L.lease > c.maxLease) return false;
+    // Neighborhood multi-select — unknown neighborhood passes
+    if (c.neighborhoods.length && L.neighborhood &&
+      c.neighborhoods.indexOf(L.neighborhood) < 0) return false;
+    // Keyword — substring over address/neighborhood/likes/dislikes
+    if (c.keyword && L.text && L.text.indexOf(c.keyword) < 0) return false;
+    // Max commute (minutes, AM rush to LSU) — unknown commute passes
+    if (c.maxCommute != null && L.commuteAm != null && L.commuteAm > c.maxCommute) return false;
+    // Exclude off-market (opt-in; default keeps them visible)
+    if (c.excludeOff && L.status === "off") return false;
+    return true;
+  }
+
+  // ---- applied-filter chips (shared labels so both surfaces read the same) --
+  function fmt(x) { return (x != null && x.toLocaleString) ? x.toLocaleString() : String(x); }
+  function chips(raw) {
+    var c = clean(raw), out = [];
+    if (c.minPriceRent != null) out.push({ key: "minPriceRent", label: "Rent ≥ $" + fmt(c.minPriceRent) + "/mo" });
+    if (c.minPriceSale != null) out.push({ key: "minPriceSale", label: "Buy ≥ $" + c.minPriceSale + "k" });
+    if (c.minBeds != null) out.push({ key: "minBeds", label: c.minBeds + "+ bd" });
+    if (c.minBaths != null) out.push({ key: "minBaths", label: c.minBaths + "+ ba" });
+    if (c.minSize != null) out.push({ key: "minSize", label: "≥ " + fmt(c.minSize) + " sqft" });
+    if (c.minYear != null) out.push({ key: "minYear", label: "Built ≥ " + c.minYear });
+    if (c.furnishedOnly) out.push({ key: "furnishedOnly", label: "Furnished" });
+    if (c.petsOnly) out.push({ key: "petsOnly", label: "Pets allowed" });
+    if (c.maxLease != null) out.push({ key: "maxLease", label: "Lease ≤ " + c.maxLease + " mo" });
+    (c.neighborhoods || []).forEach(function (nb) { out.push({ key: "nb:" + nb, label: nb }); });
+    if (c.keyword) out.push({ key: "keyword", label: "“" + c.keyword + "”" });
+    if (c.maxCommute != null) out.push({ key: "maxCommute", label: "≤ " + c.maxCommute + " min to LSU" });
+    if (c.excludeOff) out.push({ key: "excludeOff", label: "Hide off-market" });
+    return out;
+  }
+
+  // ---- remove one chip: return a fresh raw criteria with that key reset -----
+  function without(raw, key) {
+    var c = clean(raw);
+    if (key && key.indexOf("nb:") === 0) {
+      var nb = key.slice(3);
+      c.neighborhoods = (c.neighborhoods || []).filter(function (x) { return x !== nb; });
+    } else if (key === "keyword") { c.keyword = ""; }
+    else if (key === "furnishedOnly" || key === "petsOnly" || key === "excludeOff") { c[key] = false; }
+    else if (key in c) { c[key] = null; }
+    return c;
+  }
+
+  // ---- shared persistence + cross-surface sync ------------------------------
+  //   Dashboard and /map/ are same-origin, so this localStorage key syncs them
+  //   automatically AND remembers settings across visits. subscribe() also fires
+  //   on the cross-tab `storage` event so an open map updates when the dashboard
+  //   changes a filter (and vice-versa).
+  var KEY = "brfilters.v1";
+  function ls() { try { return root.localStorage || null; } catch (e) { return null; } }
+  function load() {
+    var s = ls(); if (!s) return Object.assign({}, EMPTY);
+    try { var raw = JSON.parse(s.getItem(KEY) || "null"); return Object.assign({}, EMPTY, raw || {}); }
+    catch (e) { return Object.assign({}, EMPTY); }
+  }
+  function save(raw) {
+    var s = ls(); if (!s) return;
+    try { s.setItem(KEY, JSON.stringify(clean(raw))); } catch (e) {}
+  }
+  function subscribe(fn) {                          // fn(newRawCriteria) on cross-tab change
+    if (!root.addEventListener) return function () {};
+    var h = function (ev) { if (ev && ev.key === KEY) { try { fn(load()); } catch (e) {} } };
+    root.addEventListener("storage", h);
+    return function () { try { root.removeEventListener("storage", h); } catch (e) {} };
+  }
+
+  var BRFilters = {
+    EMPTY: EMPTY, KEY: KEY,
+    // parsing (exposed for tests / surface adapters)
+    n: n, numHi: numHi, posNum: posNum, parseYear: parseYear, parseFurnished: parseFurnished,
+    parsePets: parsePets, parseLease: parseLease,
+    normListing: normListing,
+    clean: clean, isActive: isActive, passes: passes,
+    chips: chips, without: without,
+    // persistence/sync
+    load: load, save: save, subscribe: subscribe
+  };
+
+  root.BRFilters = BRFilters;
+  if (typeof module !== "undefined" && module.exports) module.exports = BRFilters;
+})(typeof window !== "undefined" ? window : (typeof globalThis !== "undefined" ? globalThis : this));
+/*__BRFILTERS_END__*/
+</script>
 <script>
 const FILE_ID="1ag9u7KuIXewIK7o9EZIAeMlPc2zDwq6eevBnTjI46no";
 const READ_TOOL="mcp__0b70e2fa-2922-4032-8daa-a8a40986e5a6__read_file_content";
@@ -361,6 +627,9 @@ let listings=load();
 let mode="rent";
 let sortKey="combined", sortDir=1;
 let filt={q:"",nb:"",minBeds:"",maxPrice:"",ranked:false,hideOff:false,safe:"",shortOnly:false,hasAlt:false,statusConflict:false,needsContact:false,awaitingReply:false,confirmedTour:false};
+// Shared, persisted Zillow-style filter criteria (synced with the /map/ via localStorage "brfilters.v1").
+let FCRIT=(typeof BRFilters!=="undefined")?BRFilters.load():{};
+let moreF=false; try{moreF=localStorage.getItem("brdash.moreF")==="1";}catch(_){}
 let editingId=null, mailId=null;
 let reviewFilter="accepted"; let arTypeVal="rent";
 const EMAIL={enabled:false, provider:"gmail",
@@ -375,7 +644,7 @@ function scheduleBackup(){ if(!PROXY_URL) return; clearTimeout(_bkTimer); _bkTim
 function backupToSheet(){
   if(!PROXY_URL) return;
   setBkStatus("☁ backing up…");
-  const payload={action:"backup",savedAt:new Date().toISOString(),listings:listings};
+  const payload={action:"backup",savedAt:new Date().toISOString(),listings:listings,templates:loadTemplates(),sender:loadProfile()};
   fetch(PROXY_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)})
     .then(()=>setBkStatus("☁ Backed up "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})))
     .catch(()=>setBkStatus("⚠ Backup failed — is the Apps Script deployed?"));
@@ -384,6 +653,26 @@ function rows(){ return listings.filter(l=>l.type===mode); }
 function byId(id){ return listings.find(l=>l.id===id); }
 function num(v){ return (v===0||v)&&!isNaN(parseFloat(v))?parseFloat(v):null; }
 function combined(l){ const a=num(l.jamie),b=num(l.keegan); if(a!=null&&b!=null) return Math.round((a+b)/2*10)/10; return a!=null?a:(b!=null?b:null); }
+// ---- shared filter glue (one predicate library; same logic as the /map/) ----
+function commuteAmOf(l){ const c=(typeof COMMUTE!=="undefined")?COMMUTE[l.address]:null; return c?c.am:null; }
+function normL(l){ return BRFilters.normListing(l, commuteAmOf(l)); }
+function passesShared(l){ return BRFilters.passes(normL(l), FCRIT); }
+function saveCrit(){ BRFilters.save(FCRIT); }                 // persist + cross-surface sync
+// reasons a listing fails the active filters (for the Hidden tab — auditing the prime directive)
+function whyHidden(l){ const L=normL(l), c=BRFilters.clean(FCRIT), r=[], t=o=>BRFilters.passes(L,o);
+  if(!t({minPriceRent:c.minPriceRent,minPriceSale:c.minPriceSale})) r.push("price");
+  if(!t({minBeds:c.minBeds})) r.push("beds");
+  if(!t({minBaths:c.minBaths})) r.push("baths");
+  if(!t({minSize:c.minSize})) r.push("sqft");
+  if(!t({minYear:c.minYear})) r.push("year");
+  if(!t({furnishedOnly:c.furnishedOnly})) r.push("furnished");
+  if(!t({petsOnly:c.petsOnly})) r.push("pets");
+  if(!t({maxLease:c.maxLease})) r.push("lease");
+  if(!t({neighborhoods:c.neighborhoods})) r.push("neighborhood");
+  if(!t({keyword:c.keyword})) r.push("search");
+  if(!t({maxCommute:c.maxCommute})) r.push("commute");
+  if(!t({excludeOff:c.excludeOff})) r.push("off-market");
+  return r; }
 const LSU=[30.4133,-91.1800];   // LSU Baton Rouge campus
 function haver(la1,lo1,la2,lo2){const R=3958.7613,r=Math.PI/180;const dla=(la2-la1)*r,dlo=(lo2-lo1)*r;const a=Math.sin(dla/2)**2+Math.cos(la1*r)*Math.cos(la2*r)*Math.sin(dlo/2)**2;return 2*R*Math.asin(Math.sqrt(a));}
 // Radius-adjustable crime risk. Tier on VIOLENT density (incidents per sq mi) so it scales with the chosen radius.
@@ -669,10 +958,14 @@ function toggleColsMenu(btn){
   setTimeout(()=>document.addEventListener("click",closeColsOnce),0);
 }
 function renderReviewTabs(){
-  const all=rows(); const c=s=>all.filter(l=>(l.reviewState||"accepted")===s).length;
+  const all=rows();
+  // bins: a filtered-out listing belongs to Hidden (any review state); the rest stay in their tab
+  const c=s=> s==="hidden" ? all.filter(l=>!passesShared(l)).length
+                           : all.filter(l=>passesShared(l)&&(l.reviewState||"accepted")===s).length;
   const tab=(s,lab,cls)=>'<button class="rtab '+cls+(reviewFilter===s?" on":"")+'" onclick="setReviewFilter(\''+s+'\')">'+lab+' <span class="ct">'+c(s)+'</span></button>';
   const el=document.getElementById("rtabs"); if(!el) return;
   el.innerHTML=tab("accepted","Accepted","acc")+tab("review","To review","rev")+tab("rejected","Rejected","rej")
+    +tab("hidden","Hidden","hid")
     +'<button class="btn sm addrev" onclick="openAddReview()">+ Add to review</button>';
 }
 /* ---- shared accept/reject state with the map (localStorage "nr_status_v1", same origin) ----
@@ -694,6 +987,10 @@ function setReview(id,s){ const l=byId(id); if(!l) return; l.reviewState=s; setS
   toast(s==="accepted"?"Moved to Accepted":(s==="review"?"Moved to To review":"Rejected")); }
 function reviewActionCell(l){
   if(reviewFilter==="accepted") return "";
+  if(reviewFilter==="hidden"){ const st=(l.reviewState||"accepted"); const why=whyHidden(l);
+    const lbl=st==="review"?"To review":(st.charAt(0).toUpperCase()+st.slice(1));
+    return '<td class="racts"><span class="rsbadge '+esc(st)+'">'+lbl+'</span>'
+      +(why.length?'<div class="whyhid" title="Filtered out by: '+esc(why.join(", "))+'">filtered: '+esc(why.join(", "))+'</div>':'')+'</td>'; }
   if(reviewFilter==="review") return '<td class="racts"><button class="acc" onclick="event.stopPropagation();setReview(\''+l.id+'\',\'accepted\')">✓ Accept</button><button class="rej" onclick="event.stopPropagation();setReview(\''+l.id+'\',\'rejected\')">✗ Reject</button></td>';
   return '<td class="racts"><button class="res" onclick="event.stopPropagation();setReview(\''+l.id+'\',\'review\')">↩ Restore</button></td>';
 }
@@ -724,13 +1021,13 @@ function renderPill(){ const p=document.getElementById("pillEmail"); p.classList
 
 function applyFilters(arr){
   let a=arr.slice();
+  // The "Hidden" bin = listings in this mode that FAIL the shared filter, regardless of
+  // accepted/review/rejected. Nothing ever silently vanishes — it lands here for auditing.
+  if(reviewFilter==="hidden") return a.filter(l=>!passesShared(l));
   a=a.filter(l=>(l.reviewState||"accepted")===reviewFilter);
-  if(filt.q){ const q=filt.q.toLowerCase(); a=a.filter(l=>[l.address,l.neighborhood,l.likes,l.dislikes].some(x=>(x||"").toLowerCase().includes(q))); }
-  if(filt.nb) a=a.filter(l=>(l.neighborhood||"")===filt.nb);
-  if(filt.minBeds) a=a.filter(l=>num(l.beds)!=null&&num(l.beds)>=+filt.minBeds);
-  if(filt.maxPrice) a=a.filter(l=>num(l.price)!=null&&num(l.price)<=+filt.maxPrice);
+  a=a.filter(l=>passesShared(l));               // shared Zillow-style criteria (also drives Hidden)
+  // dashboard-only view refinements (NOT part of the shared filter / Hidden bin):
   if(filt.ranked) a=a.filter(l=>combined(l)!=null);
-  if(filt.hideOff) a=a.filter(l=>l.status!=="off");
   if(filt.shortOnly) a=a.filter(l=>l.shortlisted);
   if(filt.hasAlt) a=a.filter(l=>marketSummary(l).hasAlt);
   if(filt.statusConflict) a=a.filter(l=>marketSummary(l).statusConflict);
@@ -764,7 +1061,7 @@ function sortRows(a){
   return a;
 }
 function renderStats(){
-  const a=rows().filter(l=>(l.reviewState||"accepted")===reviewFilter); const pr=a.map(l=>num(l.price)).filter(v=>v!=null);
+  const a=applyFilters(rows()); const pr=a.map(l=>num(l.price)).filter(v=>v!=null);
   const sz=a.map(l=>num(l.size)).filter(v=>v!=null);
   const ranked=a.filter(l=>combined(l)!=null).length;
   const nbs=new Set(a.map(l=>l.neighborhood).filter(Boolean)).size;
@@ -783,48 +1080,132 @@ function renderStats(){
   ];
   document.getElementById("stats").innerHTML=cards.map(c=>'<div class="stat"><div class="n">'+c.n+'</div><div class="l">'+c.l+'</div></div>').join("");
 }
+function bedSel(id,cur,max,suf,any){ let h='<select id="'+id+'"><option value="">'+any+'</option>';
+  for(let n=1;n<=max;n++) h+='<option value="'+n+'"'+(+cur===n?' selected':'')+'>'+n+suf+'</option>'; return h+'</select>'; }
+function vget(v){ return (v==null?"":v); }
 function renderFilters(){
-  const a=rows(); const nbs=[...new Set(a.map(l=>l.neighborhood).filter(Boolean))].sort();
-  document.getElementById("filters").innerHTML=
-   '<input type="search" id="fq" placeholder="Search address, area, notes…" value="'+esc(filt.q)+'">'+
-   '<select id="fnb"><option value="">All neighborhoods</option>'+nbs.map(n=>'<option'+(filt.nb===n?' selected':'')+'>'+esc(n)+'</option>').join("")+'</select>'+
-   '<select id="fmb"><option value="">Beds: any</option>'+[1,2,3,4].map(b=>'<option value="'+b+'"'+(filt.minBeds==b?' selected':'')+'>'+b+'+ bd</option>').join("")+'</select>'+
-   '<input id="fmp" type="number" placeholder="'+(mode==="rent"?"Max $/mo":"Max $k")+'" value="'+esc(filt.maxPrice)+'" style="width:120px">'+
-   '<select id="frad" title="Radius the crime-risk score considers — smaller = only the immediate block (higher risk tolerance)"><option value="025"'+(RKEY==="025"?" selected":"")+'>Risk radius: ¼ mi · block</option><option value="05"'+(RKEY==="05"?" selected":"")+'>Risk radius: ½ mi · neighborhood</option><option value="10"'+(RKEY==="10"?" selected":"")+'>Risk radius: 1 mi · wider area</option></select>'+
-   '<select id="fsf"><option value="">Risk: any</option><option value="ok"'+(filt.safe==="ok"?" selected":"")+'>hide elevated/high</option><option value="low"'+(filt.safe==="low"?" selected":"")+'>low-risk only</option></select>'+
-   '<label class="chk"><input type="checkbox" id="frk"'+(filt.ranked?' checked':'')+'> ranked only</label>'+
-   '<label class="chk"><input type="checkbox" id="fho"'+(filt.hideOff?' checked':'')+'> hide off-market</label>'+
-   '<label class="chk"><input type="checkbox" id="fsl"'+(filt.shortOnly?' checked':'')+'> ★ Shortlist only</label>'+
-   '<label class="chk"><input type="checkbox" id="falt"'+(filt.hasAlt?' checked':'')+'> alternate source</label>'+
-   '<label class="chk"><input type="checkbox" id="fconflict"'+(filt.statusConflict?' checked':'')+'> status conflict</label>'+
-   '<label class="chk"><input type="checkbox" id="fneed"'+(filt.needsContact?' checked':'')+'> needs contact</label>'+
-   '<label class="chk"><input type="checkbox" id="fawait"'+(filt.awaitingReply?' checked':'')+'> awaiting reply</label>'+
-   '<label class="chk"><input type="checkbox" id="fconfirmed"'+(filt.confirmedTour?' checked':'')+'> confirmed tour</label>';
-  document.getElementById("frad").onchange=e=>{RKEY=e.target.value;render();};
-  document.getElementById("fsf").onchange=e=>{filt.safe=e.target.value;renderTable();renderStats();};
-  document.getElementById("fho").onchange=e=>{filt.hideOff=e.target.checked;renderTable();renderStats();};
-  document.getElementById("fsl").onchange=e=>{filt.shortOnly=e.target.checked;renderTable();renderStats();};
-  document.getElementById("falt").onchange=e=>{filt.hasAlt=e.target.checked;renderTable();renderStats();};
-  document.getElementById("fconflict").onchange=e=>{filt.statusConflict=e.target.checked;renderTable();renderStats();};
-  document.getElementById("fneed").onchange=e=>{filt.needsContact=e.target.checked;renderTable();renderStats();};
-  document.getElementById("fawait").onchange=e=>{filt.awaitingReply=e.target.checked;renderTable();renderStats();};
-  document.getElementById("fconfirmed").onchange=e=>{filt.confirmedTour=e.target.checked;renderTable();renderStats();};
-  document.getElementById("fq").oninput=e=>{filt.q=e.target.value;renderTable();};
-  document.getElementById("fnb").onchange=e=>{filt.nb=e.target.value;renderTable();renderStats();};
-  document.getElementById("fmb").onchange=e=>{filt.minBeds=e.target.value;renderTable();renderStats();};
-  document.getElementById("fmp").oninput=e=>{filt.maxPrice=e.target.value;renderTable();renderStats();};
-  document.getElementById("frk").onchange=e=>{filt.ranked=e.target.checked;renderTable();renderStats();};
+  const nbs=[...new Set(rows().map(l=>l.neighborhood).filter(Boolean))].sort();
+  const priceVal = mode==="rent" ? vget(FCRIT.minPriceRent) : vget(FCRIT.minPriceSale);
+  const pricePh  = mode==="rent" ? "Min $/mo" : "Min $k";
+  const nbSel=FCRIT.neighborhoods||[];
+  const nbLabel = nbSel.length ? ('Neighborhoods ('+nbSel.length+')') : 'Neighborhoods';
+  // ---- primary row (shared, Zillow-style; all single MIN inputs, commute is the only MAX) ----
+  let html='<div class="frow">'
+   +'<input type="search" id="fq" placeholder="Search address, area, notes…" value="'+esc(FCRIT.keyword||"")+'">'
+   +'<input id="fmp" class="fnum" type="number" min="0" inputmode="numeric" placeholder="'+pricePh+'" value="'+esc(priceVal)+'">'
+   +bedSel("fmb",FCRIT.minBeds,5,"+ bd","Beds: any")
+   +bedSel("fba",FCRIT.minBaths,4,"+ ba","Baths: any")
+   +'<input id="fsq" class="fnum" type="number" min="0" inputmode="numeric" placeholder="Min sqft" value="'+esc(vget(FCRIT.minSize))+'">'
+   +'<div class="nbwrap"><button type="button" class="nbbtn" id="fnbBtn">'+esc(nbLabel)+' ▾</button><div class="nbpop" id="fnbPop"></div></div>'
+   +'<input id="fcm" class="fnum" type="number" min="0" inputmode="numeric" placeholder="Max min → LSU" title="Max AM-rush drive time to LSU" value="'+esc(vget(FCRIT.maxCommute))+'">'
+   +'<button type="button" class="fmoreBtn" id="fmoreBtn">'+(moreF?'Fewer filters ▴':'More filters ▾')+'</button>'
+   +'</div>';
+  // ---- collapsible "More filters": rental + year + off-market + dashboard-only refinements ----
+  if(moreF){
+    html+='<div class="frow fmore">'
+     +'<input id="fyr" class="fnum" type="number" min="0" inputmode="numeric" placeholder="Built ≥ year" value="'+esc(vget(FCRIT.minYear))+'">'
+     +(mode==="rent"?(
+        '<label class="chk"><input type="checkbox" id="ffu"'+(FCRIT.furnishedOnly?' checked':'')+'> Furnished</label>'
+       +'<label class="chk"><input type="checkbox" id="fpt"'+(FCRIT.petsOnly?' checked':'')+'> Pets allowed</label>'
+       +'<input id="fls" class="fnum" type="number" min="0" inputmode="numeric" placeholder="Max lease (mo)" value="'+esc(vget(FCRIT.maxLease))+'">'
+      ):'')
+     +'<label class="chk"><input type="checkbox" id="foff"'+(FCRIT.excludeOff?' checked':'')+'> Hide off-market</label>'
+     +'<span class="fsep"></span>'
+     +'<select id="frad" title="Radius the crime-risk score considers — smaller = only the immediate block (higher risk tolerance)"><option value="025"'+(RKEY==="025"?" selected":"")+'>Risk radius: ¼ mi · block</option><option value="05"'+(RKEY==="05"?" selected":"")+'>Risk radius: ½ mi · neighborhood</option><option value="10"'+(RKEY==="10"?" selected":"")+'>Risk radius: 1 mi · wider area</option></select>'
+     +'<select id="fsf"><option value="">Risk: any</option><option value="ok"'+(filt.safe==="ok"?" selected":"")+'>hide elevated/high</option><option value="low"'+(filt.safe==="low"?" selected":"")+'>low-risk only</option></select>'
+     +'<label class="chk"><input type="checkbox" id="frk"'+(filt.ranked?' checked':'')+'> ranked only</label>'
+     +'<label class="chk"><input type="checkbox" id="fsl"'+(filt.shortOnly?' checked':'')+'> ★ Shortlist only</label>'
+     +'<label class="chk"><input type="checkbox" id="falt"'+(filt.hasAlt?' checked':'')+'> alternate source</label>'
+     +'<label class="chk"><input type="checkbox" id="fconflict"'+(filt.statusConflict?' checked':'')+'> status conflict</label>'
+     +'<label class="chk"><input type="checkbox" id="fneed"'+(filt.needsContact?' checked':'')+'> needs contact</label>'
+     +'<label class="chk"><input type="checkbox" id="fawait"'+(filt.awaitingReply?' checked':'')+'> awaiting reply</label>'
+     +'<label class="chk"><input type="checkbox" id="fconfirmed"'+(filt.confirmedTour?' checked':'')+'> confirmed tour</label>'
+     +'</div>';
+  }
+  // ---- count + applied-filter chips ----
+  html+='<div class="frow fmeta"><span class="fcount" id="fcount"></span></div>'
+      +'<div class="fchips" id="fchips"></div>';
+  document.getElementById("filters").innerHTML=html;
+
+  // ---- neighborhood multi-select popover ----
+  const pop=document.getElementById("fnbPop");
+  pop.innerHTML='<div class="nbhd-act"><a id="nbAll">Select all</a><a id="nbNone">Clear</a></div>'
+    +nbs.map(nb=>'<label><input type="checkbox" value="'+esc(nb)+'"'+(nbSel.indexOf(nb)>=0?' checked':'')+'> '+esc(nb)+'</label>').join("")
+    +(nbs.length?'':'<div class="mut" style="padding:6px">No neighborhoods</div>');
+  const nbBtn=document.getElementById("fnbBtn");
+  nbBtn.onclick=e=>{ e.stopPropagation(); pop.classList.toggle("show");
+    if(pop.classList.contains("show")){ const close=ev=>{ if(!pop.contains(ev.target)&&ev.target!==nbBtn){ pop.classList.remove("show"); document.removeEventListener("click",close);} }; setTimeout(()=>document.addEventListener("click",close),0); } };
+  pop.onclick=e=>e.stopPropagation();
+  pop.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.onchange=()=>{
+    const set=new Set(FCRIT.neighborhoods||[]); cb.checked?set.add(cb.value):set.delete(cb.value);
+    FCRIT.neighborhoods=[...set]; applyFilterChange(); });
+  document.getElementById("nbAll").onclick=ev=>{ ev.preventDefault(); FCRIT.neighborhoods=nbs.slice();
+    pop.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=true); applyFilterChange(); };
+  document.getElementById("nbNone").onclick=ev=>{ ev.preventDefault(); FCRIT.neighborhoods=[];
+    pop.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false); applyFilterChange(); };
+
+  // ---- wire shared inputs (text/number: live, no bar re-render so focus is kept) ----
+  const on=(id,ev,fn)=>{ const el=document.getElementById(id); if(el) el[ev]=e=>{ fn(e); }; };
+  on("fq","oninput",e=>{ FCRIT.keyword=e.target.value; applyFilterChange(); });
+  on("fmp","oninput",e=>{ if(mode==="rent") FCRIT.minPriceRent=e.target.value; else FCRIT.minPriceSale=e.target.value; applyFilterChange(); });
+  on("fmb","onchange",e=>{ FCRIT.minBeds=e.target.value; applyFilterChange(); });
+  on("fba","onchange",e=>{ FCRIT.minBaths=e.target.value; applyFilterChange(); });
+  on("fsq","oninput",e=>{ FCRIT.minSize=e.target.value; applyFilterChange(); });
+  on("fcm","oninput",e=>{ FCRIT.maxCommute=e.target.value; applyFilterChange(); });
+  on("fyr","oninput",e=>{ FCRIT.minYear=e.target.value; applyFilterChange(); });
+  on("fls","oninput",e=>{ FCRIT.maxLease=e.target.value; applyFilterChange(); });
+  on("ffu","onchange",e=>{ FCRIT.furnishedOnly=e.target.checked; applyFilterChange(); });
+  on("fpt","onchange",e=>{ FCRIT.petsOnly=e.target.checked; applyFilterChange(); });
+  on("foff","onchange",e=>{ FCRIT.excludeOff=e.target.checked; applyFilterChange(); });
+  document.getElementById("fmoreBtn").onclick=()=>{ moreF=!moreF; try{localStorage.setItem("brdash.moreF",moreF?"1":"0");}catch(_){} renderFilters(); renderTable(); };
+  // ---- dashboard-only refinements (present only when More is open) ----
+  on("frad","onchange",e=>{ RKEY=e.target.value; render(); });
+  on("fsf","onchange",e=>{ filt.safe=e.target.value; renderTable(); renderStats(); });
+  on("frk","onchange",e=>{ filt.ranked=e.target.checked; renderTable(); renderStats(); });
+  on("fsl","onchange",e=>{ filt.shortOnly=e.target.checked; renderTable(); renderStats(); });
+  on("falt","onchange",e=>{ filt.hasAlt=e.target.checked; renderTable(); renderStats(); });
+  on("fconflict","onchange",e=>{ filt.statusConflict=e.target.checked; renderTable(); renderStats(); });
+  on("fneed","onchange",e=>{ filt.needsContact=e.target.checked; renderTable(); renderStats(); });
+  on("fawait","onchange",e=>{ filt.awaitingReply=e.target.checked; renderTable(); renderStats(); });
+  on("fconfirmed","onchange",e=>{ filt.confirmedTour=e.target.checked; renderTable(); renderStats(); });
+  refreshChips();
 }
+// update only the chips + neighborhood button label (no full bar re-render → search keeps focus)
+function refreshChips(){ const el=document.getElementById("fchips"); if(!el) return;
+  const cs=BRFilters.chips(FCRIT);
+  el.innerHTML=cs.map(ch=>'<span class="fchip">'+esc(ch.label)+'<button type="button" title="Remove" onclick="removeChip(\''+esc(ch.key).replace(/'/g,"\\'")+'\')">✕</button></span>').join("")
+    +(cs.length?'<button type="button" class="fclear" onclick="resetFilters()">Clear all</button>'
+              :'<span class="fcount" style="color:var(--g400)">No filters active — showing everything</span>');
+  const nb=document.getElementById("fnbBtn"); if(nb){ const n=(FCRIT.neighborhoods||[]).length; nb.innerHTML=(n?'Neighborhoods ('+n+')':'Neighborhoods')+' ▾'; }
+}
+// a shared-filter change: persist + sync, refresh tab counts/stats/chips/table (NOT the whole bar)
+function applyFilterChange(){ saveCrit(); renderReviewTabs(); renderStats(); refreshChips(); renderTable(); }
+function removeChip(key){ FCRIT=BRFilters.without(FCRIT,key); saveCrit(); renderReviewTabs(); renderStats(); renderFilters(); renderTable(); }
+function resetFilters(){ FCRIT=BRFilters.clean({}); saveCrit(); renderReviewTabs(); renderStats(); renderFilters(); renderTable(); }
 function renderTable(){
   ensureCols(); document.body.classList.toggle("compact",density==="compact");
   const cols=COLS[mode].filter(c=>c.k==="address"||visibleCols.has(c.k));
+  const decHdr=(reviewFilter==="hidden")?'<th>Bin &amp; why</th>':(reviewFilter!=="accepted"?'<th>Decision</th>':'');
   document.getElementById("thead").innerHTML="<tr>"+cols.map(c=>{
     const ar=sortKey===c.k?('<span class="ar">'+(sortDir>0?"▲":"▼")+"</span>"):"";
     return '<th onclick="setSort(\''+c.k+'\')">'+c.label+ar+"</th>";
-  }).join("")+(reviewFilter!=="accepted"?'<th>Decision</th>':'')+"</tr>";
+  }).join("")+decHdr+"</tr>";
   let a=sortRows(applyFilters(rows()));
   const tb=document.getElementById("tbody");
-  if(!a.length){ tb.innerHTML='<tr><td colspan="'+(cols.length+(reviewFilter!=="accepted"?1:0))+'" style="color:var(--soft);padding:18px">'+(reviewFilter==="review"?"Nothing to review yet — use “+ Add to review”.":(reviewFilter==="rejected"?"No rejected listings.":"No matches."))+'</td></tr>'; return; }
+  // live count + Hidden auditing link (never let an over-filtered view look like "no listings")
+  const hiddenN=rows().filter(l=>!passesShared(l)).length;
+  const fc=document.getElementById("fcount");
+  if(fc){ fc.innerHTML=(reviewFilter==="hidden")
+      ? 'Showing <b>'+a.length+'</b> filtered-out listing'+(a.length===1?'':'s')+(a.length?' — adjust a filter to bring them back':'')
+      : 'Showing <b>'+a.length+'</b>'+(hiddenN?(' · <a href="#" class="hidlink" onclick="setReviewFilter(\'hidden\');return false">'+hiddenN+' hidden by filters ▸</a>'):''); }
+  const colspan=cols.length+(decHdr?1:0);
+  if(!a.length){
+    let msg;
+    if(reviewFilter==="hidden") msg="Nothing filtered out — every listing passes the active filters.";
+    else if(reviewFilter==="review") msg= hiddenN?('0 to review match the filters — '+hiddenN+' are in Hidden. Relax a filter or open the Hidden tab.'):"Nothing to review yet — use “+ Add to review”.";
+    else if(reviewFilter==="rejected") msg= hiddenN?('0 rejected match the filters — '+hiddenN+' are in Hidden.'):"No rejected listings.";
+    else msg= hiddenN?('0 match the active filters — '+hiddenN+' are in Hidden. Relax a filter or open the Hidden tab.'):"No matches.";
+    tb.innerHTML='<tr><td colspan="'+colspan+'" style="color:var(--soft);padding:18px">'+msg+'</td></tr>'; return; }
   tb.innerHTML=a.map(l=>"<tr class=\""+(l.status==="off"?"off":"")+"\" onclick=\"openDetail('"+l.id+"')\">"+cols.map(c=>cell(l,c)).join("")+reviewActionCell(l)+"</tr>").join("");
 }
 function cell(l,c){
@@ -1138,6 +1519,63 @@ function suggestedSlotText(){
   TOUR_DAYS.forEach(d=>slotsForDate(d.date,av.duration,av.buffer).slice(0,2).forEach(s=>slots.push(d.label+" at "+fmtTime(s))));
   return slots.slice(0,3);
 }
+/*__COMM_START__*/
+/* ===== communication layer: master templates + sender profile + channels ===== */
+const TPL_LS="br_templates_v1", PROFILE_LS="br_sender_v1";
+const DEFAULT_TPLS=[
+ {name:"Initial inquiry",subject:"Inquiry — {address}",body:"Hi {name},\n\nI'm interested in {address}{price} and would like to schedule a viewing{dates}. Could you share a few times that work?\n\nThank you!"},
+ {name:"Short & direct",subject:"Is {address} still available?",body:"Hi {name}, is {address} still available to rent? I'd love to set up a viewing{dates}. Thanks!"}
+];
+let _msgIncl=false;
+function loadTemplates(){ try{const a=JSON.parse(localStorage.getItem(TPL_LS)); if(Array.isArray(a)) return a;}catch(_){} return DEFAULT_TPLS.slice(); }
+function saveTemplates(a){ try{localStorage.setItem(TPL_LS,JSON.stringify(a));}catch(_){} if(typeof scheduleBackup==="function")scheduleBackup(); }
+function loadProfile(){ try{return JSON.parse(localStorage.getItem(PROFILE_LS))||{};}catch(_){return {};} }
+function saveProfile(p){ try{localStorage.setItem(PROFILE_LS,JSON.stringify(p));}catch(_){} if(typeof scheduleBackup==="function")scheduleBackup(); }
+function fillTemplate(str,l,prof,incl){
+  const price=l.price?(" ("+("$"+l.price+(l.type==="rent"?"/mo":"k"))+")"):"";
+  const dates=(prof&&prof.dates)?(" while I'm in Baton Rouge "+prof.dates):"";
+  const map={"{address}":l.address||"","{beds}":l.beds!=null?l.beds:"","{baths}":l.baths!=null?l.baths:"","{price}":price,"{neighborhood}":l.neighborhood||"","{name}":l.contactName||"there","{dates}":dates,"{myname}":incl&&prof?(prof.name||""):"","{myemail}":incl&&prof?(prof.email||""):"","{myphone}":incl&&prof?(prof.phone||""):"","{mydates}":incl&&prof?(prof.dates||""):""};
+  return String(str||"").replace(/\{[a-z]+\}/g,function(m){return map[m]!=null?map[m]:m;});
+}
+function withSignature(body,p){ if(!p||!(p.name||p.email||p.phone)) return body; const sig="\n\n— "+(p.name||"")+((p.email||p.phone)?"\n"+[p.email,p.phone].filter(Boolean).join(" · "):""); return body.replace(/\s+$/,"")+sig; }
+/* ---- template manager ---- */
+function openTemplateManager(){
+  const t=loadTemplates();
+  const rows=t.map(function(x){return tplRowHtml(x);}).join("");
+  const note='<div class="note">Placeholders: {address} {beds} {baths} {price} {neighborhood} {name} {dates}. Tick “Include my contact details” in the composer to append your signature.</div>';
+  openDynamicModal("tplScrim","Message templates",note+'<div id="tplList">'+rows+'</div><button class="btn ghost sm" onclick="tplAddRow()">+ Add template</button>',
+    '<button class="btn ghost sm" onclick="closeDynamic(\'tplScrim\')">Cancel</button><button class="btn sm" onclick="tplSaveAll()">Save</button>',640);
+}
+function tplRowHtml(x){ return '<div class="tplrow" style="border:1px solid #e6e9ef;border-radius:9px;padding:9px;margin-bottom:9px">'+
+  '<div class="g2"><div class="field"><label>Name</label><input class="tpl_name" value="'+esc(x.name||"")+'"></div><div class="field"><label>Subject</label><input class="tpl_subj" value="'+esc(x.subject||"")+'"></div></div>'+
+  '<div class="field"><label>Body</label><textarea class="tpl_body" style="min-height:90px">'+esc(x.body||"")+'</textarea></div>'+
+  '<button class="btn ghost sm" onclick="this.closest(\'.tplrow\').remove()">Delete</button></div>'; }
+function tplAddRow(){ const host=document.getElementById("tplList"); if(!host)return; const d=document.createElement("div"); d.innerHTML=tplRowHtml({name:"New template",subject:"",body:""}); host.appendChild(d.firstChild); }
+function tplSaveAll(){ const out=[]; document.querySelectorAll("#tplList .tplrow").forEach(function(r){ const name=r.querySelector(".tpl_name").value.trim(), subject=r.querySelector(".tpl_subj").value, body=r.querySelector(".tpl_body").value; if(name||subject||body) out.push({name:name||"Untitled",subject:subject,body:body}); }); saveTemplates(out); closeDynamic("tplScrim"); toast("Templates saved"); }
+/* ---- sender profile ---- */
+function openSenderProfile(){
+  const p=loadProfile();
+  const body='<div class="note">Saved on this dashboard (and in the Sheet backup). Tick “Include my contact details” in a message to add these as a signature.</div>'+
+    fld("sp_name","Your name",p.name)+fld("sp_email","Your email",p.email)+fld("sp_phone","Your phone",p.phone)+fld("sp_dates","Move-in / visit dates",p.dates);
+  openDynamicModal("spScrim","Sender profile",body,'<button class="btn ghost sm" onclick="closeDynamic(\'spScrim\')">Cancel</button><button class="btn sm" onclick="spSave()">Save</button>');
+}
+function spSave(){ saveProfile({name:gv("sp_name"),email:gv("sp_email"),phone:gv("sp_phone"),dates:gv("sp_dates")}); closeDynamic("spScrim"); toast("Sender profile saved"); }
+/* ---- composer: apply selected template + Zillow channel ---- */
+function applyTpl(id){
+  const l=byId(id); if(!l) return;
+  const inc=document.getElementById("msg_incl"); if(inc) _msgIncl=inc.checked;
+  const sel=gv("msg_tpl"), prof=loadProfile(); let subject="",bodyTxt="",had=true;
+  if(sel==="__confirm"){messageKind="confirm";const m=buildTourMessage(l,"confirm");subject=m.subject;bodyTxt=m.body;}
+  else if(sel==="__cancel"){messageKind="cancel";const m=buildTourMessage(l,"cancel");subject=m.subject;bodyTxt=m.body;}
+  else if(sel==="__followup"){messageKind="followup";const m=buildTourMessage(l,"followup");subject=m.subject;bodyTxt=m.body;}
+  else if(sel&&sel.charAt(0)==="t"){messageKind="initial";const t=loadTemplates()[+sel.slice(1)]; if(t){subject=fillTemplate(t.subject,l,prof,_msgIncl);bodyTxt=fillTemplate(t.body,l,prof,_msgIncl); if(_msgIncl)bodyTxt=withSignature(bodyTxt,prof);} }
+  else had=false;
+  if(!had) return;
+  const su=document.getElementById("msg_subject"),bo=document.getElementById("msg_body"); if(su)su.value=subject; if(bo)bo.value=bodyTxt;
+}
+function copyOpenZillow(){ const l=byId(messageTargetId); if(!l)return; const text=gv("msg_body"); const u=l.link||l.contactUrl||(marketLinks(l).find(function(x){return x.contactUrl;})||{}).contactUrl;
+  navigator.clipboard.writeText(text).then(function(){ if(u) window.open(u,"_blank","noopener"); tourOf(l).state="drafted"; save(); render(); toast(u?"Copied — paste into the listing’s contact box & send":"Copied (no listing URL saved)"); }); }
+/*__COMM_END__*/
 function buildTourMessage(l,kind){
   const slots=suggestedSlotText(), spec=(l.beds?l.beds+"BR ":"")+(l.price?("$"+l.price+(l.type==="rent"?"/mo":"k")):"");
   const hello=l.contactName?("Hi "+l.contactName+","):"Hi there,";
@@ -1151,14 +1589,29 @@ function buildTourMessage(l,kind){
   return {subject,body};
 }
 function openMessageComposer(id,kind){
-  messageTargetId=id; messageKind=kind||"initial"; const l=byId(id); if(!l)return;
-  const m=buildTourMessage(l,messageKind), contact=[l.agentEmail,l.agentPhone,l.contactUrl].filter(Boolean).join(" · ");
-  const body='<div class="note">'+esc(l.address)+(contact?' · '+esc(contact):' · No direct contact saved yet')+'</div>'+
-    '<div class="field"><label>Message type</label><select id="msg_kind" onchange="openMessageComposer(\''+id+'\',this.value)">'+["initial","followup","confirm","cancel"].map(k=>'<option value="'+k+'"'+(messageKind===k?' selected':'')+'>'+k+'</option>').join("")+'</select></div>'+
-    '<div class="field"><label>Subject</label><input id="msg_subject" value="'+esc(m.subject)+'"></div>'+
-    '<div class="field"><label>Body</label><textarea id="msg_body" style="min-height:210px">'+esc(m.body)+'</textarea></div>';
-  const foot='<button class="btn ghost sm" onclick="closeDynamic(\'msgScrim\')">Close</button><button class="btn ghost sm" onclick="copyTourMessage()">Copy</button><button class="btn ghost sm" onclick="openMailtoTour()">Mailto</button><button class="btn ghost sm" onclick="openSmsTour()">SMS</button><button class="btn ghost sm" onclick="openContactTarget()">Open form</button><button class="btn sm" onclick="logContactFromComposer()">Log contacted</button>';
-  openDynamicModal("msgScrim","Manual message",body,foot);
+  messageTargetId=id; const l=byId(id); if(!l)return;
+  messageKind=kind||"initial";
+  const t=loadTemplates();
+  let pre=(kind==="confirm")?"__confirm":(kind==="cancel")?"__cancel":(kind==="followup")?"__followup":"";
+  const opts='<option value="">— Choose a template —</option>'+
+    t.map((x,i)=>'<option value="t'+i+'"'+(pre==="t"+i?" selected":"")+'>'+esc(x.name||("Template "+(i+1)))+'</option>').join("")+
+    '<option disabled>──────</option>'+
+    [["__confirm","Confirm viewing"],["__cancel","Cancel viewing"],["__followup","Follow-up"]].map(b=>'<option value="'+b[0]+'"'+(pre===b[0]?" selected":"")+'>'+b[1]+'</option>').join("");
+  const contact=[l.contactName,l.agentEmail,l.agentPhone].filter(Boolean).join(" · ");
+  const zurl=l.link||l.contactUrl||"";
+  const body='<div class="note">'+esc(l.address)+(contact?' · '+esc(contact):'')+(zurl?' · <a href="'+esc(zurl)+'" target="_blank" rel="noopener">listing ↗</a>':' · no direct contact saved')+'</div>'+
+    '<div class="field"><label>Template <span class="zip" style="cursor:pointer;text-decoration:underline" onclick="closeDynamic(\'msgScrim\');openTemplateManager()">manage</span></label><select id="msg_tpl" onchange="applyTpl(\''+id+'\')">'+opts+'</select></div>'+
+    '<div class="field"><label>Subject</label><input id="msg_subject"></div>'+
+    '<div class="field"><label>Body</label><textarea id="msg_body" style="min-height:200px"></textarea></div>'+
+    '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="msg_incl"'+(_msgIncl?" checked":"")+' onchange="applyTpl(\''+id+'\')"> Include my contact details <span class="zip" style="cursor:pointer;text-decoration:underline" onclick="closeDynamic(\'msgScrim\');openSenderProfile()">edit profile</span></label>';
+  const foot='<button class="btn ghost sm" onclick="closeDynamic(\'msgScrim\')">Close</button>'+
+    (zurl?'<button class="btn sm" onclick="copyOpenZillow()">Copy &amp; open listing</button>':'')+
+    '<button class="btn ghost sm" onclick="copyTourMessage()">Copy</button>'+
+    '<button class="btn ghost sm" onclick="openMailtoTour()">Email</button>'+
+    '<button class="btn ghost sm" onclick="openSmsTour()">SMS</button>'+
+    '<button class="btn ghost sm" onclick="logContactFromComposer()">Log contacted</button>';
+  openDynamicModal("msgScrim","Message · "+esc(l.address),body,foot,560);
+  if(pre) applyTpl(id);
 }
 function copyTourMessage(){ const text=gv("msg_subject")+"\n\n"+gv("msg_body"); navigator.clipboard.writeText(text).then(()=>{ const l=byId(messageTargetId); if(l){tourOf(l).state="drafted"; save(); render();} toast("Message copied"); }); }
 function openMailtoTour(){ const l=byId(messageTargetId); if(!l)return; window.open("mailto:"+(l.agentEmail||"")+"?subject="+encodeURIComponent(gv("msg_subject"))+"&body="+encodeURIComponent(gv("msg_body"))); }
@@ -1230,6 +1683,8 @@ function closeModal(id){ document.getElementById(id).classList.remove("show"); }
 document.querySelectorAll(".scrim").forEach(s=>s.addEventListener("click",e=>{ if(e.target===s) s.classList.remove("show"); }));
 
 hydrateMarketLinks();
+// live-sync filters across open tabs / the /map/ (same-origin localStorage "brfilters.v1")
+if(typeof BRFilters!=="undefined"&&BRFilters.subscribe) BRFilters.subscribe(c=>{ FCRIT=c; render(); });
 applyDensity(); render();
 /*__ENRICH_START__*/
 /* generated by enrich_review_listings.py — merge into apartment_dashboard.html */
