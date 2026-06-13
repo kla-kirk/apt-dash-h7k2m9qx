@@ -106,6 +106,23 @@ base["Standard"].addTo(map);
 })();
 
 const BASE_PIN="#2B5797";
+// ---- $/sqft "deal" coloring for the default pin mode (green = better value within its own type) ----
+const PPSF_RAMP=["#2D8A4E","#8FB43C","#E7C13B","#C2691C","#B23B3B"];   // better deal → pricier
+const PPSF_LEGEND='<span class="sw">Better $/sqft</span><span class="bar"></span><span class="sw">Pricier</span>';
+function _ppsf(l){ const p=(typeof l.price==="number")?l.price:null, s=(typeof l.size==="number")?l.size:null;
+  return (p&&s)?p/s:null; }
+let _ppsfDist=null;
+function _ppsfBuild(list){ const d={rent:[],sale:[]};
+  (list||[]).forEach(l=>{ const v=_ppsf(l); if(v!=null) d[(l.type==="sale")?"sale":"rent"].push(v); });
+  d.rent.sort((a,b)=>a-b); d.sale.sort((a,b)=>a-b); return d; }
+// rent and sale live on different $/sqft scales, so each pin is ranked among same-type peers.
+function priceColor(l){ if(!_ppsfDist) _ppsfDist=_ppsfBuild(BRMap.listings);
+  const arr=_ppsfDist[(l.type==="sale")?"sale":"rent"], v=_ppsf(l);
+  if(v==null||arr.length<2) return undefined;                  // no price/size → BASE_PIN
+  let lt=0; for(let i=0;i<arr.length;i++){ if(arr[i]<v) lt++; }  // peers strictly cheaper
+  const q=lt/(arr.length-1);                                   // 0 = cheapest $/sqft (best deal)
+  return PPSF_RAMP[Math.min(4,Math.max(0,Math.round(q*4)))];
+}
 const BRMap={
  map, listings:[], pins:{}, _rows:[], _clicks:[], _ready:[], _sections:{}, _lk:{}, _detailRenderFns:[], _chips:[], _filters:{},
  _areas:[], _colors:[], _details:[], _activeArea:null, _activeColor:null, _selected:null,
@@ -164,7 +181,7 @@ const BRMap={
    host.innerHTML='<span class="st">Color listings by</span>';
    const add=(val,label)=>{ host.insertAdjacentHTML("beforeend",
      '<label><input type="radio" name="brColor" value="'+val+'" id="col_'+val+'"> '+label+'</label>'); };
-   add("default","Price pin (default)");
+   add("default","Price · $/sqft (default)");
    this._colors.forEach(c=>add(c.id,c.label));
    host.insertAdjacentHTML("beforeend",'<div class="mut" id="colorLegend"></div>');
    const def=(this._colors.find(c=>c.def)||{}).id;
@@ -177,7 +194,8 @@ const BRMap={
    PREF.color=val; savePref();
    this._activeColor=(val==="default")?null:val;
    const leg=document.getElementById("colorLegend"); if(leg)leg.innerHTML="";
-   if(!this._activeColor){ this.resetPins(); return; }
+   if(!this._activeColor){ _ppsfDist=null; this.colorPins(priceColor);   // default = color by $/sqft deal
+     if(leg) leg.innerHTML='<div class="legend">'+PPSF_LEGEND+'</div>'; return; }
    const c=this._colors.find(x=>x.id===val); if(!c)return;
    this.colorPins(l=>c.colorFor?c.colorFor(l):BASE_PIN);
    if(leg&&c.legend) leg.innerHTML='<div class="legend">'+c.legend+'</div>';

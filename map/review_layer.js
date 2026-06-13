@@ -6,8 +6,10 @@
    into BRMap.listings by the shell (index.html) and drawn as ordinary 🏠 pins, so every
    per-listing layer (crime / flood / commute / amenities / air) attaches to them exactly as
    it does for the vetted set. This module therefore NO LONGER creates its own markers — it
-   only (a) controls pin visibility by status, (b) tints review pins by status color while no
-   "Color listings by" mode is active, and (c) injects accept/reject controls into the panel.
+   only (a) controls pin visibility by status, and (b) injects accept/reject controls + a status
+   badge into the shared detail panel. Pin COLOR is owned entirely by the shell's color modes
+   (default $/sqft, Crime, Pollution), so review status is conveyed via the filter + panel badge,
+   not by tinting pins.
 
    - Vetted shell listings (ids r…) default to "accepted" and carry a rent/sale `type`.
    - Review imports (ids nr…, l._review) default to "needs" (to review) and are rentals.
@@ -45,22 +47,10 @@ BRMap.ready(() => {
       visible(l.id) ? m.addTo(BRMap.map) : BRMap.map.removeLayer(m); });
   }
 
-  // ---- status tint for review pins (only while no color mode is active) ----
-  function tintReview() {
-    if (BRMap._activeColor) return;                 // a "Color listings by" mode owns the pins
-    (BRMap.listings || []).forEach(l => { if (isRev(l)) BRMap.setPinColor(l.id, COL[stOf(l.id)]); });
-  }
-  // wrap resetPins so returning to the default color mode re-applies status tint
-  if (!BRMap._revWrapReset) { BRMap._revWrapReset = true;
-    const origReset = BRMap.resetPins.bind(BRMap);
-    BRMap.resetPins = function () { origReset(); tintReview(); };
-  }
-
   // ---- set status, persist, refresh pins + panel ----
   function setStatus(id, v) {
     status[id] = (status[id] === v ? defFor(id) : v); save();
     apply();
-    if (!BRMap._activeColor && BRMap.pins[id]) BRMap.setPinColor(id, COL[stOf(id)]);
     if (BRMap._selected && BRMap._selected.id === id) BRMap.refreshDetail();
     ui();
   }
@@ -113,12 +103,12 @@ BRMap.ready(() => {
     });
   }
 
-  ui(); apply(); tintReview();
+  ui(); apply();
 
   // live-sync when the dashboard (another tab, same origin) changes accept/reject status
   window.addEventListener("storage", e => {
     if (e.key !== LS) return;
     try { status = JSON.parse(localStorage.getItem(LS)) || {}; } catch (_) {}
-    apply(); tintReview(); ui(); if (BRMap._selected) BRMap.refreshDetail();
+    apply(); ui(); if (BRMap._selected) BRMap.refreshDetail();
   });
 });
