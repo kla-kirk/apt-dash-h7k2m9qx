@@ -107,7 +107,7 @@ base["Standard"].addTo(map);
 
 const BASE_PIN="#2B5797";
 const BRMap={
- map, listings:[], pins:{}, _rows:[], _clicks:[], _ready:[], _sections:{}, _lk:{}, _detailRenderFns:[], _chips:[],
+ map, listings:[], pins:{}, _rows:[], _clicks:[], _ready:[], _sections:{}, _lk:{}, _detailRenderFns:[], _chips:[], _filters:{},
  _areas:[], _colors:[], _details:[], _activeArea:null, _activeColor:null, _selected:null,
  panes:{areas:"pane-areas",heat:"pane-heat",routes:"pane-routes",facils:"pane-facils",connect:"pane-connect",labels:"pane-labels"},
  fetchJSON(u){return fetch(u,{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null);},
@@ -119,6 +119,12 @@ const BRMap={
  setPinColor(id,color){ const p=this.pins[id]; if(p){ this._lk[id]._color=color; p.setIcon(pinIcon(color,this._lk[id].status==="off")); } },
  colorPins(fn){ this.listings.forEach(l=>this.setPinColor(l.id, fn(l)||BASE_PIN)); },
  resetPins(){ this.listings.forEach(l=>this.setPinColor(l.id, BASE_PIN)); },
+
+ // ---- shared pin visibility: a pin shows only if EVERY registered filter passes ----
+ setFilter(name,fn){ if(typeof fn==="function") this._filters[name]=fn; else delete this._filters[name]; this.applyVisibility(); return this; },
+ passesFilters(l){ for(const k in this._filters){ try{ if(!this._filters[k](l)) return false; }catch(e){} } return true; },
+ applyVisibility(){ (this.listings||[]).forEach(l=>{ const m=this.pins[l.id]; if(!m) return;
+   this.passesFilters(l) ? m.addTo(this.map) : this.map.removeLayer(m); }); },
 
  // ---- legacy generic section (kept for compatibility) ----
  section(id,title){ if(this._sections[id]) return this._sections[id];
@@ -279,4 +285,5 @@ window.BRMap=BRMap;
 <script src="commute_layer.js" defer></script>
 <script src="air_layer.js" defer></script>
 <script src="review_layer.js" defer></script>
+<script src="filter_layer.js" defer></script>
 </body></html>

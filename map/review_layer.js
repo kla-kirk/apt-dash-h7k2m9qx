@@ -37,8 +37,10 @@ BRMap.ready(() => {
                  sale: { accepted: true, needs: false, rejected: false } };
   const visible = id => typeOn[typeOf(id)] && show[typeOf(id)][stOf(id)];
 
-  // ---- pin visibility ----
+  // ---- pin visibility (routed through the shell's shared filter system when present,
+  //      so the sqft/beds/baths filter and this status filter compose instead of fighting) ----
   function apply() {
+    if (typeof BRMap.setFilter === "function") { BRMap.setFilter("status", l => visible(l.id)); return; }
     (BRMap.listings || []).forEach(l => { const m = BRMap.pins[l.id]; if (!m) return;
       visible(l.id) ? m.addTo(BRMap.map) : BRMap.map.removeLayer(m); });
   }
