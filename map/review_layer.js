@@ -114,4 +114,11 @@ BRMap.ready(() => {
   }
 
   ui(); apply(); tintReview();
+
+  // live-sync when the dashboard (another tab, same origin) changes accept/reject status
+  window.addEventListener("storage", e => {
+    if (e.key !== LS) return;
+    try { status = JSON.parse(localStorage.getItem(LS)) || {}; } catch (_) {}
+    apply(); tintReview(); ui(); if (BRMap._selected) BRMap.refreshDetail();
+  });
 });
