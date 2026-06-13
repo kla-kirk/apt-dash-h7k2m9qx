@@ -83,21 +83,15 @@ BRMap.ready(async () => {
     cardKey = key;
     const el = card.getElement(); if (el) L.DomEvent.on(el, "click dblclick mousedown", L.DomEvent.stopPropagation);
     setTimeout(() => revealCard(L.latLng(a[2], a[3])), 30); return true; }
-  let hlLine = null;
-  function clearHighlight() { if (hlLine) { map.removeLayer(hlLine); hlLine = null; } }
-  function highlight(a, l) { clearHighlight();
-    hlLine = L.polyline([[l.lat, l.lon], [a[2], a[3]]], { pane: BRMap.panes.connect, interactive: false, color: COLOR[a[1]], weight: 5, opacity: 0.95, dashArray: "2,7", lineCap: "round" }).addTo(map); }
-  // open the card + highlight the path: commute STREET route if one exists for this amenity, otherwise
-  // emphasize the straight connector — so clicking any nearby amenity always highlights a path.
+  // open the card + draw the REAL street route home↔amenity (precomputed by the commute module).
+  // No straight-line fallback: road routes currently exist only for the nearest of each type, so for a
+  // further option the card's "Directions" link is the real route until commute regenerates the data.
   function focusAmenity(a, d, l) { const opened = showCard(a, d, l);
-    clearHighlight();
     try { if (window.BRCommute && BRCommute.clearAmenityRoute) BRCommute.clearAmenityRoute(); } catch (e) {}
     if (!opened) return;
-    let routed = false;
-    try { if (window.BRCommute && BRCommute.drawAmenityRoute) routed = BRCommute.drawAmenityRoute(l.address, a[0]); } catch (e) {}
-    if (!routed) highlight(a, l); }
+    try { if (window.BRCommute && BRCommute.drawAmenityRoute) BRCommute.drawAmenityRoute(l.address, a[0]); } catch (e) {} }
 
-  const clear = () => { marks.forEach((m) => map.removeLayer(m)); marks = []; hideCard(); clearHighlight(); };
+  const clear = () => { marks.forEach((m) => map.removeLayer(m)); marks = []; hideCard(); };
 
   BRMap.addDetail({ id: "amen", label: "🛒 Amenities (nearest)", def: true,
     select(l) { clear(); const by = nearestByType(l);
