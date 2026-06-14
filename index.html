@@ -640,7 +640,7 @@ const EMAIL={enabled:false, provider:"gmail",
   tools:{search:"mcp__gmail__search_emails", draft:"mcp__gmail__create_draft", send:"mcp__gmail__send_email"}};
 
 function load(){ let a; try{const r=localStorage.getItem(LS_KEY); if(r) a=JSON.parse(r);}catch(e){} if(!a) a=JSON.parse(JSON.stringify(SEED)); a.forEach(l=>{ if(!l.reviewState) l.reviewState="accepted"; }); try{ if(localStorage.getItem("br_review_imported_v1")!=="1"){ const have=new Set(a.map(x=>x.id)); (typeof REVIEW_SEED!=="undefined"?REVIEW_SEED:[]).forEach(r=>{ if(!have.has(r.id)) a.push(JSON.parse(JSON.stringify(r))); }); localStorage.setItem("br_review_imported_v1","1"); localStorage.setItem(LS_KEY,JSON.stringify(a)); } }catch(e){} try{ if(localStorage.getItem("br_review_imported_v2")!=="1"){ const have=new Set(a.map(x=>x.id)); (typeof REVIEW_SEED!=="undefined"?REVIEW_SEED:[]).forEach(r=>{ if(!have.has(r.id)) a.push(JSON.parse(JSON.stringify(r))); }); localStorage.setItem("br_review_imported_v2","1"); localStorage.setItem(LS_KEY,JSON.stringify(a)); } }catch(e){} try{ const _have=new Set(a.map(x=>x.id)); let _added=false; (typeof REVIEW_SEED!=="undefined"?REVIEW_SEED:[]).forEach(r=>{ if(!_have.has(r.id)){ a.push(JSON.parse(JSON.stringify(r))); _added=true; } }); if(_added) localStorage.setItem(LS_KEY,JSON.stringify(a)); }catch(e){} try{ if(localStorage.getItem("br_status_refresh_v1")!=="1"){ a.forEach(l=>{ if(STATUS_REFRESH[l.id]) l.status=STATUS_REFRESH[l.id]; }); localStorage.setItem("br_status_refresh_v1","1"); localStorage.setItem(LS_KEY,JSON.stringify(a)); } }catch(e){} return a; }
-function save(){ window._lastEdit=Date.now(); try{localStorage.setItem(LS_KEY,JSON.stringify(listings));}catch(e){} scheduleBackup(); }
+function save(noPush){ window._lastEdit=Date.now(); try{localStorage.setItem(LS_KEY,JSON.stringify(listings));}catch(e){} if(!noPush) scheduleBackup(); }
 /* ---- auto-backup full snapshot to the Google Sheet (Backup tab) on every change ---- */
 let _bkTimer=null;
 function setBkStatus(t){ const el=document.getElementById("bkStatus"); if(el) el.textContent=t; }
@@ -994,7 +994,7 @@ function pushStatusToShared(){ const m=loadSharedStatus(); let ch=false;
   listings.forEach(l=>{ const w=_d2m[l.reviewState||"accepted"]||"accepted"; if(m[l.id]!==w){ m[l.id]=w; ch=true; } }); if(ch) saveSharedStatus(m); }
 function setSharedStatusFor(id,reviewState){ const m=loadSharedStatus(); m[id]=_d2m[reviewState]||"accepted"; saveSharedStatus(m); }
 function setReviewFilter(s){ reviewFilter=s; render(); }
-function setReview(id,s){ const l=byId(id); if(!l) return; l.reviewState=s; setSharedStatusFor(id,s); save(); render();
+function setReview(id,s){ const l=byId(id); if(!l) return; l.reviewState=s; l.updatedAt=Date.now(); setSharedStatusFor(id,s); save(); render();
   if(document.getElementById("editScrim").classList.contains("show")) openEdit(id);
   if(document.getElementById("detailDrawer").classList.contains("show")&&detailId===id) openDetail(id);
   toast(s==="accepted"?"Moved to Accepted":(s==="review"?"Moved to To review":"Rejected")); }
@@ -1268,7 +1268,7 @@ if(c.k==="commute"){ const s=commuteInfo(l);
   return '<td class="'+cls.trim()+'">'+inner+"</td>";
 }
 function setSort(k){ if(sortKey===k) sortDir=-sortDir; else {sortKey=k; sortDir=1;} renderTable(); }
-function setRank(id,k,v){ const l=byId(id); l[k]=v===""?null:+v; save();
+function setRank(id,k,v){ const l=byId(id); if(!l) return; l[k]=v===""?null:+v; l.updatedAt=Date.now(); save();
   const tr=event&&event.target?event.target.closest("tr"):null; renderTable(); renderStats(); }
 
 /* ---------- edit / add ---------- */
@@ -1339,7 +1339,7 @@ function saveListing(){
   if(t==="rent"){ ["furnished","petFees","minLease"].forEach(k=>{l[k]=gv("e_"+k);}); }
   // a user-edited field is no longer "auto"
   l.enr=(l.enr||[]).filter(k=>{ const el=document.getElementById("e_"+k); return !el; });
-  save(); render(); closeModal("editScrim"); toast("Saved");
+  l.updatedAt=Date.now(); save(); render(); closeModal("editScrim"); toast("Saved");
 }
 function deleteListing(){ if(editingId&&confirm("Delete this listing?")){ listings=listings.filter(l=>l.id!==editingId); save(); render(); closeModal("editScrim"); toast("Deleted"); } }
 
@@ -1387,15 +1387,16 @@ async function refreshFromSheet(silent){
         if(p[k]!==""&&p[k]!=null){ if(l[k]!==p[k]){ l[k]=p[k]; l.enr=(l.enr||[]).filter(x=>x!==k); filled++; } }
       }
     }
-    // Two-user live sync: adopt the shared snapshot (master merged by id on the server).
-    // Skip while a local edit is fresh (<10s) so a periodic pull can't clobber active work.
+    // Two-user live sync: adopt the shared snapshot (merged by id on the server).
+    // updatedAt arbitration: NEVER let an older record overwrite a newer/unpushed local edit.
     let synced=0;
-    if(j&&j.sync&&Array.isArray(j.sync.listings)&&(Date.now()-(window._lastEdit||0)>10000)){
+    if(j&&j.sync&&Array.isArray(j.sync.listings)){
       const _byid=new Map(listings.map(x=>[x.id,x]));
       for(const r of j.sync.listings){
-        if(!r||r.id==null||r.id==="") continue;
+        if(!r||r.id==null||r.id===""||r.id==="TESTSYNC") continue;
         const cur=_byid.get(r.id);
         if(!cur){ listings.push(r); _byid.set(r.id,r); added++; synced++; continue; }
+        if((+r.updatedAt||0) < (+cur.updatedAt||0)) continue;   // local copy is newer — keep it
         for(const k in r){
           if(k==="id") continue;
           const a=r[k], b=cur[k];
@@ -1404,7 +1405,11 @@ async function refreshFromSheet(silent){
         }
       }
     }
-    if(filled||added||synced||!silent){ save(); render(); } if(!silent) toast("Synced from Sheet · "+filled+" field(s) updated"+(added?", "+added+" added":"")+(synced?" · synced with Jamie":""));
+    // Persist adopted changes locally but DO NOT push back — a refresh must never re-write the
+    // sheet (that echo, combined with a stale tab, is exactly what caused the data loss).
+    if(filled||added||synced){ save(true); }
+    if(filled||added||synced||!silent){ render(); }
+    if(!silent) toast("Synced from Sheet · "+filled+" field(s) updated"+(added?", "+added+" added":"")+(synced?" · synced with Jamie":""));
   }catch(e){ if(!silent) toast("Refresh failed: "+(e&&e.message?e.message:e)); else console.warn("Sheet auto-refresh failed:",e); }
   b.textContent="↻ Refresh from Sheet";
 }
