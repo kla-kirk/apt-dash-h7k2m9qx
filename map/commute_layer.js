@@ -25,14 +25,14 @@ BRMap.ready(async () => {
   // ---------- LSU routes: addr -> { am:{primary,alts[]}, pm:{...}, off:{...} } ----------
   const LR = {};
   const ensure = (a) => (LR[a] || (LR[a] = { am: node(), pm: node(), off: node() }));
-  function node() { return { primary: null, alts: [], dur: null, dist: null }; }
+  function node() { return { primary: null, alts: [], dur: null, dist: null, avoid: null }; }
   const lsuGj = await BRMap.fetchJSON("commute_routes.geojson");
   if (lsuGj && Array.isArray(lsuGj.features)) for (const f of lsuGj.features) {
     const p = f.properties || {}, g = f.geometry; if (!p.address || !g || g.type !== "LineString") continue;
     const coords = g.coordinates.map(flip), e = ensure(p.address);
     if (p.time && e[p.time]) {
       const slot = e[p.time];
-      if ((p.alt || 0) === 0) { slot.primary = coords; slot.dur = p.dur_min; slot.dist = p.dist_mi; }
+      if ((p.alt || 0) === 0) { slot.primary = coords; slot.dur = p.dur_min; slot.dist = p.dist_mi; slot.avoid = p.avoid || null; }
       else slot.alts.push(coords);
     } else { // legacy single route -> use as primary everywhere it's missing
       ["am", "pm", "off"].forEach((t) => { if (!e[t].primary) e[t].primary = coords; });
@@ -43,6 +43,8 @@ BRMap.ready(async () => {
     if (!prim) return null;
     const alts = e[t].alts.length ? e[t].alts : [];
     return { primary: prim, alts, dur: e[t].dur, dist: e[t].dist }; }
+  // time/distance OF THE DRAWN (highway-avoiding) route for a time-of-day, or null if no route data
+  function lsuMeta(addr, t) { const e = LR[addr]; if (e && e[t] && e[t].dur != null) return { dur: e[t].dur, dist: e[t].dist, avoid: e[t].avoid }; return null; }
 
   // ---------- amenity routes: addr -> name -> {type, driving:{coords,dur,dist}, walking:{...}} ----------
   const AR = {};
@@ -130,16 +132,20 @@ BRMap.ready(async () => {
 
   // ---------- popup rows ----------
   const TMETA = { am: "AM rush", pm: "PM rush", off: "off-peak" };
-  BRMap.addPopupRow((l) => { const c = C[l.address]; if (!c) return "";
-    const v = c[timeMode], mi = c.miles && (c.miles[timeMode] != null ? c.miles[timeMode] : c.miles.off);
+  BRMap.addPopupRow((l) => { const c = C[l.address] || null;
+    // Prefer the time OF THE DRAWN highway-avoiding route; fall back to commute.json when no route yet.
+    const rt = (t) => { const m = lsuMeta(l.address, t); return m ? m.dur : (c ? c[t] : null); };
+    const v = rt(timeMode); if (v == null && !c) return "";
+    const meta = lsuMeta(l.address, timeMode), lowtraffic = !!(meta && meta.avoid);
+    const mi = meta ? meta.dist : (c && c.miles ? (c.miles[timeMode] != null ? c.miles[timeMode] : c.miles.off) : null);
     const cell = (lab, val) => '<div class="cm-cell"><b>' + (val != null ? Math.round(val) + " min" : "—") + '</b><span>' + lab + '</span></div>';
     return '<div class="row" style="display:flex;align-items:baseline;gap:7px"><span style="color:#566070">→ LSU campus:</span> <b style="font-size:14px">' + (v != null ? Math.round(v) + " min" : "—") + '</b>' +
-      (mi != null ? '<span class="mut">· ' + (+mi).toFixed(1) + " mi drive</span>" : "") + "</div>" +
-      '<div class="cm-cells">' + cell("AM rush", c.am) + cell("PM rush", c.pm) + cell("off-peak", c.off) + "</div>"; }, "commute");
+      (mi != null ? '<span class="mut">· ' + (+mi).toFixed(1) + " mi" + (lowtraffic ? " · avoids highways" : " drive") + "</span>" : "") + "</div>" +
+      '<div class="cm-cells">' + cell("AM rush", rt("am")) + cell("PM rush", rt("pm")) + cell("off-peak", rt("off")) + "</div>"; }, "commute");
 
   // at-a-glance summary chip (listing panel)
-  if (typeof BRMap.addSummaryChip === "function") BRMap.addSummaryChip((l) => { const c = C[l.address]; if (!c) return null;
-    const v = c[timeMode]; return v != null ? { label: "LSU commute", value: Math.round(v) + " min", color: "#2B5797" } : null; });
+  if (typeof BRMap.addSummaryChip === "function") BRMap.addSummaryChip((l) => { const m = lsuMeta(l.address, timeMode); const c = C[l.address];
+    const v = m ? m.dur : (c ? c[timeMode] : null); return v != null ? { label: "LSU commute", value: Math.round(v) + " min", color: "#2B5797" } : null; });
 
   // amenity route chips (only when we actually have route data for this listing)
   const REG = {};
