@@ -88,16 +88,16 @@ BRMap.ready(async () => {
       const back = el.querySelector(".amc-back"); if (back) back.addEventListener("click", (ev) => { ev.preventDefault(); unfocus(); }); }
     setTimeout(() => revealCard(L.latLng(a[2], a[3])), 30); }
 
-  function showAll() { items.forEach((it) => { if (!map.hasLayer(it.mk)) it.mk.addTo(map); if (!map.hasLayer(it.line)) it.line.addTo(map); }); }
+  // markers STAY on the map (visibility toggled via display) so their click listeners survive focus/unfocus;
+  // connectors carry no listeners, so they're added/removed directly.
+  function mkVis(it, on) { const el = it.mk.getElement(); if (el) el.style.display = on ? "" : "none"; }
+  function showAll() { items.forEach((it) => { mkVis(it, true); if (!map.hasLayer(it.line)) it.line.addTo(map); }); }
   function unfocus() { focusedKey = null; hideCard(); clearRoute(); showAll(); }
   // FOCUS: hide every other amenity, keep the selected marker, draw its real street route
   function focusAmenity(a, d, l) { const key = keyOf(a);
     if (focusedKey === key) { unfocus(); return; }
     focusedKey = key;
-    items.forEach((it) => { const sel = it.key === key;
-      if (map.hasLayer(it.line)) map.removeLayer(it.line);          // connectors hidden in focus mode
-      if (sel) { if (!map.hasLayer(it.mk)) it.mk.addTo(map); }
-      else if (map.hasLayer(it.mk)) map.removeLayer(it.mk); });
+    items.forEach((it) => { if (map.hasLayer(it.line)) map.removeLayer(it.line); mkVis(it, it.key === key); });
     showCard(a, d, l); clearRoute();
     try { if (window.BRCommute && BRCommute.drawAmenityRoute) BRCommute.drawAmenityRoute(l.address, a[0]); } catch (e) {} }
 
