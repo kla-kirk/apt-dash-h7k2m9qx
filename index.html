@@ -640,7 +640,7 @@ const EMAIL={enabled:false, provider:"gmail",
   tools:{search:"mcp__gmail__search_emails", draft:"mcp__gmail__create_draft", send:"mcp__gmail__send_email"}};
 
 function load(){ let a; try{const r=localStorage.getItem(LS_KEY); if(r) a=JSON.parse(r);}catch(e){} if(!a) a=JSON.parse(JSON.stringify(SEED)); a.forEach(l=>{ if(!l.reviewState) l.reviewState="accepted"; }); try{ if(localStorage.getItem("br_review_imported_v1")!=="1"){ const have=new Set(a.map(x=>x.id)); (typeof REVIEW_SEED!=="undefined"?REVIEW_SEED:[]).forEach(r=>{ if(!have.has(r.id)) a.push(JSON.parse(JSON.stringify(r))); }); localStorage.setItem("br_review_imported_v1","1"); localStorage.setItem(LS_KEY,JSON.stringify(a)); } }catch(e){} try{ if(localStorage.getItem("br_review_imported_v2")!=="1"){ const have=new Set(a.map(x=>x.id)); (typeof REVIEW_SEED!=="undefined"?REVIEW_SEED:[]).forEach(r=>{ if(!have.has(r.id)) a.push(JSON.parse(JSON.stringify(r))); }); localStorage.setItem("br_review_imported_v2","1"); localStorage.setItem(LS_KEY,JSON.stringify(a)); } }catch(e){} try{ const _have=new Set(a.map(x=>x.id)); let _added=false; (typeof REVIEW_SEED!=="undefined"?REVIEW_SEED:[]).forEach(r=>{ if(!_have.has(r.id)){ a.push(JSON.parse(JSON.stringify(r))); _added=true; } }); if(_added) localStorage.setItem(LS_KEY,JSON.stringify(a)); }catch(e){} try{ if(localStorage.getItem("br_status_refresh_v1")!=="1"){ a.forEach(l=>{ if(STATUS_REFRESH[l.id]) l.status=STATUS_REFRESH[l.id]; }); localStorage.setItem("br_status_refresh_v1","1"); localStorage.setItem(LS_KEY,JSON.stringify(a)); } }catch(e){} return a; }
-function save(){ try{localStorage.setItem(LS_KEY,JSON.stringify(listings));}catch(e){} scheduleBackup(); }
+function save(){ window._lastEdit=Date.now(); try{localStorage.setItem(LS_KEY,JSON.stringify(listings));}catch(e){} scheduleBackup(); }
 /* ---- auto-backup full snapshot to the Google Sheet (Backup tab) on every change ---- */
 let _bkTimer=null;
 function setBkStatus(t){ const el=document.getElementById("bkStatus"); if(el) el.textContent=t; }
@@ -1387,7 +1387,24 @@ async function refreshFromSheet(silent){
         if(p[k]!==""&&p[k]!=null){ if(l[k]!==p[k]){ l[k]=p[k]; l.enr=(l.enr||[]).filter(x=>x!==k); filled++; } }
       }
     }
-    save(); render(); if(!silent) toast("Synced from Sheet · "+filled+" field(s) updated"+(added?", "+added+" added":""));
+    // Two-user live sync: adopt the shared snapshot (master merged by id on the server).
+    // Skip while a local edit is fresh (<10s) so a periodic pull can't clobber active work.
+    let synced=0;
+    if(j&&j.sync&&Array.isArray(j.sync.listings)&&(Date.now()-(window._lastEdit||0)>10000)){
+      const _byid=new Map(listings.map(x=>[x.id,x]));
+      for(const r of j.sync.listings){
+        if(!r||r.id==null||r.id==="") continue;
+        const cur=_byid.get(r.id);
+        if(!cur){ listings.push(r); _byid.set(r.id,r); added++; synced++; continue; }
+        for(const k in r){
+          if(k==="id") continue;
+          const a=r[k], b=cur[k];
+          const diff=(a&&typeof a==="object")?(JSON.stringify(a)!==JSON.stringify(b)):(a!==b);
+          if(diff){ cur[k]=a; if(!(a&&typeof a==="object")){ filled++; } synced++; }
+        }
+      }
+    }
+    save(); render(); if(!silent) toast("Synced from Sheet · "+filled+" field(s) updated"+(added?", "+added+" added":"")+(synced?" · synced with Jamie":""));
   }catch(e){ if(!silent) toast("Refresh failed: "+(e&&e.message?e.message:e)); else console.warn("Sheet auto-refresh failed:",e); }
   b.textContent="↻ Refresh from Sheet";
 }
@@ -1734,5 +1751,7 @@ render();
 syncStatusFromShared(); pushStatusToShared(); render();
 window.addEventListener("storage",e=>{ if(e.key===STATUS_LS){ if(syncStatusFromShared()){ render(); try{renderStats();}catch(_){ } } } });
 refreshFromSheet(true);
+/* two-user live sync: gentle background pull so Jamie's changes appear without a manual reload */
+setInterval(()=>{ try{ refreshFromSheet(true); }catch(_){ } }, 60000);
 
 </script></body></html>
