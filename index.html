@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta name="robots" content="noindex, nofollow"><meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Baton Rouge Listings Database</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1084,6 +1083,11 @@ function renderStats(){
 function bedSel(id,cur,max,suf,any){ let h='<select id="'+id+'"><option value="">'+any+'</option>';
   for(let n=1;n<=max;n++) h+='<option value="'+n+'"'+(+cur===n?' selected':'')+'>'+n+suf+'</option>'; return h+'</select>'; }
 function vget(v){ return (v==null?"":v); }
+const COMMUTE_OPTS=[10,15,20,25,30,45];
+function commuteSel(cur){ cur=BRFilters.clean({maxCommute:cur}).maxCommute; let opts=COMMUTE_OPTS.slice();
+  if(cur!=null&&opts.indexOf(cur)<0){ opts.push(cur); opts.sort((a,b)=>a-b); }
+  let h='<select id="fcm" title="Cap the AM-rush drive time to LSU"><option value="">Commute: any</option>';
+  opts.forEach(m=>h+='<option value="'+m+'"'+(cur===m?' selected':'')+'>≤ '+m+' min to LSU</option>'); return h+'</select>'; }
 function renderFilters(){
   const nbs=[...new Set(rows().map(l=>l.neighborhood).filter(Boolean))].sort();
   const priceVal = mode==="rent" ? vget(FCRIT.minPriceRent) : vget(FCRIT.minPriceSale);
@@ -1098,7 +1102,7 @@ function renderFilters(){
    +bedSel("fba",FCRIT.minBaths,4,"+ ba","Baths: any")
    +'<input id="fsq" class="fnum" type="number" min="0" inputmode="numeric" placeholder="Min sqft" value="'+esc(vget(FCRIT.minSize))+'">'
    +'<div class="nbwrap"><button type="button" class="nbbtn" id="fnbBtn">'+esc(nbLabel)+' ▾</button><div class="nbpop" id="fnbPop"></div></div>'
-   +'<input id="fcm" class="fnum" type="number" min="0" inputmode="numeric" placeholder="Max min → LSU" title="Max AM-rush drive time to LSU" value="'+esc(vget(FCRIT.maxCommute))+'">'
+   +commuteSel(FCRIT.maxCommute)
    +'<button type="button" class="fmoreBtn" id="fmoreBtn">'+(moreF?'Fewer filters ▴':'More filters ▾')+'</button>'
    +'</div>';
   // ---- collapsible "More filters": rental + year + off-market + dashboard-only refinements ----
@@ -1152,7 +1156,7 @@ function renderFilters(){
   on("fmb","onchange",e=>{ FCRIT.minBeds=e.target.value; applyFilterChange(); });
   on("fba","onchange",e=>{ FCRIT.minBaths=e.target.value; applyFilterChange(); });
   on("fsq","oninput",e=>{ FCRIT.minSize=e.target.value; applyFilterChange(); });
-  on("fcm","oninput",e=>{ FCRIT.maxCommute=e.target.value; applyFilterChange(); });
+  on("fcm","onchange",e=>{ FCRIT.maxCommute=e.target.value; applyFilterChange(); });
   on("fyr","oninput",e=>{ FCRIT.minYear=e.target.value; applyFilterChange(); });
   on("fls","oninput",e=>{ FCRIT.maxLease=e.target.value; applyFilterChange(); });
   on("ffu","onchange",e=>{ FCRIT.furnishedOnly=e.target.checked; applyFilterChange(); });
