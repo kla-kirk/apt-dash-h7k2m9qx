@@ -505,7 +505,21 @@ BRMap.ready(async () => {
   const FAC_POS = spreadPositions(FAC_VIS.concat(FAC_HID));
 
   // build marker layers (visible default set + hidden "no emission data" set)
-  const facPane = (BRMap.panes && BRMap.panes.facils) || undefined;
+  // Plant dots get their OWN pane stacked ABOVE the other map-overlay canvases (flood fills, crime
+  // heat, commute routes, amenity connectors). Those are full-map <canvas> elements, so even a
+  // non-interactive one sitting on a higher pane swallows the click that should open a plant. We park
+  // the dots at z-index 595 — above every overlay canvas, still below the home 🏠 pins (markerPane 600)
+  // so listing clicks keep winning. Falls back to the shared facils pane if createPane is unavailable.
+  let facPane = (BRMap.panes && BRMap.panes.facils) || undefined;
+  if (typeof map.createPane === "function") {
+    if (!map.getPane("air-facils")) {
+      map.createPane("air-facils");
+      const p = map.getPane("air-facils");
+      p.style.zIndex = 595;
+      p.style.pointerEvents = "auto";   // canvas dots must receive clicks
+    }
+    facPane = "air-facils";
+  }
   const renderer = L.canvas({ pane: facPane, padding: 0.5 });
   function buildLayer(list) {
     return L.layerGroup(list.map(f => {
