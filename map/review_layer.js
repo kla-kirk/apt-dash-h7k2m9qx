@@ -1,76 +1,83 @@
-/* REVIEW-STATUS module — filter the listing pins by type (For rent / For sale) and
-   review status (Accepted / To review / Rejected), and surface accept/reject + a status
-   badge inside the shared detail panel.
+/* REVIEW-STATUS module — filter the listing pins by type (For rent / For sale) and review status
+   (Accepted / To review / Rejected), and surface accept/reject + a status badge in the detail panel.
 
-   As of the "first-class" wiring, the 102 review imports (review.json, id "nr…") are loaded
-   into BRMap.listings by the shell (index.html) and drawn as ordinary 🏠 pins, so every
-   per-listing layer (crime / flood / commute / amenities / air) attaches to them exactly as
-   it does for the vetted set. This module therefore NO LONGER creates its own markers — it
-   only (a) controls pin visibility by status, and (b) injects accept/reject controls + a status
-   badge into the shared detail panel. Pin COLOR is owned entirely by the shell's color modes
-   (default $/sqft, Crime, Pollution), so review status is conveyed via the filter + panel badge,
-   not by tinting pins.
+   SYNC: accept/reject now flows through BRSync — the SAME event-sourced store the dashboard uses
+   (see SYNC_DESIGN.md). There is no longer a separate "nr_status_v1" localStorage mirror or a
+   "syncpatch" POST; both were sources of drift. The map is a first-class read/write client of the
+   op-log: a rejection here reaches the server and the dashboard (and Jamie) exactly like a dashboard
+   edit, and remote edits flow back here live via BRSync.onChange.
 
-   - Vetted shell listings (ids r…) default to "accepted" and carry a rent/sale `type`.
-   - Review imports (ids nr…, l._review) default to "needs" (to review) and are rentals.
-   - Status is SHARED with needs_review.html via localStorage "nr_status_v1"
-     {id:"accepted"|"rejected"|"needs"}.
+   Review STATE is stored on the shared `reviewState` field in dashboard vocabulary
+   ("accepted" | "review" | "rejected"). The map UI keeps its own label "needs" = "To review".
    Owned by the listings/review chat. */
 BRMap.ready(() => {
-  const LS = "nr_status_v1";
-  let status = {}; try { status = JSON.parse(localStorage.getItem(LS)) || {}; } catch (e) {}
-  const save = () => { try { localStorage.setItem(LS, JSON.stringify(status)); } catch (e) {} };
-
-  // ---- push accept/reject to the shared Google Sheet so it syncs server-wide (not just this browser) ----
   const PROXY_URL = "https://script.google.com/macros/s/AKfycbw55gSdiRxyNK2AKoeCLTtcLQhVW2rHBTIk0kInsbY2NMnOUN8QFpfsJM9RMHh4ekfdgA/exec";
-  const _revOf = s => s === "needs" ? "review" : s;   // map vocab -> dashboard/server vocab
-  function pushRev(id, s) {
-    if (!PROXY_URL) return;
-    try {
-      fetch(PROXY_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "syncpatch", id: id, reviewState: _revOf(s), updatedAt: Date.now() }) });
-    } catch (e) {}
-  }
 
+  // ---- shared BRSync instance (one per page; reused if another layer already made it) ----
+  function makeSync() {
+    if (window.__brsync) return window.__brsync;
+    if (typeof BRSyncCore === "undefined") return null;           // sync_client.js not loaded -> degrade gracefully
+    let user = null; try { user = localStorage.getItem("brsync.user.v1"); } catch (e) {}
+    if (user !== "keegan" && user !== "jamie") {
+      try { user = (prompt("Who is using this map? Type  keegan  or  jamie:", "") || "").trim().toLowerCase(); } catch (e) {}
+      if (user !== "keegan" && user !== "jamie") user = "keegan";
+      try { localStorage.setItem("brsync.user.v1", user); } catch (e) {}
+    }
+    const build = (typeof window !== "undefined" && window.__BRSYNC_BUILD__) || "map-dev";
+    const s = BRSyncCore.createBRSync({ user, proxyUrl: PROXY_URL, buildId: build, storage: BRSyncCore.lsStorage(), net: BRSyncCore.fetchNet(PROXY_URL) });
+    window.__brsync = s;
+    // ONE-TIME migration BEFORE the first sync: if the map opens first after cutover, this captures
+    // this browser's saved map decisions (nr_status_v1) AND any dashboard decisions (br_listings_v2)
+    // into the op-log so they are never lost. Shared flag with the dashboard -> runs at most once.
+    try { const n = s.migrateOnce(); if (n) console.log("BRSync migration (map): emitted " + n + " ops from existing local data"); } catch (e) {}
+    s.init({ pollMs: 8000 });
+    window.addEventListener("online", () => { try { s.flush(); } catch (e) {} });
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) { try { s.flush(); } catch (e) {} } });
+    return s;
+  }
+  const sync = makeSync();
+
+  // ---- vocab: dashboard reviewState <-> map status ----
+  const m2d = { accepted: "accepted", needs: "review", rejected: "rejected" };   // map UI -> stored
+  const d2m = { accepted: "accepted", review: "needs", rejected: "rejected" };    // stored -> map UI
   const COL = { accepted: "#1E7A34", needs: "#9A6A00", rejected: "#B23B3B" };
   const lbl = s => s === "accepted" ? "Accepted" : s === "rejected" ? "Rejected" : "To review";
   const isRev = l => !!(l && (l._review || String(l.id).indexOf("nr") === 0));
   const defFor = id => (String(id).indexOf("nr") === 0) ? "needs" : "accepted";
-  const stOf = id => status[id] || defFor(id);
+  function stOf(id) {                                              // current map-vocab status from the folded op-log
+    const rs = sync ? (sync.stateFor(id).reviewState) : null;
+    return rs && d2m[rs] ? d2m[rs] : defFor(id);
+  }
 
   // ---- listing type (rent/sale): vetted carry .type; review imports are rentals ----
   const TYPE = {};
   (BRMap.listings || []).forEach(l => { TYPE[l.id] = (l.type === "sale") ? "sale" : "rent"; });
   const typeOf = id => TYPE[id] || "rent";
 
-  // visibility = type master on AND that type's status box on.
-  // Default: Accepted on; To-review + Rejected off.
   const typeOn = { rent: true, sale: true };
   const show = { rent: { accepted: true, needs: false, rejected: false },
                  sale: { accepted: true, needs: false, rejected: false } };
   const visible = id => typeOn[typeOf(id)] && show[typeOf(id)][stOf(id)];
 
-  // ---- pin visibility (routed through the shell's shared filter system when present,
-  //      so the sqft/beds/baths filter and this status filter compose instead of fighting) ----
   function apply() {
     if (typeof BRMap.setFilter === "function") { BRMap.setFilter("status", l => visible(l.id)); return; }
     (BRMap.listings || []).forEach(l => { const m = BRMap.pins[l.id]; if (!m) return;
       visible(l.id) ? m.addTo(BRMap.map) : BRMap.map.removeLayer(m); });
   }
 
-  // ---- set status, persist, refresh pins + panel ----
+  // ---- set status -> emit an op on the shared `reviewState` field (toggles back to default) ----
   function setStatus(id, v) {
-    status[id] = (status[id] === v ? defFor(id) : v); save();
-    pushRev(id, status[id]);                         // sync to the shared sheet, not just localStorage
+    const next = (stOf(id) === v) ? defFor(id) : v;               // tap again to clear -> default
+    if (sync) sync.edit(id, "reviewState", m2d[next]);           // dashboard vocab on the wire
     apply();
     if (BRMap._selected && BRMap._selected.id === id) BRMap.refreshDetail();
     ui();
   }
-  window.__rev = (id, v) => setStatus(id, v);   // back-compat for needs_review.html
+  window.__rev = (id, v) => setStatus(id, v);                     // back-compat for needs_review.html
 
   // ---- accept/reject + status badge inside the shared detail panel ----
   BRMap.onDetailRender((l, host) => {
-    if (!isRev(l)) return;                         // only review imports are reviewable
+    if (!isRev(l)) return;
     const s = stOf(l.id);
     const pop = host.querySelector(".pop") || host;
     const box = document.createElement("div");
@@ -117,10 +124,6 @@ BRMap.ready(() => {
 
   ui(); apply();
 
-  // live-sync when the dashboard (another tab, same origin) changes accept/reject status
-  window.addEventListener("storage", e => {
-    if (e.key !== LS) return;
-    try { status = JSON.parse(localStorage.getItem(LS)) || {}; } catch (_) {}
-    apply(); ui(); if (BRMap._selected) BRMap.refreshDetail();
-  });
+  // live-sync: when ops arrive (this user elsewhere, or Jamie), refresh pins + panel + counts.
+  if (sync) sync.onChange(() => { apply(); ui(); if (BRMap._selected) BRMap.refreshDetail(); });
 });

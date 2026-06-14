@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-<meta name="robots" content="noindex, nofollow"><meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow"><script>window.__BRSYNC_BUILD__="2026-06-14-4602d45";</script><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Baton Rouge Listings Database</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -274,7 +274,7 @@ table.cmp td.win{background:var(--salebg)}table.cmp td.win .v{color:var(--accent
   <button class="btn ghost sm" onclick="openTourPlanner()">Tour Planner</button>
   <button class="btn ghost sm" id="refreshBtn" onclick="refreshFromSheet()">↻ Refresh from Sheet</button><button class="btn ghost sm" onclick="openTemplateManager()">✉ Templates</button><span id="bkStatus" class="zip" style="margin-left:8px"></span>
   <button class="btn ghost sm" id="backupBtn" onclick="manualBackup()" title="Save a full snapshot of every listing to your backup Google Sheet right now">☁ Backup now</button>
-  <button class="btn ghost sm" id="forceBtn" onclick="forcePush()" title="Recovery: make the shared sheet match exactly what you see now">⤴ Force push my version</button><span id="buildTag" class="zip" style="margin-left:8px" title="dashboard build — hard-reload if this is older than expected">sync v4 · 06-14</span>
+  <span id="buildTag" class="zip" style="margin-left:8px" title="dashboard build — turns red when a newer build is live; click to reload">sync …</span>
   <button class="btn ghost sm" onclick="exportCSV()">Export CSV</button>
   <button class="btn" onclick="openEdit(null)">+ Add</button>
  </div>
@@ -641,19 +641,19 @@ const EMAIL={enabled:false, provider:"gmail",
   tools:{search:"mcp__gmail__search_emails", draft:"mcp__gmail__create_draft", send:"mcp__gmail__send_email"}};
 
 function load(){ let a; try{const r=localStorage.getItem(LS_KEY); if(r) a=JSON.parse(r);}catch(e){} if(!a) a=JSON.parse(JSON.stringify(SEED)); a.forEach(l=>{ if(!l.reviewState) l.reviewState="accepted"; }); try{ if(localStorage.getItem("br_review_imported_v1")!=="1"){ const have=new Set(a.map(x=>x.id)); (typeof REVIEW_SEED!=="undefined"?REVIEW_SEED:[]).forEach(r=>{ if(!have.has(r.id)) a.push(JSON.parse(JSON.stringify(r))); }); localStorage.setItem("br_review_imported_v1","1"); localStorage.setItem(LS_KEY,JSON.stringify(a)); } }catch(e){} try{ if(localStorage.getItem("br_review_imported_v2")!=="1"){ const have=new Set(a.map(x=>x.id)); (typeof REVIEW_SEED!=="undefined"?REVIEW_SEED:[]).forEach(r=>{ if(!have.has(r.id)) a.push(JSON.parse(JSON.stringify(r))); }); localStorage.setItem("br_review_imported_v2","1"); localStorage.setItem(LS_KEY,JSON.stringify(a)); } }catch(e){} try{ const _have=new Set(a.map(x=>x.id)); let _added=false; (typeof REVIEW_SEED!=="undefined"?REVIEW_SEED:[]).forEach(r=>{ if(!_have.has(r.id)){ a.push(JSON.parse(JSON.stringify(r))); _added=true; } }); if(_added) localStorage.setItem(LS_KEY,JSON.stringify(a)); }catch(e){} try{ if(localStorage.getItem("br_status_refresh_v1")!=="1"){ a.forEach(l=>{ if(STATUS_REFRESH[l.id]) l.status=STATUS_REFRESH[l.id]; }); localStorage.setItem("br_status_refresh_v1","1"); localStorage.setItem(LS_KEY,JSON.stringify(a)); } }catch(e){} return a; }
-function save(noPush){ window._lastEdit=Date.now(); try{localStorage.setItem(LS_KEY,JSON.stringify(listings));}catch(e){} if(!noPush) scheduleBackup(); }
+function save(noPush){ window._lastEdit=Date.now();
+  // A user-initiated save() emits an op for every changed DECISION field (event-sourced sync).
+  // Programmatic save(true) (e.g. source import, sync overlay) must NOT emit ops.
+  if(!noPush){ try{ emitChangedOps(); }catch(_){ } }
+  try{localStorage.setItem(LS_KEY,JSON.stringify(listings));}catch(e){}
+  if(!noPush) scheduleBackup(); }
 /* ---- auto-backup full snapshot to the Google Sheet (Backup tab) on every change ---- */
 let _bkTimer=null;
 function setBkStatus(t){ const el=document.getElementById("bkStatus"); if(el) el.textContent=t; }
-function scheduleBackup(){ if(!PROXY_URL) return; clearTimeout(_bkTimer); _bkTimer=setTimeout(backupToSheet,2500); }
-function backupToSheet(){
-  if(!PROXY_URL) return;
-  setBkStatus("☁ backing up…");
-  const payload={action:"backup",savedAt:new Date().toISOString(),listings:listings,templates:loadTemplates(),sender:loadProfile()};
-  fetch(PROXY_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)})
-    .then(()=>setBkStatus("☁ Backed up "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})))
-    .catch(()=>setBkStatus("⚠ Backup failed — is the Apps Script deployed?"));
-}
+function scheduleBackup(){ if(!PROXY_URL) return; clearTimeout(_bkTimer);
+  // flush ops promptly (correctness), then refresh the human-readable mirror (presentation).
+  _bkTimer=setTimeout(()=>{ try{ window.__brsync&&window.__brsync.flush(); }catch(_){ } backupToSheet(); },1200); }
+function backupToSheet(){ if(!PROXY_URL) return; try{ window.__pushMirror&&window.__pushMirror(); }catch(_){ } }
 /* ---- manual backup: same full snapshot, fired on demand from the "☁ Backup now" button ---- */
 function manualBackup(){
   if(!PROXY_URL){ toast("No backup endpoint is configured"); return; }
@@ -664,13 +664,6 @@ function manualBackup(){
   setTimeout(function(){ if(b){ b.disabled=false; b.textContent="☁ Backup now"; } },1500);
 }
 /* ---- recovery: make the shared Sheet match exactly what THIS browser shows right now ---- */
-function forcePush(){
-  if(!PROXY_URL){ toast("No backup endpoint is configured"); return; }
-  if(!confirm("Push YOUR current version to the shared sheet?\n\nThis makes the shared copy match exactly what you see now — use it to recover after a sync glitch. It can overwrite changes the other person made in the last minute to the same listings.")) return;
-  try{ syncStatusFromShared(); }catch(_){ }      // fold in any map accept/reject first
-  const t=Date.now(); listings.forEach(l=>{ l.updatedAt=t; });   // stamp everything as newest -> wins
-  save(); toast("Pushing your version of all "+listings.length+" listings…");
-}
 function rows(){ return listings.filter(l=>l.type===mode); }
 function byId(id){ return listings.find(l=>l.id===id); }
 function num(v){ return (v===0||v)&&!isNaN(parseFloat(v))?parseFloat(v):null; }
@@ -1003,18 +996,15 @@ function renderReviewTabs(){
     +tab("hidden","Hidden","hid")
     +'<button class="btn sm addrev" onclick="openAddReview()">+ Add to review</button>';
 }
-/* ---- shared accept/reject state with the map (localStorage "nr_status_v1", same origin) ----
-   map uses {id:"accepted"|"needs"|"rejected"}; dashboard uses reviewState accepted|review|rejected. */
-const STATUS_LS="nr_status_v1";
-const _m2d={accepted:"accepted",needs:"review",rejected:"rejected"};
-const _d2m={accepted:"accepted",review:"needs",rejected:"rejected"};
-function loadSharedStatus(){ try{return JSON.parse(localStorage.getItem(STATUS_LS))||{};}catch(_){return{};} }
-function saveSharedStatus(m){ try{localStorage.setItem(STATUS_LS,JSON.stringify(m));}catch(_){ } }
-function syncStatusFromShared(){ const m=loadSharedStatus(); let ch=false;
-  listings.forEach(l=>{ const v=m[l.id]; if(v&&_m2d[v]&&l.reviewState!==_m2d[v]){ l.reviewState=_m2d[v]; ch=true; } }); return ch; }
-function pushStatusToShared(){ const m=loadSharedStatus(); let ch=false;
-  listings.forEach(l=>{ const w=_d2m[l.reviewState||"accepted"]||"accepted"; if(m[l.id]!==w){ m[l.id]=w; ch=true; } }); if(ch) saveSharedStatus(m); }
-function setSharedStatusFor(id,reviewState){ const m=loadSharedStatus(); m[id]=_d2m[reviewState]||"accepted"; saveSharedStatus(m); }
+/* ---- RETIRED: the old localStorage "nr_status_v1" mirror was a SECOND source of truth that drifted
+   from LS_KEY and the server. Accept/reject now flows through BRSync (one event-sourced store shared
+   by the dashboard AND the map). These shims stay as harmless no-ops so any remaining caller is safe. */
+const STATUS_LS="nr_status_v1";   // legacy key, no longer written
+function loadSharedStatus(){ return {}; }
+function saveSharedStatus(_m){ }
+function syncStatusFromShared(){ return false; }
+function pushStatusToShared(){ }
+function setSharedStatusFor(_id,_rs){ }
 function setReviewFilter(s){ reviewFilter=s; render(); }
 function setReview(id,s){ const l=byId(id); if(!l) return; l.reviewState=s; l.updatedAt=Date.now(); setSharedStatusFor(id,s); save(); render();
   if(document.getElementById("editScrim").classList.contains("show")) openEdit(id);
@@ -1396,7 +1386,7 @@ function rowsToMd(rows){
 async function refreshFromSheet(silent){
   const b=document.getElementById("refreshBtn"); b.textContent="↻ Refreshing…";
   try{
-    const resp=await fetch(PROXY_URL,{cache:"no-store"});
+    const resp=await fetch(PROXY_URL+(PROXY_URL.indexOf("?")<0?"?":"&")+"source=1",{cache:"no-store"});
     const txt=await resp.text();
     let j; try{ j=JSON.parse(txt); }catch(_){ throw new Error("proxy did not return JSON; set web-app access to Anyone"); }
     const sheetsObj=(j&&j.sheets)?j.sheets:{};
@@ -1407,32 +1397,16 @@ async function refreshFromSheet(silent){
       if(!l){ p.id=(p.type[0]+"x"+(added++)); p.enr=p.enr||[]; listings.push(l=p); continue; }
       for(const k of Object.keys(p)){
         if(["id","type","enr","src","link"].includes(k)) continue;
+        if(DECISION_FIELDS.has(k)) continue;   // never let the source sheet overwrite a synced decision/rank/note
         if(p[k]!==""&&p[k]!=null){ if(l[k]!==p[k]){ l[k]=p[k]; l.enr=(l.enr||[]).filter(x=>x!==k); filled++; } }
       }
     }
-    // Two-user live sync: adopt the shared snapshot (merged by id on the server).
-    // updatedAt arbitration: NEVER let an older record overwrite a newer/unpushed local edit.
-    let synced=0;
-    if(j&&j.sync&&Array.isArray(j.sync.listings)){
-      const _byid=new Map(listings.map(x=>[x.id,x]));
-      for(const r of j.sync.listings){
-        if(!r||r.id==null||r.id===""||r.id==="TESTSYNC") continue;
-        const cur=_byid.get(r.id);
-        if(!cur){ listings.push(r); _byid.set(r.id,r); added++; synced++; continue; }
-        if((+r.updatedAt||0) <= (+cur.updatedAt||0)) continue;  // adopt ONLY a strictly-newer remote — a tie never overwrites local
-        for(const k in r){
-          if(k==="id") continue;
-          const a=r[k], b=cur[k];
-          const diff=(a&&typeof a==="object")?(JSON.stringify(a)!==JSON.stringify(b)):(a!==b);
-          if(diff){ cur[k]=a; if(!(a&&typeof a==="object")){ filled++; } synced++; }
-        }
-      }
-    }
-    // Persist adopted changes locally but DO NOT push back — a refresh must never re-write the
-    // sheet (that echo, combined with a stale tab, is exactly what caused the data loss).
-    if(filled||added||synced){ save(true); }
-    if(filled||added||synced||!silent){ render(); }
-    if(!silent) toast("Synced from Sheet · "+filled+" field(s) updated"+(added?", "+added+" added":"")+(synced?" · synced with Jamie":""));
+    // Decisions (accept/reject/ranks/edits) sync via BRSync, NOT this refresh. This imports ONLY
+    // Jamie's curated read-only SOURCE sheet to fill base listing fields; it never pushes back and
+    // never touches review state (so a stale tab can't revert a decision — the old data-loss bug).
+    if(filled||added){ save(true); }
+    if(filled||added||!silent){ render(); }
+    if(!silent) toast("Imported from Jamie's sheet · "+filled+" field(s)"+(added?", "+added+" added":""));
   }catch(e){ if(!silent) toast("Refresh failed: "+(e&&e.message?e.message:e)); else console.warn("Sheet auto-refresh failed:",e); }
   b.textContent="↻ Refresh from Sheet";
 }
@@ -1774,12 +1748,110 @@ const CANCER={"2115 E Ramsey Dr":{"b":49.7,"t":"Moderate","d":4.7},"2437 Fiero S
 listings.forEach(function(l){var p=POLL[l.address]; if(p){l.pollScore=p.p;l.pollLabel=p.pl;} var c=CANCER[l.address]; if(c){l.cancerBurden=c.b;l.cancerTier=c.t;l.cancerMi=c.d;}});
 render();
 /*__POLLCANCER_END__*/
-/* link accept/reject with the map: apply shared status on load, seed it from the dashboard,
-   and live-update when the map (another tab) changes it. */
-syncStatusFromShared(); pushStatusToShared(); render();
-window.addEventListener("storage",e=>{ if(e.key===STATUS_LS){ if(syncStatusFromShared()){ render(); try{renderStats();}catch(_){ } } } });
-refreshFromSheet(true);
-/* two-user live sync: gentle background pull so Jamie's changes appear without a manual reload */
-setInterval(()=>{ try{ refreshFromSheet(true); }catch(_){ } }, 60000);
+/* ================================================================================================
+ * BRSync — airtight event-sourced two-user sync (see SYNC_DESIGN.md). This inlined copy must stay
+ * behaviourally identical to sync_client.js / map/sync_client.js (enforced by tests/sync_parity_test.js).
+ * ============================================================================================== */
+const BRSyncCore = (function(){ "use strict";
+  function opCmp(a,b){ if(a.editTs!==b.editTs) return a.editTs-b.editTs; if(a.user!==b.user) return a.user<b.user?-1:1; return a.opId<b.opId?-1:(a.opId>b.opId?1:0); }
+  function foldLog(log){ const w=Object.create(null); for(const op of log){ if(!op||op.listingId==null||op.field==null) continue; const L=w[op.listingId]||(w[op.listingId]=Object.create(null)); const cur=L[op.field]; if(!cur||opCmp(op,cur)>0) L[op.field]=op; } return w; }
+  function foldValues(log){ const w=foldLog(log),o=Object.create(null); for(const id in w){ const x=o[id]=Object.create(null); for(const f in w[id]) x[f]=w[id][f].value; } return o; }
+  function createBRSync(env){ env=env||{}; const now=env.now||(()=>Date.now()); const store=env.storage; const net=env.net; const log=env.log||function(){};
+    const K={LOG:"brsync.log.v1",OUTBOX:"brsync.outbox.v1",CLOCK:"brsync.clock.v1",USER:"brsync.user.v1",CURSOR:"brsync.cursor.v1"};
+    const j=(k,d)=>{ try{ const r=store.get(k); return r==null?d:JSON.parse(r); }catch(_){ return d; } };
+    const put=(k,v)=>{ try{ store.set(k,JSON.stringify(v)); }catch(_){ } };
+    const S={ ops:j(K.LOG,[]), seen:new Set(), outbox:j(K.OUTBOX,[]), clock:j(K.CLOCK,null), cursor:j(K.CURSOR,0), user:env.user||j(K.USER,null), proxyUrl:env.proxyUrl||null, buildId:env.buildId||null, remoteBuild:null, listeners:[], flushing:false, pendingFlush:false, pollTimer:null, backoff:0, flushPromise:null };
+    S.ops.forEach(o=>o&&o.opId&&S.seen.add(o.opId)); if(S.user) put(K.USER,S.user);
+    function persist(){ put(K.LOG,S.ops); put(K.OUTBOX,S.outbox); put(K.CLOCK,S.clock); put(K.CURSOR,S.cursor); }
+    function emit(){ S.listeners.forEach(fn=>{ try{ fn(); }catch(e){ log("listener err",e); } }); }
+    function nowServer(){ if(!S.clock) return now(); return S.clock.serverTime+(now()-S.clock.localTime); }
+    function setAnchor(t){ if(typeof t==="number"&&isFinite(t)){ S.clock={serverTime:t,localTime:now()}; put(K.CLOCK,S.clock); } }
+    function mergeOps(inc){ let n=0; for(const op of (inc||[])){ if(!op||!op.opId||S.seen.has(op.opId)) continue; S.seen.add(op.opId); S.ops.push(op); n++; } return n; }
+    const self={ _state:S, foldLog, foldValues, opCmp,
+      user(){ return S.user; }, setUser(u){ S.user=u; put(K.USER,u); }, setProxyUrl(u){ S.proxyUrl=u; }, ready(){ return !!S.clock; },
+      stateFor(id){ const w=foldLog(S.ops)[id]||{},o={}; for(const f in w) o[f]=w[f].value; return o; },
+      apply(x){ const v=foldValues(S.ops); const one=l=>{ const m=v[l&&l.id]; if(m) for(const f in m) l[f]=m[f]; return l; }; return Array.isArray(x)?x.map(one):one(x); },
+      history(id,field){ return S.ops.filter(o=>o.listingId===id&&o.field===field).sort((a,b)=>opCmp(b,a)); },
+      onChange(fn){ S.listeners.push(fn); return ()=>{ const i=S.listeners.indexOf(fn); if(i>=0) S.listeners.splice(i,1); }; },
+      edit(id,field,value){ if(!S.user) throw new Error("BRSync.edit before setUser()"); const editTs=nowServer(); const opId=S.user+"-"+editTs+"-"+Math.floor((env.rand?env.rand():Math.random())*1e9).toString(36); const op={opId,editTs,user:S.user,listingId:id,field,value}; S.seen.add(opId); S.ops.push(op); S.outbox.push(opId); persist(); emit(); this.flush(); return op; },
+      flush(){ if(!S.proxyUrl||!net) return Promise.resolve(); if(S.flushing){ S.pendingFlush=true; return S.flushPromise; } S.flushing=true; S.flushPromise=this._doFlush(); return S.flushPromise; },
+      async _doFlush(){ try{ if(!S.outbox.length){ await this.pull(); return; } const byId=new Map(S.ops.map(o=>[o.opId,o])); const ops=S.outbox.map(id=>byId.get(id)).filter(Boolean);
+          try{ const resp=await net.append(ops,{since:S.cursor,buildId:S.buildId,user:S.user}); if(resp&&resp.ok){ const acc=new Set(resp.accepted||ops.map(o=>o.opId)); S.outbox=S.outbox.filter(id=>!acc.has(id)); setAnchor(resp.serverTime); if(Array.isArray(resp.ops)){ mergeOps(resp.ops); S.cursor=resp.cursor!=null?resp.cursor:S.cursor; } if(resp.remoteBuild) S.remoteBuild=resp.remoteBuild; S.backoff=0; persist(); emit(); } else { S.backoff=Math.min((S.backoff||1)*2,60); } }
+          catch(e){ log("flush err",e); S.backoff=Math.min((S.backoff||1)*2,60); try{ await this.pull(); }catch(_){ } }
+        } finally { S.flushing=false; if(S.pendingFlush){ S.pendingFlush=false; await this.flush(); } } },
+      async pull(){ if(!S.proxyUrl||!net) return; try{ const resp=await net.pull(S.cursor,{buildId:S.buildId,user:S.user}); if(!resp||!resp.ok) return; const added=mergeOps(resp.ops); if(resp.cursor!=null) S.cursor=resp.cursor; setAnchor(resp.serverTime); if(resp.remoteBuild) S.remoteBuild=resp.remoteBuild; if(S.outbox.length) S.outbox=S.outbox.filter(id=>!S.seen.has(id)); persist(); if(added) emit(); return added; }catch(e){ log("pull err",e); } },
+      async init(opts){ opts=opts||{}; if(opts.user) this.setUser(opts.user); if(opts.proxyUrl) S.proxyUrl=opts.proxyUrl; if(opts.buildId) S.buildId=opts.buildId; await this.flush(); if(!S.clock) await this.pull(); this.startPolling(opts.pollMs||8000); return this; },
+      startPolling(ms){ this.stopPolling(); S.pollTimer=(env.setInterval||setInterval)(()=>{ this.flush(); },ms); }, stopPolling(){ if(S.pollTimer){ (env.clearInterval||clearInterval)(S.pollTimer); S.pollTimer=null; } },
+      staleBuild(){ return !!(S.buildId&&S.remoteBuild&&S.remoteBuild!==S.buildId&&S.remoteBuild>S.buildId); }, remoteBuild(){ return S.remoteBuild; },
+      _ops(){ return S.ops.slice(); }, _outbox(){ return S.outbox.slice(); },
+      ingestMigrationOps(ops){ const n=mergeOps(ops); (ops||[]).forEach(o=>{ if(o&&o.opId&&!S.outbox.includes(o.opId)) S.outbox.push(o.opId); }); persist(); if(n) emit(); return n; },
+      migrateOnce(opts){ opts=opts||{}; const flag=opts.flagKey||"brsync.migrated.v1"; try{ if(store.get(flag)==="1") return 0; }catch(_){ return 0; }
+        let listings=[],shared={}; try{ listings=JSON.parse(store.get(opts.listingsKey||"br_listings_v2"))||[]; }catch(_){ } try{ shared=JSON.parse(store.get(opts.sharedKey||"nr_status_v1"))||{}; }catch(_){ }
+        const built=buildMigrationOps({listings,sharedStatus:shared,user:S.user}); if(built.ops.length) this.ingestMigrationOps(built.ops); try{ store.set(flag,"1"); }catch(_){ } return built.ops.length; } };
+    return self; }
+  function buildMigrationOps(opts){ opts=opts||{}; const listings=opts.listings||[]; const shared=opts.sharedStatus||{}; const user=opts.user||"keegan"; const ts=opts.ts||1;
+    const fields=opts.fields||["reviewState","jamie","keegan","likes","dislikes","shortlisted","status","furnished","petFees","minLease","contactName","contactCompany","agentEmail","agentPhone","contactUrl","preferredChannel","contactVerified","contactNotes","tour"];
+    const m2d={accepted:"accepted",needs:"review",rejected:"rejected"}; const reviewDefault=id=>(String(id).indexOf("nr")===0)?"review":"accepted"; const ops=[]; let seq=0;
+    const mk=(id,field,value)=>ops.push({opId:"mig-"+user+"-"+(seq++),editTs:ts,user,listingId:id,field,value});
+    const fromMap=new Set();
+    Object.keys(shared).forEach(id=>{ const rs=m2d[shared[id]]; if(!rs) return; fromMap.add(id); if(rs!==reviewDefault(id)) mk(id,"reviewState",rs); });
+    listings.forEach(l=>{ if(!l||l.id==null) return; const id=l.id;
+      if(!fromMap.has(id)&&String(id).indexOf("nr")!==0){ const rs=l.reviewState; if(rs&&rs!==reviewDefault(id)) mk(id,"reviewState",rs); }
+      if(l.jamie!=null&&l.jamie!=="") mk(id,"jamie",l.jamie); if(l.keegan!=null&&l.keegan!=="") mk(id,"keegan",l.keegan);
+      fields.forEach(f=>{ if(f==="reviewState"||f==="jamie"||f==="keegan") return; const v=l[f]; if(v!=null&&v!==""&&!(f==="status"&&v==="active")) mk(id,f,v); }); });
+    return { ops }; }
+  function fetchNet(proxyUrl){ const readJson=async r=>{ const t=await r.text(); try{ return JSON.parse(t); }catch(_){ return {ok:false,error:"non-JSON"}; } };
+    return { async append(ops,meta){ const body=JSON.stringify({action:"append",ops,since:(meta&&meta.since)||0,buildId:meta&&meta.buildId,user:meta&&meta.user}); const r=await fetch(proxyUrl,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body}); return readJson(r); },
+      async pull(since,meta){ const u=proxyUrl+(proxyUrl.indexOf("?")<0?"?":"&")+"since="+(since||0)+(meta&&meta.buildId?"&build="+encodeURIComponent(meta.buildId):""); const r=await fetch(u,{method:"GET"}); return readJson(r); } }; }
+  function lsStorage(){ return { get:k=>{ try{ return localStorage.getItem(k); }catch(_){ return null; } }, set:(k,v)=>{ try{ localStorage.setItem(k,v); }catch(_){ } } }; }
+  return { createBRSync, foldLog, foldValues, opCmp, fetchNet, lsStorage, buildMigrationOps };
+})();
+
+/* ---- dashboard ⇄ BRSync integration ---- */
+const BRSYNC_BUILD=(typeof window!=="undefined"&&window.__BRSYNC_BUILD__)||"dev";
+// Human-readable mirror headers, dashboard-owned (derived from COLS field keys; cannot drift).
+const SHEET_LABELS={ id:"ID", type:"Type", address:"Address", zip:"Zip", price:"Price", priceMax:"Price (max)", beds:"# Beds", baths:"# Baths", size:"Size (sqft)", neighborhood:"Neighborhood", yearBuilt:"Year built", furnished:"Furnished", petFees:"Pet fees", minLease:"Min lease (months)", likes:"Likes", dislikes:"Dislikes", jamie:"Jamie Ranking", keegan:"Keegan Ranking", combined:"Combined Ranking", reviewState:"Review status", status:"Market status", shortlisted:"Shortlisted", link:"Link", contactName:"Contact name", contactCompany:"Contact company", agentEmail:"Agent email", agentPhone:"Agent phone", contactUrl:"Contact URL", preferredChannel:"Preferred channel", contactVerified:"Contact verified", contactNotes:"Contact notes", tour:"Tour", commute:"Commute (min)", flood:"Flood zone", safety:"Crime risk", pollScore:"Pollution risk", cancerBurden:"Cancer risk" };
+function mirrorColumns(){ const seen=new Set(),cols=[]; ["rent","sale"].forEach(m=>(COLS[m]||[]).forEach(c=>{ if(!seen.has(c.k)){ seen.add(c.k); cols.push([c.k, SHEET_LABELS[c.k]||c.label||c.k]); } }));
+  ["reviewState","status","shortlisted","contactName","contactCompany","agentEmail","agentPhone","contactUrl","preferredChannel","contactVerified","contactNotes"].forEach(k=>{ if(!seen.has(k)){ seen.add(k); cols.push([k, SHEET_LABELS[k]||k]); } }); return cols; }
+// fields that represent USER DECISIONS (emit ops). Excludes enriched/derived/computed fields.
+const SYNC_FIELDS=new Set(["reviewState","jamie","keegan","likes","dislikes","shortlisted","status","address","zip","price","beds","baths","size","neighborhood","yearBuilt","link","furnished","petFees","minLease","contactName","contactCompany","agentEmail","agentPhone","contactUrl","preferredChannel","contactVerified","contactNotes","tour"]);
+// DECISION_FIELDS are user-owned and live in the sync log — the "Refresh from Sheet" source import
+// must NEVER overwrite these (it only refreshes base attributes like price/beds). This stops Jamie's
+// source-sheet ranking/note columns from clobbering an in-app accept/reject/rank/note.
+const DECISION_FIELDS=new Set(["reviewState","jamie","keegan","likes","dislikes","shortlisted","status","contactName","contactCompany","agentEmail","agentPhone","contactUrl","preferredChannel","contactVerified","contactNotes","tour"]);
+let _syncBase={};
+function _cmp(v){ return (v&&typeof v==="object")?JSON.stringify(v):(v==null?"":v); }
+function snapBase(){ _syncBase={}; listings.forEach(l=>{ const o={}; SYNC_FIELDS.forEach(f=>{ o[f]=_cmp(l[f]); }); _syncBase[l.id]=o; }); }
+function emitChangedOps(){ if(!window.__brsync) return; listings.forEach(l=>{ const b=_syncBase[l.id]||{}; SYNC_FIELDS.forEach(f=>{ const cur=_cmp(l[f]); if(cur!==(b[f]==null?"":b[f])){ window.__brsync.edit(l.id,f, l[f]===undefined?null:l[f]); } }); }); snapBase(); }
+function applySyncOverlay(){ if(!window.__brsync) return; window.__brsync.apply(listings); snapBase();
+  try{localStorage.setItem(LS_KEY,JSON.stringify(listings));}catch(_){ } try{render();}catch(_){ } try{renderStats();}catch(_){ } updateBuildBanner(); }
+function updateBuildBanner(){ const el=document.getElementById("buildTag"); if(!el||!window.__brsync) return;
+  if(window.__brsync.staleBuild()){ el.textContent="⚠ New version available — reload"; el.style.color="#B23B3B"; el.style.fontWeight="700"; el.style.cursor="pointer"; el.onclick=()=>location.reload(true); }
+  else { el.textContent="sync "+BRSYNC_BUILD; el.style.color=""; el.style.fontWeight=""; el.onclick=null; } }
+(function brsyncInit(){
+  if(!PROXY_URL){ render(); return; }
+  const net=BRSyncCore.fetchNet(PROXY_URL);
+  // identity: pick keegan/jamie once per browser.
+  let user=null; try{ user=localStorage.getItem("brsync.user.v1"); }catch(_){ }
+  if(user!=="keegan"&&user!=="jamie"){ try{ user=(prompt("Who is using this dashboard? Type  keegan  or  jamie:","")||"").trim().toLowerCase(); }catch(_){ } if(user!=="keegan"&&user!=="jamie") user="keegan"; try{localStorage.setItem("brsync.user.v1",user);}catch(_){ } }
+  const sync=BRSyncCore.createBRSync({ user, proxyUrl:PROXY_URL, buildId:BRSYNC_BUILD, storage:BRSyncCore.lsStorage(), net });
+  window.__brsync=sync;
+  window.__pushMirror=function(){ if(!PROXY_URL) return; if(sync._outbox().length) return;   // only mirror a caught-up view
+    setBkStatus("☁ updating mirror…"); const cols=mirrorColumns();
+    const rows=listings.map(l=>{ const o={id:l.id,type:l.type}; cols.forEach(c=>{ o[c[0]]=l[c[0]]; }); return o; });
+    fetch(PROXY_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"mirror",listings:rows,columns:cols,version:BRSYNC_BUILD,savedAt:new Date().toISOString(),user:sync.user()})})
+      .then(()=>setBkStatus("☁ Synced "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}))).catch(()=>setBkStatus("⚠ Mirror update failed")); };
+  sync.onChange(applySyncOverlay);
+  // ONE-TIME, surface-independent migration: capture this browser's existing decisions
+  // (br_listings_v2 + legacy nr_status_v1 from the map) into the op-log, stamped pre-cutover, so
+  // nothing is lost. Runs whether the dashboard or the map opens first (one shared flag).
+  try{ const n=sync.migrateOnce(); if(n) console.log("BRSync migration: emitted "+n+" ops from existing local data"); }catch(e){ console.warn("BRSync migration skipped:",e); }
+  snapBase();                              // baseline BEFORE applying remote, so overlay isn't seen as a user edit
+  applySyncOverlay();                      // instant: fold any local ops (offline-first)
+  refreshFromSheet(true);                  // import Jamie's read-only source sheet (base fields only)
+  sync.init({ pollMs:8000 }).then(()=>{ applySyncOverlay(); window.__pushMirror(); });
+  window.addEventListener("online",()=>{ try{ sync.flush(); }catch(_){ } });
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ try{ sync.flush(); }catch(_){ } } });
+})();
 
 </script></body></html>
