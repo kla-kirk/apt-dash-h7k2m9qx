@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta name="robots" content="noindex, nofollow"><meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Baton Rouge Listings Database</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1167,14 +1166,14 @@ function renderFilters(){
 
   // ---- wire shared inputs (text/number: live, no bar re-render so focus is kept) ----
   const on=(id,ev,fn)=>{ const el=document.getElementById(id); if(el) el[ev]=e=>{ fn(e); }; };
-  on("fq","oninput",e=>{ FCRIT.keyword=e.target.value; applyFilterChange(); });
-  on("fmp","oninput",e=>{ if(mode==="rent") FCRIT.minPriceRent=e.target.value; else FCRIT.minPriceSale=e.target.value; applyFilterChange(); });
+  on("fq","oninput",e=>{ FCRIT.keyword=e.target.value; applyFilterChangeSoon(); });
+  on("fmp","oninput",e=>{ if(mode==="rent") FCRIT.minPriceRent=e.target.value; else FCRIT.minPriceSale=e.target.value; applyFilterChangeSoon(); });
   on("fmb","onchange",e=>{ FCRIT.minBeds=e.target.value; applyFilterChange(); });
   on("fba","onchange",e=>{ FCRIT.minBaths=e.target.value; applyFilterChange(); });
-  on("fsq","oninput",e=>{ FCRIT.minSize=e.target.value; applyFilterChange(); });
+  on("fsq","oninput",e=>{ FCRIT.minSize=e.target.value; applyFilterChangeSoon(); });
   on("fcm","onchange",e=>{ FCRIT.maxCommute=e.target.value; applyFilterChange(); });
-  on("fyr","oninput",e=>{ FCRIT.minYear=e.target.value; applyFilterChange(); });
-  on("fls","oninput",e=>{ FCRIT.maxLease=e.target.value; applyFilterChange(); });
+  on("fyr","oninput",e=>{ FCRIT.minYear=e.target.value; applyFilterChangeSoon(); });
+  on("fls","oninput",e=>{ FCRIT.maxLease=e.target.value; applyFilterChangeSoon(); });
   on("ffu","onchange",e=>{ FCRIT.furnishedOnly=e.target.checked; applyFilterChange(); });
   on("fpt","onchange",e=>{ FCRIT.petsOnly=e.target.checked; applyFilterChange(); });
   on("foff","onchange",e=>{ FCRIT.excludeOff=e.target.checked; applyFilterChange(); });
@@ -1201,6 +1200,8 @@ function refreshChips(){ const el=document.getElementById("fchips"); if(!el) ret
 }
 // a shared-filter change: persist + sync, refresh tab counts/stats/chips/table (NOT the whole bar)
 function applyFilterChange(){ saveCrit(); renderReviewTabs(); renderStats(); refreshChips(); renderTable(); }
+/* debounced variant for live text/number typing — avoids re-rendering ~750 rows on every keystroke */
+let _fcTimer=null; function applyFilterChangeSoon(){ clearTimeout(_fcTimer); _fcTimer=setTimeout(applyFilterChange,180); }
 function removeChip(key){ FCRIT=BRFilters.without(FCRIT,key); saveCrit(); renderReviewTabs(); renderStats(); renderFilters(); renderTable(); }
 function resetFilters(){ FCRIT=BRFilters.clean({}); saveCrit(); renderReviewTabs(); renderStats(); renderFilters(); renderTable(); }
 function renderTable(){
