@@ -296,13 +296,11 @@ Promise.all([BRMap.fetchJSON("listings.json"), BRMap.fetchJSON("review.json")]).
 });
 window.BRMap=BRMap;
 </script>
-<!-- ===== layer modules ===== -->
-<script src="crime_layer.js" defer></script>
-<script src="amenities_layer.js" defer></script>
-<script src="flood_layer.js" defer></script>
-<script src="commute_layer.js" defer></script>
-<script src="air_layer.js" defer></script>
-<script src="review_layer.js" defer></script>
-<script src="listing_filters.js" defer></script>
-<script src="filter_layer.js" defer></script>
+<!-- ===== layer modules — loaded with a per-visit cache-buster so updates show up on a normal reload ===== -->
+<script>
+(function () { var v = "?v=" + Date.now();
+  ["crime_layer.js", "amenities_layer.js", "flood_layer.js", "commute_layer.js", "air_layer.js", "review_layer.js", "listing_filters.js", "filter_layer.js"]
+    .forEach(function (m) { var s = document.createElement("script"); s.src = m + v; s.async = false; document.body.appendChild(s); });
+})();
+</script>
 </body></html>
