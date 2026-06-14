@@ -79,10 +79,12 @@
       id: raw.id,
       type: (raw.type === "sale") ? "sale" : "rent",
       status: raw.status || "active",
-      price: n(raw.price),
-      beds: numHi(raw.beds),
-      baths: numHi(raw.baths),
-      size: numHi(sizeRaw),
+      // range-aware HIGH end: communities carry *Max (e.g. priceMax/sizeMax); a min-filter
+      // hides a listing only when even its MAX is below the threshold (no false negatives).
+      price: numHi((raw.priceMax != null && raw.priceMax !== "") ? raw.priceMax : raw.price),
+      beds: numHi((raw.bedsMax != null && raw.bedsMax !== "") ? raw.bedsMax : raw.beds),
+      baths: numHi((raw.bathsMax != null && raw.bathsMax !== "") ? raw.bathsMax : raw.baths),
+      size: numHi((raw.sizeMax != null && raw.sizeMax !== "") ? raw.sizeMax : ((raw.sqftMax != null && raw.sqftMax !== "") ? raw.sqftMax : sizeRaw)),
       year: parseYear(raw.yearBuilt),
       furnished: parseFurnished(raw.furnished),
       pets: parsePets(raw.petFees),
