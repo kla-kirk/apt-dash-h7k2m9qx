@@ -274,6 +274,7 @@ table.cmp td.win{background:var(--salebg)}table.cmp td.win .v{color:var(--accent
   <button class="btn ghost sm" onclick="openTourPlanner()">Tour Planner</button>
   <button class="btn ghost sm" id="refreshBtn" onclick="refreshFromSheet()">↻ Refresh from Sheet</button><button class="btn ghost sm" onclick="openTemplateManager()">✉ Templates</button><span id="bkStatus" class="zip" style="margin-left:8px"></span>
   <button class="btn ghost sm" id="backupBtn" onclick="manualBackup()" title="Save a full snapshot of every listing to your backup Google Sheet right now">☁ Backup now</button>
+  <button class="btn ghost sm" id="forceBtn" onclick="forcePush()" title="Recovery: make the shared sheet match exactly what you see now">⤴ Force push my version</button><span id="buildTag" class="zip" style="margin-left:8px" title="dashboard build — hard-reload if this is older than expected">sync v4 · 06-14</span>
   <button class="btn ghost sm" onclick="exportCSV()">Export CSV</button>
   <button class="btn" onclick="openEdit(null)">+ Add</button>
  </div>
@@ -662,6 +663,14 @@ function manualBackup(){
   toast("Backing up all "+listings.length+" listings to the Sheet…");
   setTimeout(function(){ if(b){ b.disabled=false; b.textContent="☁ Backup now"; } },1500);
 }
+/* ---- recovery: make the shared Sheet match exactly what THIS browser shows right now ---- */
+function forcePush(){
+  if(!PROXY_URL){ toast("No backup endpoint is configured"); return; }
+  if(!confirm("Push YOUR current version to the shared sheet?\n\nThis makes the shared copy match exactly what you see now — use it to recover after a sync glitch. It can overwrite changes the other person made in the last minute to the same listings.")) return;
+  try{ syncStatusFromShared(); }catch(_){ }      // fold in any map accept/reject first
+  const t=Date.now(); listings.forEach(l=>{ l.updatedAt=t; });   // stamp everything as newest -> wins
+  save(); toast("Pushing your version of all "+listings.length+" listings…");
+}
 function rows(){ return listings.filter(l=>l.type===mode); }
 function byId(id){ return listings.find(l=>l.id===id); }
 function num(v){ return (v===0||v)&&!isNaN(parseFloat(v))?parseFloat(v):null; }
@@ -698,7 +707,20 @@ function defaultCols(){ return new Set(COLS[mode].filter(c=>c.def).map(c=>c.k));
 function ensureCols(){ if(!visibleCols) visibleCols=defaultCols(); visibleCols.add("address"); }
 function persistCols(){ try{localStorage.setItem("brdash.cols",JSON.stringify([...visibleCols]));}catch(_){} }
 const SAFE_TIERS=[{t:"Low",max:3,c:"#1E7A34",bg:"#E7F6EC"},{t:"Moderate",max:13,c:"#9A6A00",bg:"#FFF4E0"},{t:"Elevated",max:32,c:"#C2691C",bg:"#FBE6D6"},{t:"High",max:1e9,c:"#B23B3B",bg:"#FBE7E7"}];
+// Crime source/coverage label — only for listings NOT covered by the City police feed
+// (EBR Sheriff territory, or a neighboring-parish rate fallback). BRPD/blank => no label.
+function crimeSrcLabel(l){ const s=l.crimeSrc; if(!s||s==="BRPD") return "";
+  if(l.crimeBasis==="rate") return s+" \u00b7 parish rate";
+  if(l.crimeBasis==="limited") return s+" \u00b7 limited data"; return s; }
+function crimeSrcShort(l){ const s=l.crimeSrc; if(!s||s==="BRPD") return "";
+  if(s==="EBR Sheriff") return "EBRSO";
+  if(l.crimeBasis==="rate") return "parish rate"; if(l.crimeBasis==="limited") return "limited"; return s; }
 function safety(l){
+  // Out-of-parish listings (no City/Sheriff incident feed): use the parish-rate tier so they
+  // never read as a false "Low 0". "limited" = no authoritative number -> explicit "\u2014".
+  if(l.crimeBasis==="rate"&&l.crimeTier){ let i=SAFE_TIERS.findIndex(s=>s.t===l.crimeTier); if(i<0)i=0; const s=SAFE_TIERS[i];
+    return {tier:s.t,metric:null,rate:l.crimeRate,c:s.c,bg:s.bg,rank:i,fb:true,basis:"rate"}; }
+  if(l.crimeBasis==="limited"){ return {tier:"\u2014",metric:null,c:"#8A8F98",bg:"#F2F2F2",rank:98,fb:true,basis:"limited"}; }
   const R=RAD[RKEY], n=l[R.key];
   if(n!=null){ const dens=n/R.area; let i=SAFE_TIERS.findIndex(s=>dens<s.max); if(i<0)i=3; const s=SAFE_TIERS[i];
     return {tier:s.t,metric:n,density:dens,c:s.c,bg:s.bg,rank:i,fb:false}; }
@@ -919,7 +941,7 @@ function openDetail(id){
   b+='<div class="dsec"><h5>Location &amp; commute</h5>'+drow("Neighborhood",esc(l.neighborhood||"—"))
     +drow("Drive to LSU", ci?(ci.am+" min AM · "+ci.pm+" PM · "+ci.off+" off-peak"+(ci.mi!=null?" · "+ci.mi+" mi":"")):"—")+'</div>';
   b+='<div class="dsec"><h5>Safety &amp; environment</h5>'+tierLine("Violent crime ("+RAD[RKEY].lab+")",sf)+tierLine("Burglary (¼ mi)",bs)+tierLine("Car theft (¼ mi)",au)
-    +'<div class="drow"><span class="muted">Flood (FEMA)</span><span style="font-weight:600;color:'+(fi?fi.c:"var(--soft)")+'">'+(fi?fi.risk+" risk · zone "+esc(fi.zone||"—"):"—")+'</span></div></div>';
+    +'<div class="drow"><span class="muted">Flood (FEMA)</span><span style="font-weight:600;color:'+(fi?fi.c:"var(--soft)")+'">'+(fi?fi.risk+" risk · zone "+esc(fi.zone||"—"):"—")+'</span></div>'+(crimeSrcLabel(l)?'<div class="drow"><span class="muted">Crime source</span><span style="font-weight:600">'+esc(crimeSrcLabel(l))+'</span></div>':'')+'</div>';
   b+='<div class="dsec"><h5>Your rankings</h5><div class="kv">'
     +'<span class="k">Jamie</span><span class="v">'+(l.jamie??"—")+'</span><span class="k">Keegan</span><span class="v">'+(l.keegan??"—")+'</span><span class="k">Combined</span><span class="v">'+(combined(l)??"—")+'</span></div></div>';
   if(l.likes||l.dislikes) b+='<div class="dsec"><h5>Notes</h5>'+(l.likes?'<div class="note" style="margin-bottom:8px">＋ '+esc(l.likes)+'</div>':'')+(l.dislikes?'<div class="srcbox" style="color:#B23B3B;background:#FBE7E7;border-color:#f0c9c9">－ '+esc(l.dislikes)+'</div>':'')+'</div>';
@@ -1234,8 +1256,9 @@ function renderTable(){
 function cell(l,c){
   if(c.k==="safety"){ const s=safety(l); const R=RAD[RKEY];
     const numTxt=(s.metric!=null)?(' <span class="zip" style="color:'+s.c+';font-weight:700">'+s.metric+'</span>'):'';
-    const tip=(s.metric!=null)?(s.metric+" violent incidents within "+R.lab+" (12mo) · ¼mi "+l.r025+" · ½mi "+l.r05+" · 1mi "+l.r10):(s.zrate!=null?("ZIP "+l.zip+" approx "+s.zrate.toFixed(1)+"/1k (no coords)"):"no data");
-    return '<td><span class="badge" style="background:'+s.bg+';color:'+s.c+'" title="'+tip+'">'+s.tier+"</span>"+numTxt+"</td>"; }
+    const srcTxt=crimeSrcShort(l)?(' <span class="zip" style="color:#8A8F98;font-weight:600" title="Crime data source">'+crimeSrcShort(l)+'</span>'):'';
+    const tip=(s.basis==="rate")?(l.crimeSrc+" — parish-level violent rate "+(s.rate!=null?s.rate+"/1k/yr":"")+" (FBI CDE; no local incident feed outside EBR)"):(s.basis==="limited")?(l.crimeSrc+" — outside mapped agencies; no open incident or rate data"):(s.metric!=null)?(s.metric+" violent incidents within "+R.lab+" (12mo) · ¼mi "+l.r025+" · ½mi "+l.r05+" · 1mi "+l.r10+(crimeSrcLabel(l)?" · "+crimeSrcLabel(l):"")):(s.zrate!=null?("ZIP "+l.zip+" approx "+s.zrate.toFixed(1)+"/1k (no coords)"):"no data");
+    return '<td><span class="badge" style="background:'+s.bg+';color:'+s.c+'" title="'+tip+'">'+s.tier+"</span>"+numTxt+srcTxt+"</td>"; }
   if(c.k==="burg"){ const s=burgSafety(l);
     const numTxt=(s.metric!=null)?(' <span class="zip" style="color:'+s.c+';font-weight:700">'+s.metric+'</span>'):'';
     const tip=(s.metric!=null)?("Burglaries within &frac14; mi (12mo): "+s.metric):"no data";
@@ -1396,7 +1419,7 @@ async function refreshFromSheet(silent){
         if(!r||r.id==null||r.id===""||r.id==="TESTSYNC") continue;
         const cur=_byid.get(r.id);
         if(!cur){ listings.push(r); _byid.set(r.id,r); added++; synced++; continue; }
-        if((+r.updatedAt||0) < (+cur.updatedAt||0)) continue;   // local copy is newer — keep it
+        if((+r.updatedAt||0) <= (+cur.updatedAt||0)) continue;  // adopt ONLY a strictly-newer remote — a tie never overwrites local
         for(const k in r){
           if(k==="id") continue;
           const a=r[k], b=cur[k];
