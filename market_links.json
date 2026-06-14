@@ -1,19 +1,15 @@
 {
-  "generatedAt": "2026-06-12T18:01:18+00:00",
+  "generatedAt": "2026-06-14T16:00:21+00:00",
   "scope": {
-    "mode": "active listings plus verified conflict examples",
-    "activeCount": 114,
-    "includedCount": 116,
+    "mode": "selected active listings plus verified conflict examples",
+    "activeCount": 132,
+    "includedCount": 134,
     "knownConflictExampleCount": 2,
     "targetSites": [
       "Redfin",
       "Apartments.com",
       "Homes.com",
-      "Realtor.com",
-      "Trulia",
-      "HotPads",
-      "Rent.com",
-      "ApartmentFinder"
+      "Realtor.com"
     ]
   },
   "listings": {
@@ -1500,6 +1496,14 @@
           "lastChecked": "dashboard",
           "matchConfidence": "source",
           "evidence": "Primary URL already stored on the listing row."
+        },
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/apartments/baton-rouge-la/the-terraces-at-perkins-rowe/CgLY46/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "high",
+          "evidence": "Exact-address or exact-community page verified in live search."
         }
       ],
       "candidateSearches": [
@@ -6518,6 +6522,780 @@
         {
           "site": "ApartmentFinder",
           "url": "https://www.google.com/search?q=site%3Aapartmentfinder.com+%2210057+Jefferson+Hwy%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr729": {
+      "listingId": "nr729",
+      "address": "15062 Rimrock Ct",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/15062-Rimrock-Ct-Baton-Rouge-LA-70819/70847605_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 1800,
+          "beds": 3,
+          "baths": 2,
+          "contactUrl": "https://www.zillow.com/homedetails/15062-Rimrock-Ct-Baton-Rouge-LA-70819/70847605_zpid/"
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Redfin",
+          "url": "https://www.google.com/search?q=site%3Aredfin.com+%2215062+Rimrock+Ct%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.google.com/search?q=site%3Aapartments.com+%2215062+Rimrock+Ct%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.google.com/search?q=site%3Ahomes.com+%2215062+Rimrock+Ct%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.google.com/search?q=site%3Arealtor.com+%2215062+Rimrock+Ct%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr730": {
+      "listingId": "nr730",
+      "address": "1680 Oneal Ln",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/apartments/baton-rouge-la/ole-london-towne-utilities-included/5Xhw49/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 995,
+          "beds": 1,
+          "baths": 1,
+          "contactUrl": "https://www.zillow.com/apartments/baton-rouge-la/ole-london-towne-utilities-included/5Xhw49/"
+        },
+        {
+          "site": "Redfin",
+          "url": "https://www.redfin.com/LA/Baton-Rouge/1680-Oneal-Ln-70816/home/85537117",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "high",
+          "evidence": "Exact-address or exact-community page verified in live search."
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.apartments.com/ole-london-towne-utilities-included-baton-rouge-la/lgv8mcf/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "high",
+          "evidence": "Exact-address or exact-community page verified in live search."
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.realtor.com/rentals/details/1680-Oneal-Ln_Baton-Rouge_LA_70816_M88873-42498",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "high",
+          "evidence": "Exact-address or exact-community page verified in live search."
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Homes.com",
+          "url": "https://www.google.com/search?q=site%3Ahomes.com+%221680+Oneal+Ln%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr731": {
+      "listingId": "nr731",
+      "address": "16756 Amberwood Dr",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/16756-Amberwood-Dr-Baton-Rouge-LA-70810/66266062_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 5500,
+          "beds": 3,
+          "baths": 4,
+          "contactUrl": "https://www.zillow.com/homedetails/16756-Amberwood-Dr-Baton-Rouge-LA-70810/66266062_zpid/"
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Redfin",
+          "url": "https://www.google.com/search?q=site%3Aredfin.com+%2216756+Amberwood+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.google.com/search?q=site%3Aapartments.com+%2216756+Amberwood+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.google.com/search?q=site%3Ahomes.com+%2216756+Amberwood+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.google.com/search?q=site%3Arealtor.com+%2216756+Amberwood+Dr%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr732": {
+      "listingId": "nr732",
+      "address": "7671 Dearborne Dr",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/7671-Dearborne-Dr-Baton-Rouge-LA-70817/461541895_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 4000,
+          "beds": 3,
+          "baths": 2,
+          "contactUrl": "https://www.zillow.com/homedetails/7671-Dearborne-Dr-Baton-Rouge-LA-70817/461541895_zpid/"
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Redfin",
+          "url": "https://www.google.com/search?q=site%3Aredfin.com+%227671+Dearborne+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.google.com/search?q=site%3Aapartments.com+%227671+Dearborne+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.google.com/search?q=site%3Ahomes.com+%227671+Dearborne+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.google.com/search?q=site%3Arealtor.com+%227671+Dearborne+Dr%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr733": {
+      "listingId": "nr733",
+      "address": "8624 Arabella Ave",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/8624-Arabella-Ave-Baton-Rouge-LA-70820/125451141_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 3800,
+          "beds": 4,
+          "baths": 3,
+          "contactUrl": "https://www.zillow.com/homedetails/8624-Arabella-Ave-Baton-Rouge-LA-70820/125451141_zpid/"
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Redfin",
+          "url": "https://www.google.com/search?q=site%3Aredfin.com+%228624+Arabella+Ave%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.google.com/search?q=site%3Aapartments.com+%228624+Arabella+Ave%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.google.com/search?q=site%3Ahomes.com+%228624+Arabella+Ave%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.google.com/search?q=site%3Arealtor.com+%228624+Arabella+Ave%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr734": {
+      "listingId": "nr734",
+      "address": "1637 S Flannery Rd",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/1637-S-Flannery-Rd-Baton-Rouge-LA-70816/66355029_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 2900,
+          "beds": 5,
+          "baths": 3,
+          "contactUrl": "https://www.zillow.com/homedetails/1637-S-Flannery-Rd-Baton-Rouge-LA-70816/66355029_zpid/"
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Redfin",
+          "url": "https://www.google.com/search?q=site%3Aredfin.com+%221637+S+Flannery+Rd%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.google.com/search?q=site%3Aapartments.com+%221637+S+Flannery+Rd%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.google.com/search?q=site%3Ahomes.com+%221637+S+Flannery+Rd%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.google.com/search?q=site%3Arealtor.com+%221637+S+Flannery+Rd%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr735": {
+      "listingId": "nr735",
+      "address": "13343 Bellacosa Ave",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/13343-Bellacosa-Ave-Baton-Rouge-LA-70817/2054943120_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 2800,
+          "beds": 5,
+          "baths": 3,
+          "contactUrl": "https://www.zillow.com/homedetails/13343-Bellacosa-Ave-Baton-Rouge-LA-70817/2054943120_zpid/"
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Redfin",
+          "url": "https://www.google.com/search?q=site%3Aredfin.com+%2213343+Bellacosa+Ave%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.google.com/search?q=site%3Aapartments.com+%2213343+Bellacosa+Ave%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.google.com/search?q=site%3Ahomes.com+%2213343+Bellacosa+Ave%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.google.com/search?q=site%3Arealtor.com+%2213343+Bellacosa+Ave%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr736": {
+      "listingId": "nr736",
+      "address": "722 Bellegrove Square Ave",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/722-Bellegrove-Square-Ave-Baton-Rouge-LA-70810/347832324_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 2700,
+          "beds": 3,
+          "baths": 2,
+          "contactUrl": "https://www.zillow.com/homedetails/722-Bellegrove-Square-Ave-Baton-Rouge-LA-70810/347832324_zpid/"
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Redfin",
+          "url": "https://www.google.com/search?q=site%3Aredfin.com+%22722+Bellegrove+Square+Ave%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.google.com/search?q=site%3Aapartments.com+%22722+Bellegrove+Square+Ave%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.google.com/search?q=site%3Ahomes.com+%22722+Bellegrove+Square+Ave%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.google.com/search?q=site%3Arealtor.com+%22722+Bellegrove+Square+Ave%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr737": {
+      "listingId": "nr737",
+      "address": "16625 Poe Ave # 2",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": false,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/apartments/baton-rouge-la/villas-at-oak-bend-home-rentals/CnC2xt/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 1995,
+          "beds": 3,
+          "baths": 2,
+          "contactUrl": "https://www.zillow.com/apartments/baton-rouge-la/villas-at-oak-bend-home-rentals/CnC2xt/"
+        },
+        {
+          "site": "Redfin",
+          "url": "https://www.redfin.com/LA/Baton-Rouge/16625-Poe-Ave-70816/home/190205896",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "high",
+          "evidence": "Exact-address or exact-community page verified in live search."
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.apartments.com/villas-at-oak-bend-home-rentals-baton-rouge-la/f3mlwks/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "high",
+          "evidence": "Exact-address or exact-community page verified in live search."
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.homes.com/property/villas-at-oak-bend-home-rentals-baton-rouge-la/1yc8dfbpmgrmn/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "high",
+          "evidence": "Exact-address or exact-community page verified in live search."
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.realtor.com/rentals/details/16625-Poe-Ave_Baton-Rouge_LA_70816_M90132-73120",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "high",
+          "evidence": "Exact-address or exact-community page verified in live search."
+        }
+      ],
+      "candidateSearches": []
+    },
+    "nr738": {
+      "listingId": "nr738",
+      "address": "3020 Thackeray Dr",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/3020-Thackeray-Dr-67-Baton-Rouge-LA-70816/455238625_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 2645,
+          "beds": 5,
+          "baths": 3,
+          "contactUrl": "https://www.zillow.com/homedetails/3020-Thackeray-Dr-67-Baton-Rouge-LA-70816/455238625_zpid/"
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Redfin",
+          "url": "https://www.google.com/search?q=site%3Aredfin.com+%223020+Thackeray+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.google.com/search?q=site%3Aapartments.com+%223020+Thackeray+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.google.com/search?q=site%3Ahomes.com+%223020+Thackeray+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.google.com/search?q=site%3Arealtor.com+%223020+Thackeray+Dr%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr739": {
+      "listingId": "nr739",
+      "address": "3104 Thackeray Dr",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/3104-Thackeray-Dr-74-Baton-Rouge-LA-70816/462219164_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 2645,
+          "beds": 5,
+          "baths": 3,
+          "contactUrl": "https://www.zillow.com/homedetails/3104-Thackeray-Dr-74-Baton-Rouge-LA-70816/462219164_zpid/"
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Redfin",
+          "url": "https://www.google.com/search?q=site%3Aredfin.com+%223104+Thackeray+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.google.com/search?q=site%3Aapartments.com+%223104+Thackeray+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.google.com/search?q=site%3Ahomes.com+%223104+Thackeray+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.google.com/search?q=site%3Arealtor.com+%223104+Thackeray+Dr%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr740": {
+      "listingId": "nr740",
+      "address": "9068 Foxgate Dr",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/9068-Foxgate-Dr-Baton-Rouge-LA-70809/70846942_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 2500,
+          "beds": 4,
+          "baths": 3,
+          "contactUrl": "https://www.zillow.com/homedetails/9068-Foxgate-Dr-Baton-Rouge-LA-70809/70846942_zpid/"
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Redfin",
+          "url": "https://www.google.com/search?q=site%3Aredfin.com+%229068+Foxgate+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.google.com/search?q=site%3Aapartments.com+%229068+Foxgate+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.google.com/search?q=site%3Ahomes.com+%229068+Foxgate+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.google.com/search?q=site%3Arealtor.com+%229068+Foxgate+Dr%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr741": {
+      "listingId": "nr741",
+      "address": "5829 Lake Shelf Dr",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/5829-Lake-Shelf-Dr-Baton-Rouge-LA-70820/2054727266_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 2500,
+          "beds": 3,
+          "baths": 3,
+          "contactUrl": "https://www.zillow.com/homedetails/5829-Lake-Shelf-Dr-Baton-Rouge-LA-70820/2054727266_zpid/"
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Redfin",
+          "url": "https://www.google.com/search?q=site%3Aredfin.com+%225829+Lake+Shelf+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.google.com/search?q=site%3Aapartments.com+%225829+Lake+Shelf+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.google.com/search?q=site%3Ahomes.com+%225829+Lake+Shelf+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.google.com/search?q=site%3Arealtor.com+%225829+Lake+Shelf+Dr%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr742": {
+      "listingId": "nr742",
+      "address": "6407 Tiger Pointe Dr",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": false,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/6407-Tiger-Pointe-Dr-Baton-Rouge-LA-70817/343863881_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 2450,
+          "beds": 4,
+          "baths": 3,
+          "contactUrl": "https://www.zillow.com/homedetails/6407-Tiger-Pointe-Dr-Baton-Rouge-LA-70817/343863881_zpid/"
+        },
+        {
+          "site": "Redfin",
+          "url": "https://www.redfin.com/LA/Baton-Rouge/6407-Tiger-Pointe-Dr-70817/home/176986081",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "high",
+          "evidence": "Exact-address or exact-community page verified in live search."
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.apartments.com/6407-tiger-pointe-dr-baton-rouge-la/h017nc0/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "high",
+          "evidence": "Exact-address or exact-community page verified in live search."
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.homes.com/property/6407-tiger-pointe-dr-baton-rouge-la/kzcmz37zh4684/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "high",
+          "evidence": "Exact-address or exact-community page verified in live search."
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.realtor.com/rentals/details/6407-Tiger-Pointe-Dr_Baton-Rouge_LA_70817_M91655-18374",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "high",
+          "evidence": "Exact-address or exact-community page verified in live search."
+        }
+      ],
+      "candidateSearches": []
+    },
+    "nr743": {
+      "listingId": "nr743",
+      "address": "14012 Wetherly Dr",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/14012-Wetherly-Dr-Baton-Rouge-LA-70810/188801648_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 2400,
+          "beds": 4,
+          "baths": 2,
+          "contactUrl": "https://www.zillow.com/homedetails/14012-Wetherly-Dr-Baton-Rouge-LA-70810/188801648_zpid/"
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Redfin",
+          "url": "https://www.google.com/search?q=site%3Aredfin.com+%2214012+Wetherly+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.google.com/search?q=site%3Aapartments.com+%2214012+Wetherly+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.google.com/search?q=site%3Ahomes.com+%2214012+Wetherly+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.google.com/search?q=site%3Arealtor.com+%2214012+Wetherly+Dr%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr744": {
+      "listingId": "nr744",
+      "address": "7936 Hendrick Dr",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/7936-Hendrick-Dr-Baton-Rouge-LA-70817/317200224_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 2195,
+          "beds": 4,
+          "baths": 2,
+          "contactUrl": "https://www.zillow.com/homedetails/7936-Hendrick-Dr-Baton-Rouge-LA-70817/317200224_zpid/"
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Redfin",
+          "url": "https://www.google.com/search?q=site%3Aredfin.com+%227936+Hendrick+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.google.com/search?q=site%3Aapartments.com+%227936+Hendrick+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.google.com/search?q=site%3Ahomes.com+%227936+Hendrick+Dr%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.google.com/search?q=site%3Arealtor.com+%227936+Hendrick+Dr%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr745": {
+      "listingId": "nr745",
+      "address": "2781 Millerville Rd",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/2781-Millerville-Rd-Baton-Rouge-LA-70816/66352661_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 2100,
+          "beds": 3,
+          "baths": 2,
+          "contactUrl": "https://www.zillow.com/homedetails/2781-Millerville-Rd-Baton-Rouge-LA-70816/66352661_zpid/"
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Redfin",
+          "url": "https://www.google.com/search?q=site%3Aredfin.com+%222781+Millerville+Rd%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Apartments.com",
+          "url": "https://www.google.com/search?q=site%3Aapartments.com+%222781+Millerville+Rd%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.google.com/search?q=site%3Ahomes.com+%222781+Millerville+Rd%22+%22Baton+Rouge%22"
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.google.com/search?q=site%3Arealtor.com+%222781+Millerville+Rd%22+%22Baton+Rouge%22"
+        }
+      ]
+    },
+    "nr746": {
+      "listingId": "nr746",
+      "address": "4518 Malbec Ave",
+      "reviewState": "review",
+      "listingStatus": "active",
+      "statusConflict": false,
+      "needsReview": true,
+      "marketLinks": [
+        {
+          "site": "Zillow",
+          "url": "https://www.zillow.com/homedetails/4518-Malbec-Ave-Baton-Rouge-LA-70816/2076761901_zpid/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "source",
+          "evidence": "Primary URL stored on the listing row.",
+          "price": 2095,
+          "beds": 4,
+          "baths": 2,
+          "contactUrl": "https://www.zillow.com/homedetails/4518-Malbec-Ave-Baton-Rouge-LA-70816/2076761901_zpid/"
+        },
+        {
+          "site": "Redfin",
+          "url": "https://www.redfin.com/LA/Baton-Rouge/4518-Malbec-Ave-70817/home/174606920",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "high",
+          "evidence": "Exact-address or exact-community page verified in live search."
+        },
+        {
+          "site": "Homes.com",
+          "url": "https://www.homes.com/property/4518-malbec-ave-baton-rouge-la/dd3m51y120fl4/",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "high",
+          "evidence": "Exact-address or exact-community page verified in live search."
+        },
+        {
+          "site": "Realtor.com",
+          "url": "https://www.realtor.com/realestateandhomes-detail/4518-Malbec-Ave_Baton-Rouge_LA_70817_M96925-42977",
+          "status": "active",
+          "lastChecked": "2026-06-14",
+          "matchConfidence": "high",
+          "evidence": "Exact-address or exact-community page verified in live search."
+        }
+      ],
+      "candidateSearches": [
+        {
+          "site": "Apartments.com",
+          "url": "https://www.google.com/search?q=site%3Aapartments.com+%224518+Malbec+Ave%22+%22Baton+Rouge%22"
         }
       ]
     }
