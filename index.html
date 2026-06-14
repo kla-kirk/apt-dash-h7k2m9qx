@@ -1404,7 +1404,7 @@ async function refreshFromSheet(silent){
         }
       }
     }
-    save(); render(); if(!silent) toast("Synced from Sheet · "+filled+" field(s) updated"+(added?", "+added+" added":"")+(synced?" · synced with Jamie":""));
+    if(filled||added||synced||!silent){ save(); render(); } if(!silent) toast("Synced from Sheet · "+filled+" field(s) updated"+(added?", "+added+" added":"")+(synced?" · synced with Jamie":""));
   }catch(e){ if(!silent) toast("Refresh failed: "+(e&&e.message?e.message:e)); else console.warn("Sheet auto-refresh failed:",e); }
   b.textContent="↻ Refresh from Sheet";
 }
