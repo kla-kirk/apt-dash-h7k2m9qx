@@ -170,9 +170,9 @@ BRMap.ready(async () => {
     }
     if (best && bestPx <= HIT) openDotDetail(best);
   });
-  // resize the dots when the zoom changes so they grow when zoomed in
-  map.on("zoomend", () => { if (!overlayActive || !ptsLayer || currentFiltered.length > 60000) return;
-    const r = rZoom(); ptsLayer.eachLayer((m) => { if (m.setRadius) m.setRadius(r); }); });
+  // redraw dots for the current viewport on move/zoom (keeps large sets responsive + sized right)
+  let _redrawT = null;
+  map.on("moveend zoomend", () => { if (!overlayActive) return; clearTimeout(_redrawT); _redrawT = setTimeout(draw, 120); });
 
   // listing detail panel → wire the avg / 12-mo / total toggle (migrated from popupopen)
   if (BRMap.onDetailRender) BRMap.onDetailRender((l, root) => {
@@ -201,19 +201,33 @@ BRMap.ready(async () => {
     for (const p of BYCAT[ci]) { if (selYear !== "all" && p[3] !== selYear) continue; out.push(p); } } return out; };
   const removePts = () => { if (ptsLayer) { map.removeLayer(ptsLayer); ptsLayer = null; } };
   const removeHeat = () => { if (heat) { map.removeLayer(heat); heat = null; } };
+  const DOT_CAP = 12000;  // max individual dots painted at once — keeps 150k+ sets responsive
   function draw() {
-    const pts = filtered();
-    currentFiltered = pts;
+    const all = filtered();                     // union of ALL enabled categories (+ year)
+    currentFiltered = [];
     removePts(); removeHeat();
+    // heatmap (optional) uses the FULL enabled set so density stays accurate
     if (showHeat && typeof L.heatLayer === "function") {
-      heat = L.heatLayer(pts.map((p) => [p[0], p[1], 0.7]), { radius: 20, blur: 18, maxZoom: 16, minOpacity: 0.25 }).addTo(map);
+      heat = L.heatLayer(all.map((p) => [p[0], p[1], 0.7]), { radius: 20, blur: 18, maxZoom: 16, minOpacity: 0.25 }).addTo(map);
     }
+    // dots: only those in the current viewport (padded), down-sampled past the cap — so violent
+    // AND non-violent can be shown together without trying to paint 150k+ markers in one frame.
+    const bb = map.getBounds().pad(0.3);
+    const S = bb.getSouth(), N = bb.getNorth(), W = bb.getWest(), E = bb.getEast();
+    const vis = []; for (const p of all) { if (p[0] >= S && p[0] <= N && p[1] >= W && p[1] <= E) vis.push(p); }
+    let drawn = vis;
+    if (vis.length > DOT_CAP) { const step = Math.ceil(vis.length / DOT_CAP); drawn = []; for (let i = 0; i < vis.length; i += step) drawn.push(vis[i]); }
+    currentFiltered = drawn;
     ptsLayer = L.layerGroup();
-    for (const p of pts) {
-      L.circleMarker([p[0], p[1]], { renderer: cv, pane: BRMap.panes.heat, radius: 4, weight: 0.6, color: "#fff", fillColor: CATS[p[2]][2], fillOpacity: 0.85, interactive: false }).addTo(ptsLayer);
+    const r = rZoom();
+    for (const p of drawn) {
+      L.circleMarker([p[0], p[1]], { renderer: cv, pane: BRMap.panes.heat, radius: r, weight: 0.6, color: "#fff", fillColor: CATS[p[2]][2], fillOpacity: 0.85, interactive: false }).addTo(ptsLayer);
     }
     ptsLayer.addTo(map);
-    const c = document.getElementById("crimeCount"); if (c) c.textContent = pts.length.toLocaleString() + " incidents";
+    const c = document.getElementById("crimeCount");
+    if (c) { let txt = all.length.toLocaleString() + " incidents";
+      if (drawn.length < all.length) txt += " · showing " + drawn.length.toLocaleString() + (drawn.length < vis.length ? " sampled" : "") + " in view";
+      c.textContent = txt; }
   }
 
   BRMap.addArea({ id: "crime", label: "Crime incidents",
