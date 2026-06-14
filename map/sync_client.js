@@ -214,8 +214,10 @@
       },
       stopPolling() { if (S.pollTimer) { (env.clearInterval || clearInterval)(S.pollTimer); S.pollTimer = null; } },
 
-      // a newer build is live somewhere -> the page is stale (no-cache footgun guard)
-      staleBuild() { return !!(S.buildId && S.remoteBuild && S.remoteBuild !== S.buildId && S.remoteBuild > S.buildId); },
+      // a newer build is live somewhere -> the page is stale (no-cache footgun guard).
+      // Only trust real date-stamped build ids (YYYY-MM-DD-…); ignore test/manual tags so a stray
+      // tag like "test-build" can never pin the banner open.
+      staleBuild() { const re = /^\d{4}-\d\d-\d\d-/; return !!(S.buildId && S.remoteBuild && re.test(S.buildId) && re.test(S.remoteBuild) && S.remoteBuild > S.buildId); },
       remoteBuild() { return S.remoteBuild; },
 
       // testing / migration helpers
