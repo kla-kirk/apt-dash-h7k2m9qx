@@ -21,6 +21,17 @@ BRMap.ready(() => {
   let status = {}; try { status = JSON.parse(localStorage.getItem(LS)) || {}; } catch (e) {}
   const save = () => { try { localStorage.setItem(LS, JSON.stringify(status)); } catch (e) {} };
 
+  // ---- push accept/reject to the shared Google Sheet so it syncs server-wide (not just this browser) ----
+  const PROXY_URL = "https://script.google.com/macros/s/AKfycbw55gSdiRxyNK2AKoeCLTtcLQhVW2rHBTIk0kInsbY2NMnOUN8QFpfsJM9RMHh4ekfdgA/exec";
+  const _revOf = s => s === "needs" ? "review" : s;   // map vocab -> dashboard/server vocab
+  function pushRev(id, s) {
+    if (!PROXY_URL) return;
+    try {
+      fetch(PROXY_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "syncpatch", id: id, reviewState: _revOf(s), updatedAt: Date.now() }) });
+    } catch (e) {}
+  }
+
   const COL = { accepted: "#1E7A34", needs: "#9A6A00", rejected: "#B23B3B" };
   const lbl = s => s === "accepted" ? "Accepted" : s === "rejected" ? "Rejected" : "To review";
   const isRev = l => !!(l && (l._review || String(l.id).indexOf("nr") === 0));
@@ -50,6 +61,7 @@ BRMap.ready(() => {
   // ---- set status, persist, refresh pins + panel ----
   function setStatus(id, v) {
     status[id] = (status[id] === v ? defFor(id) : v); save();
+    pushRev(id, status[id]);                         // sync to the shared sheet, not just localStorage
     apply();
     if (BRMap._selected && BRMap._selected.id === id) BRMap.refreshDetail();
     ui();
