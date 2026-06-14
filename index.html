@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta name="robots" content="noindex, nofollow"><meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Baton Rouge Listings Database</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -999,13 +998,16 @@ function setReview(id,s){ const l=byId(id); if(!l) return; l.reviewState=s; setS
   if(document.getElementById("detailDrawer").classList.contains("show")&&detailId===id) openDetail(id);
   toast(s==="accepted"?"Moved to Accepted":(s==="review"?"Moved to To review":"Rejected")); }
 function reviewActionCell(l){
-  if(reviewFilter==="accepted") return "";
   if(reviewFilter==="hidden"){ const st=(l.reviewState||"accepted"); const why=whyHidden(l);
     const lbl=st==="review"?"To review":(st.charAt(0).toUpperCase()+st.slice(1));
     return '<td class="racts"><span class="rsbadge '+esc(st)+'">'+lbl+'</span>'
       +(why.length?'<div class="whyhid" title="Filtered out by: '+esc(why.join(", "))+'">filtered: '+esc(why.join(", "))+'</div>':'')+'</td>'; }
-  if(reviewFilter==="review") return '<td class="racts"><button class="acc" onclick="event.stopPropagation();setReview(\''+l.id+'\',\'accepted\')">✓ Accept</button><button class="rej" onclick="event.stopPropagation();setReview(\''+l.id+'\',\'rejected\')">✗ Reject</button></td>';
-  return '<td class="racts"><button class="res" onclick="event.stopPropagation();setReview(\''+l.id+'\',\'review\')">↩ Restore</button></td>';
+  const toReview='<button class="res" onclick="event.stopPropagation();setReview(\''+l.id+'\',\'review\')">↩ To review</button>';
+  const accept='<button class="acc" onclick="event.stopPropagation();setReview(\''+l.id+'\',\'accepted\')">✓ Accept</button>';
+  const reject='<button class="rej" onclick="event.stopPropagation();setReview(\''+l.id+'\',\'rejected\')">✗ Reject</button>';
+  if(reviewFilter==="review") return '<td class="racts">'+accept+reject+'</td>';
+  if(reviewFilter==="accepted") return '<td class="racts">'+toReview+reject+'</td>';
+  return '<td class="racts">'+toReview+accept+'</td>';   // rejected tab → back to review or accept
 }
 function openAddReview(){ arType("rent"); const t=document.getElementById("e_addlinks"); if(t) t.value=""; openModal("addRevScrim"); }
 function arType(t){ arTypeVal=t; document.getElementById("ar_rent").classList.toggle("on",t==="rent"); document.getElementById("ar_sale").classList.toggle("on",t==="sale"); }
@@ -1203,7 +1205,7 @@ function resetFilters(){ FCRIT=BRFilters.clean({}); saveCrit(); renderReviewTabs
 function renderTable(){
   ensureCols(); document.body.classList.toggle("compact",density==="compact");
   const cols=COLS[mode].filter(c=>c.k==="address"||visibleCols.has(c.k));
-  const decHdr=(reviewFilter==="hidden")?'<th>Bin &amp; why</th>':(reviewFilter!=="accepted"?'<th>Decision</th>':'');
+  const decHdr=(reviewFilter==="hidden")?'<th>Bin &amp; why</th>':'<th>Decision</th>';
   document.getElementById("thead").innerHTML="<tr>"+cols.map(c=>{
     const ar=sortKey===c.k?('<span class="ar">'+(sortDir>0?"▲":"▼")+"</span>"):"";
     return '<th onclick="setSort(\''+c.k+'\')">'+c.label+ar+"</th>";
