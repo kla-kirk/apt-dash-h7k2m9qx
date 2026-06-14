@@ -273,6 +273,7 @@ table.cmp td.win{background:var(--salebg)}table.cmp td.win .v{color:var(--accent
   <button class="btn ghost sm" id="densBtn" onclick="toggleDensity()">≡ Comfortable</button>
   <button class="btn ghost sm" onclick="openTourPlanner()">Tour Planner</button>
   <button class="btn ghost sm" id="refreshBtn" onclick="refreshFromSheet()">↻ Refresh from Sheet</button><button class="btn ghost sm" onclick="openTemplateManager()">✉ Templates</button><span id="bkStatus" class="zip" style="margin-left:8px"></span>
+  <button class="btn ghost sm" id="backupBtn" onclick="manualBackup()" title="Save a full snapshot of every listing to your backup Google Sheet right now">☁ Backup now</button>
   <button class="btn ghost sm" onclick="exportCSV()">Export CSV</button>
   <button class="btn" onclick="openEdit(null)">+ Add</button>
  </div>
@@ -651,6 +652,15 @@ function backupToSheet(){
   fetch(PROXY_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)})
     .then(()=>setBkStatus("☁ Backed up "+new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})))
     .catch(()=>setBkStatus("⚠ Backup failed — is the Apps Script deployed?"));
+}
+/* ---- manual backup: same full snapshot, fired on demand from the "☁ Backup now" button ---- */
+function manualBackup(){
+  if(!PROXY_URL){ toast("No backup endpoint is configured"); return; }
+  clearTimeout(_bkTimer);                 // cancel any pending debounced backup so we don't double-send
+  const b=document.getElementById("backupBtn"); if(b){ b.disabled=true; b.textContent="☁ Backing up…"; }
+  backupToSheet();                        // posts the full listings + templates + profile snapshot
+  toast("Backing up all "+listings.length+" listings to the Sheet…");
+  setTimeout(function(){ if(b){ b.disabled=false; b.textContent="☁ Backup now"; } },1500);
 }
 function rows(){ return listings.filter(l=>l.type===mode); }
 function byId(id){ return listings.find(l=>l.id===id); }
