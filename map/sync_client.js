@@ -231,12 +231,15 @@
       // the legacy keys (they remain as a fallback). Returns the number of ops emitted.
       migrateOnce(opts) {
         opts = opts || {};
-        const flag = opts.flagKey || "brsync.migrated.v1";
+        const flag = opts.flagKey || "brsync.migrated.v2";   // v2 forces a one-time clean re-migration
         try { if (store.get(flag) === "1") return 0; } catch (_) { return 0; }
         let listings = [], shared = {};
         try { listings = JSON.parse(store.get(opts.listingsKey || "br_listings_v2")) || []; } catch (_) {}
         try { shared = JSON.parse(store.get(opts.sharedKey || "nr_status_v1")) || {}; } catch (_) {}
-        const built = buildMigrationOps({ listings, sharedStatus: shared, user: S.user });
+        // unique runId so this run's opIds can't collide with a prior migration's (which the server
+        // would drop as duplicates). editTs 2000 beats earlier migration/recovery ops, loses to real clicks.
+        const runId = String(now()) + "-" + Math.floor((env.rand ? env.rand() : Math.random()) * 1e6);
+        const built = buildMigrationOps({ listings, sharedStatus: shared, user: S.user, ts: 2000, runId });
         if (built.ops.length) this.ingestMigrationOps(built.ops);
         try { store.set(flag, "1"); } catch (_) {}
         return built.ops.length;
@@ -297,8 +300,9 @@
     // id-aware: nr… -> "review", vetted r…/s… -> "accepted". An op is emitted only when the saved
     // value DIFFERS from this default — preserving every explicit decision while never inventing one.
     const reviewDefault = id => (String(id).indexOf("nr") === 0) ? "review" : "accepted";
+    const rid = opts.runId ? String(opts.runId) + "-" : "";   // unique-per-run so re-migrations never collide
     const ops = []; let seq = 0;
-    const mk = (id, field, value) => ops.push({ opId: "mig-" + user + "-" + (seq++), editTs: ts, user, listingId: id, field, value });
+    const mk = (id, field, value) => ops.push({ opId: "mig-" + user + "-" + rid + (seq++), editTs: ts, user, listingId: id, field, value });
 
     // 1) nr_status_v1 is the AUTHORITATIVE record of map review decisions (and dashboard accept/reject,
     //    which the old code mirrored here). Capture any entry that differs from the id's default —

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head>
-<meta name="robots" content="noindex, nofollow"><script>window.__BRSYNC_BUILD__="2026-06-14-edb51e8";</script><meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow"><script>window.__BRSYNC_BUILD__="2026-06-14-acc5f3d";</script><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Baton Rouge Listings Database</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1785,14 +1785,15 @@ const BRSyncCore = (function(){ "use strict";
       staleBuild(){ const re=/^\d{4}-\d\d-\d\d-/; return !!(S.buildId&&S.remoteBuild&&re.test(S.buildId)&&re.test(S.remoteBuild)&&S.remoteBuild>S.buildId); }, remoteBuild(){ return S.remoteBuild; },
       _ops(){ return S.ops.slice(); }, _outbox(){ return S.outbox.slice(); },
       ingestMigrationOps(ops){ const n=mergeOps(ops); (ops||[]).forEach(o=>{ if(o&&o.opId&&!S.outbox.includes(o.opId)) S.outbox.push(o.opId); }); persist(); if(n) emit(); return n; },
-      migrateOnce(opts){ opts=opts||{}; const flag=opts.flagKey||"brsync.migrated.v1"; try{ if(store.get(flag)==="1") return 0; }catch(_){ return 0; }
+      migrateOnce(opts){ opts=opts||{}; const flag=opts.flagKey||"brsync.migrated.v2"; try{ if(store.get(flag)==="1") return 0; }catch(_){ return 0; }
         let listings=[],shared={}; try{ listings=JSON.parse(store.get(opts.listingsKey||"br_listings_v2"))||[]; }catch(_){ } try{ shared=JSON.parse(store.get(opts.sharedKey||"nr_status_v1"))||{}; }catch(_){ }
-        const built=buildMigrationOps({listings,sharedStatus:shared,user:S.user}); if(built.ops.length) this.ingestMigrationOps(built.ops); try{ store.set(flag,"1"); }catch(_){ } return built.ops.length; } };
+        const runId=String(now())+"-"+Math.floor((env.rand?env.rand():Math.random())*1e6);
+        const built=buildMigrationOps({listings,sharedStatus:shared,user:S.user,ts:2000,runId}); if(built.ops.length) this.ingestMigrationOps(built.ops); try{ store.set(flag,"1"); }catch(_){ } return built.ops.length; } };
     return self; }
   function buildMigrationOps(opts){ opts=opts||{}; const listings=opts.listings||[]; const shared=opts.sharedStatus||{}; const user=opts.user||"keegan"; const ts=opts.ts||1;
     const fields=opts.fields||["reviewState","jamie","keegan","likes","dislikes","shortlisted","status","furnished","petFees","minLease","contactName","contactCompany","agentEmail","agentPhone","contactUrl","preferredChannel","contactVerified","contactNotes","tour"];
-    const m2d={accepted:"accepted",needs:"review",rejected:"rejected"}; const reviewDefault=id=>(String(id).indexOf("nr")===0)?"review":"accepted"; const ops=[]; let seq=0;
-    const mk=(id,field,value)=>ops.push({opId:"mig-"+user+"-"+(seq++),editTs:ts,user,listingId:id,field,value});
+    const m2d={accepted:"accepted",needs:"review",rejected:"rejected"}; const reviewDefault=id=>(String(id).indexOf("nr")===0)?"review":"accepted"; const rid=opts.runId?String(opts.runId)+"-":""; const ops=[]; let seq=0;
+    const mk=(id,field,value)=>ops.push({opId:"mig-"+user+"-"+rid+(seq++),editTs:ts,user,listingId:id,field,value});
     const fromMap=new Set();
     Object.keys(shared).forEach(id=>{ const rs=m2d[shared[id]]; if(!rs) return; fromMap.add(id); if(rs!==reviewDefault(id)) mk(id,"reviewState",rs); });
     listings.forEach(l=>{ if(!l||l.id==null) return; const id=l.id;
